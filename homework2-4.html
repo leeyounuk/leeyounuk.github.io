@@ -46,59 +46,30 @@
 table {
   width: 100%;
   border-collapse: collapse;
+  background-color: white;
 }
 
 /* 테이블 헤더 스타일 */
 th {
   background-color: white;
-  color: black;
-  padding: 8px;
-  text-align: left;
-  border-bottom: 2px solid white;
-}
-
-/* 일반 셀 스타일 (테두리 없음) */
-td {
-  padding: 8px;
-  text-align: left;
-  border: none;
-}
-
-
-
-/* 첫 번째 행(헤더) 아래만 검은색 선 추가 */
-tr:all-child th {
-  border-bottom: 2px solid black;
-}
-</style>
-  /* 테이블 스타일 */
-table {
-  width: 100%;
-  border-collapse: collapse;
-  background-color: white; /* 배경색 흰색 */
-}
-
-/* 헤더 스타일 */
-th {
-  background-color: black;
   color: white;
   padding: 8px;
   text-align: left;
-  border-bottom: 2px solid black; /* 헤더 아래만 검은 테두리 */
+  border-bottom: 2px solid black;
 }
 
 /* 일반 셀 스타일 */
 td {
   padding: 8px;
   text-align: left;
-  border: none; /* 세로 테두리 제거 */
+  border: none;
 }
 
-/* 행 스타일: 가로선 추가 (맨 위, 맨 아래 제외) */
+/* 행 스타일: 가로 테두리 추가 (맨 위, 맨 아래 제외) */
 tr:not(:first-child):not(:last-child) {
   border-bottom: 1px solid black;
 }
-
+</style>
 </head>
 <body>
 
