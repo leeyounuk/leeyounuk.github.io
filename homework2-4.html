@@ -7,15 +7,20 @@
   box-sizing: border-box;
 }
 
-/* Create two equal columns that floats next to each other */
+/* 왼쪽 제목 스타일 */
+.left-title {
+  color: red; /* 빨간색으로 변경 */
+}
+
+/* 투 칼럼 레이아웃 */
 .column {
   float: left;
   width: 50%;
   padding: 10px;
-  height: 300px; /* Should be removed. Only for demonstration */
+  height: 300px; /* 데모용 높이 */
 }
 
-/* Clear floats after the columns */
+/* Float 정리 */
 .row:after {
   content: "";
   display: table;
@@ -25,16 +30,9 @@
 </head>
 <body>
 
-
-
-
 <div class="row">
   <div class="column" style="background-color:#ffffff;">
-    <h2>Left Title</h2>
-    h1 {
-    color: red;
-    font-size: 36px;
-}
+    <h2 class="left-title">Left Title</h2>
     <p>Some text..</p>
   </div>
   <div class="column" style="background-color:#ffffff;">
