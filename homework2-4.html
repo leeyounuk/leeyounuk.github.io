@@ -71,6 +71,34 @@ tr:all-child th {
   border-bottom: 2px solid black;
 }
 </style>
+  /* 테이블 스타일 */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  background-color: white; /* 배경색 흰색 */
+}
+
+/* 헤더 스타일 */
+th {
+  background-color: black;
+  color: white;
+  padding: 8px;
+  text-align: left;
+  border-bottom: 2px solid black; /* 헤더 아래만 검은 테두리 */
+}
+
+/* 일반 셀 스타일 */
+td {
+  padding: 8px;
+  text-align: left;
+  border: none; /* 세로 테두리 제거 */
+}
+
+/* 행 스타일: 가로선 추가 (맨 위, 맨 아래 제외) */
+tr:not(:first-child):not(:last-child) {
+  border-bottom: 1px solid black;
+}
+
 </head>
 <body>
 
