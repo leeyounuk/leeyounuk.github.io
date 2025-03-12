@@ -1,4 +1,3 @@
 # leeyounuk.github.io
-글
-![Alt text](/path/to/img.jpg)
-![Alt text](/path/to/img.jpg "Optional title")
+
+[**homework2-1**](https://github.io/leeyounuk/homework2-1.html)
