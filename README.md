@@ -6,7 +6,7 @@
 p {
   border: 2px solid powderblue;
   padding: 30px;
-  }
+}
 </style>
 </head>
 <body>
