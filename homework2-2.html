@@ -13,20 +13,13 @@ td, th {
   text-align: left;
   padding: 8px;
 }
-th {
-    background-color: black;
-    color: white; /* 글자색을 흰색으로 설정 */
-    border: 1px solid white; /* 헤더 행의 테두리를 흰색으로 변경 */
-}
-tr:nth-child(even) {
+th {	
+    border: 1px solid white;
+    }
+
+tr:nth-child(odd) {
   background-color: #dddddd;
 }
-tr:nth-child(1) {
-            border: 1px solid white; /* 특정 행(Asia)의 테두리 변경 */
-</style>
-</style>
-</style>
-</style>
 </style>
 </head>
 <body>
@@ -34,7 +27,7 @@ tr:nth-child(1) {
 <h2>HTML Table</h2>
 
 <table>
-  <tr>
+  <tr style="background-color:black;color:white;">
     <th>Company</th>
     <th>Contact</th>
     <th>Country</th>
