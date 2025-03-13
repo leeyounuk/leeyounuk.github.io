@@ -1,6 +1,10 @@
 # leeyounuk.github.io
 
-
+<style>
+p {
+  border: 2px solid powderblue;
+  padding: 30px;  
+</style>
 [**homework2-1**](https://leeyounuk.github.io/homework2-1.html) 
 
 [**homework2-2**](https://leeyounuk.github.io/homework2-2.html)
