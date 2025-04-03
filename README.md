@@ -10,7 +10,6 @@ https://github.com/academicpages/academicpages.github.io.git
 
 🪓[**homework2-4**](https://leeyounuk.github.io/homework2-4.html)
 
-[**homework3-1**](https://leeyounuk.github.io/homework3-1.php)
 
 [**css_demo](https://leeyounuk.github.io/css_demo.html)
 
