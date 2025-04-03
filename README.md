@@ -9,7 +9,7 @@ https://github.com/academicpages/academicpages.github.io.git
 🥇[**homework2-3**](https://leeyounuk.github.io/homework2-3.html)
 
 🪓[**homework2-4**](https://leeyounuk.github.io/homework2-4.html)
-
+[**homework3-1**]<img src="스크린샷 2025-04-03 121902.png">
 
 [**css_demo](https://leeyounuk.github.io/css_demo.html)
 
