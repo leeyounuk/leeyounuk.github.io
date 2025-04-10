@@ -10,8 +10,6 @@ https://github.com/academicpages/academicpages.github.io.git
 
 [**homework2-4**](https://leeyounuk.github.io/homework2-4.html)
 
-homework3-4
-
 [**css_demo](https://leeyounuk.github.io/css_demo.html)
 
 20240815 이연욱
