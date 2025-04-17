@@ -20,6 +20,6 @@ https://github.com/academicpages/academicpages.github.io.git
 
 [**homework3-4**](https://github.com/leeyounuk/leeyounuk.github.io/blob/main/%EC%8A%A4%ED%81%AC%EB%A6%B0%EC%83%B7%202025-04-13%20221605.png?raw=true)
 
-[**homework3-5**](C:\wamp64\www\w3images)
+[**homework3-5**](https://raw.githubusercontent.com/leeyounuk/leeyounuk.github.io/refs/heads/main/aaaa.png)
 
 20240815 이연욱
