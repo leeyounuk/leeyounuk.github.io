@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PHP 함수 퀴즈</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      margin: 0;
+      padding: 0;
+      background: #f8f9fa;
+      color: #333;
+    }
+    .container {
+      max-width: 800px;
+      margin: auto;
+      padding: 20px;
+    }
+    .question {
+      background: #fff;
+      padding: 20px;
+      margin-bottom: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    }
+    .question h3 {
+      margin-top: 0;
+    }
+    .options label {
+      display: block;
+      margin-bottom: 10px;
+      cursor: pointer;
+    }
+    button {
+      background: #007bff;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 5px;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+    button:hover {
+      background: #0056b3;
+    }
+    .correct {
+      color: green;
+      font-weight: bold;
+    }
+    .wrong {
+      color: red;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>PHP 함수 간단 퀴즈</h1>
+    <div id="quiz"></div>
+  </div>
+
+  <script>
+    const quizData = [
+      {
+        func: "addslashes()",
+        question: "이 함수는 어떤 문자를 이스케이프 처리하나요?",
+        options: ["공백 문자", "작은따옴표, 큰따옴표, 백슬래시 등", "숫자", "태그"],
+        answer: 1
+      },
+      {
+        func: "stripslashes()",
+        question: "어떤 처리를 제거하나요?",
+        options: ["줄바꿈", "공백", "이스케이프 문자", "태그"],
+        answer: 2
+      },
+      {
+        func: "htmlspecialchars()",
+        question: "이 함수는 어떤 것을 변환하나요?",
+        options: ["CSS", "특수문자를 HTML 엔티티로", "URL", "이미지 경로"],
+        answer: 1
+      },
+      // 나머지 문제들도 여기에 추가...
+    ];
+
+    const quizContainer = document.getElementById('quiz');
+
+    quizData.forEach((item, index) => {
+      const qDiv = document.createElement('div');
+      qDiv.className = 'question';
+
+      const qTitle = document.createElement('h3');
+      qTitle.textContent = `${index + 1}. [${item.func}] ${item.question}`;
+      qDiv.appendChild(qTitle);
+
+      const form = document.createElement('form');
+      form.className = 'options';
+
+      item.options.forEach((opt, i) => {
+        const label = document.createElement('label');
+        const input = document.createElement('input');
+        input.type = 'radio';
+        input.name = `q${index}`;
+        input.value = i;
+        label.appendChild(input);
+        label.append(` ${opt}`);
+        form.appendChild(label);
+      });
+
+      const btn = document.createElement('button');
+      btn.textContent = '정답 확인';
+      btn.type = 'button';
+
+      const result = document.createElement('div');
+
+      btn.onclick = () => {
+        const selected = form.querySelector('input:checked');
+        if (!selected) return alert('정답을 선택해주세요!');
+        const correct = parseInt(selected.value) === item.answer;
+        result.textContent = correct ? '정답입니다! 🎉' : `틀렸습니다. 정답: ${item.options[item.answer]}`;
+        result.className = correct ? 'correct' : 'wrong';
+      };
+
+      qDiv.appendChild(form);
+      qDiv.appendChild(btn);
+      qDiv.appendChild(result);
+      quizContainer.appendChild(qDiv);
+    });
+  </script>
+</body>
+</html>
