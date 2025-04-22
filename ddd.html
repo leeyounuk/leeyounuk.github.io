@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>PHP 함수 퀴즈</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      max-width: 800px;
+      margin: auto;
+      padding: 20px;
+      line-height: 1.6;
+    }
+    fieldset {
+      margin-bottom: 15px;
+      padding: 10px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+    }
+    legend {
+      font-weight: bold;
+    }
+    .result {
+      margin-top: 20px;
+      font-size: 1.2em;
+    }
+    .correct {
+      color: green;
+    }
+    .wrong {
+      color: red;
+    }
+    .summary {
+      border-top: 1px solid #ccc;
+      margin-top: 20px;
+      padding-top: 10px;
+    }
+    button {
+      padding: 10px 20px;
+      font-size: 16px;
+      margin-top: 10px;
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <h1>PHP 함수 퀴즈</h1>
+  <form id="quizForm">
+    <!-- JavaScript가 문제를 자동으로 렌더링 -->
+  </form>
+  <div class="result" id="result"></div>
+
+  <script>
+    const questions = [
+      // 문제 형식: [질문, 보기 배열, 정답 인덱스]
+      // 문제 1~30: 기본 문제
+      ["addslashes() 함수는 어떤 문자를 이스케이프 처리하나요?", ["공백 문자", "작은따옴표, 큰따옴표, 백슬래시 등", "숫자", "태그"], 1],
+      ["stripslashes() 함수는 어떤 처리를 제거하나요?", ["줄바꿈", "공백", "이스케이프 문자", "태그"], 2],
+      ["htmlspecialchars() 함수는 어떤 것을 변환하나요?", ["CSS", "특수문자를 HTML 엔티티로", "URL", "이미지 경로"], 1],
+      ["줄바꿈 문자를 HTML에서 보이게 하려면 어떤 함수인가요?", ["str_replace()", "nl2br()", "explode()", "print()"], 1],
+      ["echo의 주요 용도는?", ["변수 선언", "암호화", "값 출력", "조건문 처리"], 2],
+      ["print는 어떤 역할을 하나요?", ["배열을 초기화", "값을 출력", "파일 생성", "루프 반복"], 1],
+      ["sprintf() 함수는 무엇을 반환하나요?", ["숫자", "문자열 출력", "포맷된 문자열", "배열"], 2],
+      ["printf() 함수는 어떤 차이가 있나요?", ["값을 반환하지 않고 출력함", "배열을 만든다", "정렬한다", "HTML로 변환"], 0],
+      ["explode() 함수는 문자열을 어떻게 처리하나요?", ["연결", "나눔 → 배열 반환", "대문자로 변환", "암호화"], 1],
+      ["implode() 함수의 기능은?", ["문자열을 쪼갠다", "배열을 문자열로 합침", "문자열을 암호화", "HTML 제거"], 1],
+      ["split() 함수는 무엇을 기준으로 문자열을 나누나요?", ["정규 표현식", "숫자", "고정 길이", "태그"], 0],
+      ["strcmp() 함수는 무엇을 비교하나요?", ["정수", "문자열", "배열", "날짜"], 1],
+      ["substr() 함수는 어떤 기능을 하나요?", ["문자열 자르기", "문자열 붙이기", "문자열 교체", "배열 만들기"], 0],
+      ["strstr() 함수는 어떤 문자열에서 특정 문자열 이후를 반환하나요?", ["끝에서", "중간에서", "처음 발견된 위치부터", "무작위"], 2],
+      ["stristr() 함수는 어떤 차이가 있나요?", ["대소문자를 구분하지 않음", "문자열을 뒤집음", "배열을 반환함", "날짜를 포함함"], 0],
+      ["strrchr() 함수는 어떤 값을 기준으로 마지막 위치 이후의 문자열을 반환하나요?", ["공백", "특정 문자", "배열", "정수"], 1],
+      ["strpos() 함수는 특정 문자열이 어디에서 처음 나오는지 무엇으로 반환하나요?", ["문자열", "정수 위치", "배열", "없음"], 1],
+      ["strtolower() 함수는 무슨 역할을 하나요?", ["대문자 → 소문자", "숫자 제거", "배열화", "공백 제거"], 0],
+      ["strtoupper() 함수는 어떤 변환을 하나요?", ["공백 삽입", "문자열 반전", "소문자 → 대문자", "HTML 인코딩"], 2],
+      ["ucfirst() 함수는 어떤 문자를 대문자로 바꾸나요?", ["전체", "마지막 문자", "첫 문자", "모든 모음"], 2],
+      ["ucwords() 함수는 문자열의 어떤 부분을 대문자로 하나요?", ["첫 글자만", "각 단어의 첫 글자", "마지막 글자", "모든 자음"], 1],
+      ["strrev() 함수의 기능은?", ["문자열 뒤집기", "문자열 정렬", "배열 변환", "삭제"], 0],
+      ["strtr() 함수는 어떤 역할을 하나요?", ["문자열 복사", "문자 하나하나를 치환", "암호화", "배열화"], 1],
+      ["str_replace() 함수는 어떤 기능을 하나요?", ["문자열 대체", "문자열 반전", "HTML 제거", "문자열 정렬"], 0],
+      ["chop() 함수는 어떤 처리를 하나요?", ["앞 공백 제거", "뒷 공백 제거", "모든 공백 제거", "특수 문자 제거"], 1],
+      ["trim() 함수는 어떤 처리를 하나요?", ["모든 공백 제거", "양쪽 끝 공백 제거", "중복 문자 제거", "문자열 역순"], 1],
+      ["ord() 함수는 어떤 값을 반환하나요?", ["문자", "문자열", "문자의 ASCII 코드", "날짜"], 2],
+      ["chr() 함수는 어떤 값을 받아 문자로 바꾸나요?", ["문자열", "정수(ASCII 코드)", "배열", "날짜"], 1],
+      ["strip_tags() 함수는 어떤 작업을 하나요?", ["HTML 태그를 제거", "문자열 치환", "공백 삽입", "대소문자 변환"], 0],
+
+      // 설명을 듣고 함수명 고르기 (문제 31~40)
+      ["문자열에서 HTML 태그를 제거합니다. 어떤 함수일까요?", ["strip_tags", "htmlspecialchars", "strtolower", "explode"], 0],
+      ["대소문자를 구분하지 않고 문자열을 검색하는 함수는?", ["strrchr", "stristr", "strpos", "substr"], 1],
+      ["문자열을 HTML에서 보이도록 줄바꿈 태그를 삽입합니다. 어떤 함수인가요?", ["nl2br", "print", "strtr", "addslashes"], 0],
+      ["정해진 형식으로 문자열을 만들되, 출력하지 않고 반환합니다.", ["printf", "explode", "sprintf", "chop"], 2],
+      ["배열을 문자열로 합치는 함수는?", ["implode", "explode", "substr", "print"], 0],
+      ["특정 문자를 기준으로 마지막 위치 이후를 반환하는 함수는?", ["strstr", "strrchr", "strtr", "chr"], 1],
+      ["문자열의 각 단어 첫 글자를 대문자로 변환합니다.", ["ucwords", "strtolower", "ucfirst", "strtoupper"], 0],
+      ["소문자를 모두 대문자로 변환하는 함수는?", ["strtolower", "strtoupper", "ucfirst", "ord"], 1],
+      ["문자열을 반대로 뒤집는 함수는?", ["strrev", "strtr", "strstr", "str_replace"], 0],
+      ["문자열 내 문자 하나하나를 다른 문자로 치환합니다.", ["strtr", "substr", "chop", "implode"], 0],
+    ];
+
+    function renderQuiz() {
+      const form = document.getElementById('quizForm');
+      questions.forEach((q, idx) => {
+        const fieldset = document.createElement('fieldset');
+        const legend = document.createElement('legend');
+        legend.innerHTML = `<strong>Q${idx + 1}</strong> ${q[0]}`;
+        fieldset.appendChild(legend);
+
+        q[1].forEach((option, optIdx) => {
+          const label = document.createElement('label');
+          const input = document.createElement('input');
+          input.type = 'radio';
+          input.name = `q${idx}`;
+          input.value = optIdx;
+          input.required = true;
+          label.appendChild(input);
+          label.innerHTML += ' ' + option;
+          fieldset.appendChild(label);
+          fieldset.appendChild(document.createElement('br'));
+        });
+
+        form.appendChild(fieldset);
+      });
+
+      const submit = document.createElement('button');
+      submit.type = 'submit';
+      submit.textContent = '제출하기';
+      form.appendChild(submit);
+
+      form.addEventListener('submit', function (e) {
+        e.preventDefault();
+        let score = 0;
+        let output = "";
+        questions.forEach((q, idx) => {
+          const selected = form[`q${idx}`].value;
+          const correct = q[2];
+          const isCorrect = parseInt(selected) === correct;
+          output += `<div><strong>Q${idx + 1}</strong>: ${isCorrect ? '<span class="correct">정답</span>' : '<span class="wrong">오답</span>'} - ${q[1][correct]}</div>`;
+          if (isCorrect) score++;
+        });
+
+        output += `<div class="summary"><strong>총점:</strong> ${score} / ${questions.length}</div>`;
+        document.getElementById('result').innerHTML = output;
+        window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+      });
+    }
+
+    renderQuiz();
+  </script>
+</body>
+</html>
