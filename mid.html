@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>PHP 함수 퀴즈</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      max-width: 700px;
+      margin: auto;
+      padding: 20px;
+      line-height: 1.6;
+    }
+    fieldset {
+      margin-bottom: 15px;
+      border: 1px solid #ccc;
+      padding: 10px;
+      border-radius: 8px;
+    }
+    legend {
+      font-weight: bold;
+    }
+    input[type="submit"] {
+      padding: 10px 20px;
+      font-size: 16px;
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    .correct { color: green; }
+    .wrong { color: red; }
+  </style>
+</head>
+<body>
+  <h1>PHP 함수 객관식 퀴즈</h1>
+  <form id="quizForm">
+    <!-- 퀴즈 문제 영역 -->
+  </form>
+
+  <div id="result"></div>
+
+  <script>
+    const questions = [
+      {
+        question: "문자열에서 HTML 태그를 제거하려면 어떤 함수를 사용해야 하나요?",
+        options: ["htmlspecialchars()", "strip_tags()", "addslashes()", "nl2br()"],
+        answer: 1
+      },
+      {
+        question: "문자열을 특정 구분자로 나누어 배열로 만들고 싶을 때 사용하는 함수는?",
+        options: ["implode()", "explode()", "join()", "strrev()"],
+        answer: 1
+      },
+      {
+        question: "배열을 문자열로 다시 합치고 싶을 때 사용하는 함수는?",
+        options: ["implode()", "explode()", "str_split()", "strcat()"],
+        answer: 0
+      },
+      {
+        question: "소문자를 대문자로 바꾸고 싶을 때 사용하는 함수는?",
+        options: ["strtolower()", "ucwords()", "strtoupper()", "substr()"],
+        answer: 2
+      },
+      {
+        question: "문자열을 포맷에 맞게 출력하기 위해 사용하는 함수는?",
+        options: ["sprintf()", "implode()", "explode()", "substr()"],
+        answer: 0
+      }
+    ];
+
+    const form = document.getElementById("quizForm");
+
+    // 문제 생성
+    questions.forEach((q, i) => {
+      const fieldset = document.createElement("fieldset");
+      const legend = document.createElement("legend");
+      legend.innerHTML = `Q${i + 1}. ${q.question}`;
+      fieldset.appendChild(legend);
+
+      q.options.forEach((opt, j) => {
+        const label = document.createElement("label");
+        label.innerHTML = `<input type="radio" name="q${i}" value="${j}"> ${opt}<br>`;
+        fieldset.appendChild(label);
+      });
+
+      form.appendChild(fieldset);
+    });
+
+    const submitBtn = document.createElement("input");
+    submitBtn.type = "submit";
+    submitBtn.value = "제출하기";
+    form.appendChild(submitBtn);
+
+    form.addEventListener("submit", function (e) {
+      e.preventDefault();
+      let score = 0;
+      let output = "<h2>퀴즈 결과</h2>";
+      questions.forEach((q, i) => {
+        const userAns = form[`q${i}`].value;
+        const isCorrect = parseInt(userAns) === q.answer;
+        if (isCorrect) score++;
+
+        output += `
+          <div>
+            <strong>Q${i + 1}:</strong> ${q.question}<br>
+            당신의 답변: ${q.options[userAns] || "선택 안함"}<br>
+            <span class="${isCorrect ? 'correct' : 'wrong'}">
+              ${isCorrect ? '정답입니다!' : `오답입니다. 정답은 ${q.options[q.answer]}`}
+            </span>
+          </div><br>
+       
