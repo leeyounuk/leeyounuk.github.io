@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>PHP 함수 퀴즈</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      max-width: 800px;
+      margin: auto;
+      padding: 20px;
+      line-height: 1.6;
+    }
+    fieldset {
+      margin-bottom: 15px;
+      border: 1px solid #ccc;
+      padding: 10px;
+      border-radius: 8px;
+    }
+    legend {
+      font-weight: bold;
+    }
+    input[type="submit"], button {
+      padding: 10px 20px;
+      font-size: 16px;
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+    .correct { color: green; }
+    .wrong { color: red; }
+  </style>
+</head>
+<body>
+  <h1>PHP 함수 객관식 퀴즈</h1>
+  <form id="quizForm"></form>
+  <div id="result"></div>
+
+  <script>
+    const questions = [
+      {
+        question: "addslashes() 함수는 어떤 문자를 이스케이프 처리하나요?",
+        options: ["공백 문자", "작은따옴표, 큰따옴표, 백슬래시 등", "숫자", "태그"],
+        answer: 1
+      },
+      {
+        question: "stripslashes() 함수는 어떤 처리를 제거하나요?",
+        options: ["줄바꿈", "공백", "이스케이프 문자", "태그"],
+        answer: 2
+      },
+      {
+        question: "htmlspecialchars() 함수는 어떤 것을 변환하나요?",
+        options: ["CSS", "특수문자를 HTML 엔티티로", "URL", "이미지 경로"],
+        answer: 1
+      },
+      {
+        question: "nl2br() 함수의 역할은?",
+        options: ["str_replace()", "nl2br()", "explode()", "print()"],
+        answer: 1
+      },
+      {
+        question: "echo의 주요 용도는?",
+        options: ["변수 선언", "암호화", "값 출력", "조건문 처리"],
+        answer: 2
+      },
+      {
+        question: "print는 어떤 역할을 하나요?",
+        options: ["배열을 초기화", "값을 출력", "파일 생성", "루프 반복"],
+        answer: 1
+      },
+      {
+        question: "sprintf() 함수는 무엇을 반환하나요?",
+        options: ["숫자", "문자열 출력", "포맷된 문자열", "배열"],
+        answer: 2
+      },
+      {
+        question: "printf()는 어떤 차이가 있나요?",
+        options: ["값을 반환하지 않고 출력함", "배열을 만든다", "정렬한다", "HTML로 변환"],
+        answer: 0
+      },
+      {
+        question: "explode() 함수는 문자열을 어떻게 처리하나요?",
+        options: ["연결", "나눔 → 배열 반환", "대문자로 변환", "암호화"],
+        answer: 1
+      },
+      {
+        question: "implode() 함수의 기능은?",
+        options: ["문자열을 쪼갠다", "배열을 문자열로 합침", "문자열을 암호화", "HTML 제거"],
+        answer: 1
+      },
+      {
+        question: "특정 문자를 기준으로 문자열을 나누는 함수는?",
+        options: ["정규 표현식으로 나누는 split()", "숫자", "고정 길이", "태그"],
+        answer: 0
+      },
+      {
+        question: "문자열을 비교할 때 사용하는 함수는?",
+        options: ["정수", "문자열", "배열", "날짜"],
+        answer: 1
+      },
+      {
+        question: "문자열의 일부만 자르려면 어떤 함수를 써야 하나요?",
+        options: ["문자열 자르기", "문자열 붙이기", "문자열 교체", "배열 만들기"],
+        answer: 0
+      },
+      {
+        question: "문자열 안에서 특정 문자열이 처음 발견된 위치부터 반환하는 함수는?",
+        options: ["끝에서", "중간에서", "처음 발견된 위치부터", "무작위"],
+        answer: 2
+      },
+      {
+        question: "대소문자를 구분하지 않고 strstr()과 유사한 기능을 하는 함수는?",
+        options: ["대소문자를 구분하지 않음", "문자열을 뒤집음", "배열을 반환함", "날짜를 포함함"],
+        answer: 0
+      },
+      {
+        question: "마지막에 등장하는 특정 문자 이후의 문자열을 얻는 함수는?",
+        options: ["공백", "특정 문자", "배열", "정수"],
+        answer: 1
+      },
+      {
+        question: "문자열에서 특정 문자가 처음 나오는 위치를 찾는 함수는?",
+        options: ["문자열", "정수 위치", "배열", "없음"],
+        answer: 1
+      },
+      {
+        question: "모든 문자를 소문자로 바꾸는 함수는?",
+        options: ["대문자 → 소문자", "숫자 제거", "배열화", "공백 제거"],
+        answer: 0
+      },
+      {
+        question: "모든 문자를 대문자로 바꾸는 함수는?",
+        options: ["공백 삽입", "문자열 반전", "소문자 → 대문자", "HTML 인코딩"],
+        answer: 2
+      },
+      {
+        question: "첫 글자만 대문자로 바꾸는 함수는?",
+        options: ["전체", "마지막 문자", "첫 문자", "모든 모음"],
+        answer: 2
+      },
+      {
+        question: "각 단어의 첫 글자를 대문자로 바꾸는 함수는?",
+        options: ["첫 글자만", "각 단어의 첫 글자", "마지막 글자", "모든 자음"],
+        answer: 1
+      },
+      {
+        question: "문자열을 거꾸로 뒤집는 함수는?",
+        options: ["문자열 뒤집기", "문자열 정렬", "배열 변환", "삭제"],
+        answer: 0
+      },
+      {
+        question: "문자 하나하나를 치환하는 함수는?",
+        options: ["문자열 복사", "문자 하나하나를 치환", "암호화", "배열화"],
+        answer: 1
+      },
+      {
+        question: "문자열 일부를 다른 문자열로 대체하려면 어떤 함수를 써야 하나요?",
+        options: ["문자열 대체", "문자열 반전", "HTML 제거", "문자열 정렬"],
+        answer: 0
+      },
+      {
+        question: "문자열 뒤의 공백을 제거하는 함수는?",
+        options: ["앞 공백 제거", "뒷 공백 제거", "모든 공백 제거", "특수 문자 제거"],
+        answer: 1
+      },
+      {
+        question: "문자열 양쪽 끝의 공백을 제거하려면?",
+        options: ["모든 공백 제거", "양쪽 끝 공백 제거", "중복 문자 제거", "문자열 역순"],
+        answer: 1
+      },
+      {
+        question: "문자의 ASCII 값을 알고 싶을 때 사용하는 함수는?",
+        options: ["문자", "문자열", "문자의 ASCII 코드", "날짜"],
+        answer: 2
+      },
+      {
+        question: "정수(ASCII 코드)를 받아 문자로 바꾸는 함수는?",
+        options: ["문자열", "정수(ASCII 코드)", "배열", "날짜"],
+        answer: 1
+      },
+      {
+        question: "HTML 태그를 제거하는 함수는?",
+        options: ["HTML 태그를 제거", "문자열 치환", "공백 삽입", "대소문자 변환"],
+        answer: 0
+      },
+      {
+        question: "다음 설명에 해당하는 함수를 고르세요: '문자열을 특정 구분자로 나누어 배열로 만듭니다.'",
+        options: ["implode()", "explode()", "nl2br()", "trim()"],
+        answer: 1
+      },
+      {
+        question: "다음 설명에 해당하는 함수를 고르세요: '문자열을 배열로 쪼갠 후 다시 연결합니다.'",
+        options: ["implode()", "explode()", "htmlspecialchars()", "ord()"],
+        answer: 0
+      }
+    ];
+
+    const form = document.getElementById("quizForm");
+
+    questions.forEach((q, i) => {
+      const fieldset = document.createElement("fieldset");
+      const legend = document.createElement("legend");
+      legend.innerHTML = `Q${i + 1}. ${q.question}`;
+      fieldset.appendChild(legend);
+
+      q.options.forEach((opt, j) => {
+        const label = document.createElement("label");
+        label.innerHTML = `<input type="radio" name="q${i}" value="${j}"> ${opt}<br>`;
+        fieldset.appendChild(label);
+      });
+
+      form.appendChild(fieldset);
+    });
+
+    const submitBtn = document.createElement("input");
+    submitBtn.type = "submit";
+    submitBtn.value = "제출하기";
+    form.appendChild(submitBtn);
+
+    form.addEventListener("submit", function (e) {
+      e.preventDefault();
+      let score = 0;
+      let output = "<h2>퀴즈 결과</h2>";
+
+      questions.forEach((q, i) => {
+        const userInput = form[`q${i}`];
+        const userAns = userInput.value;
+        const isCorrect = parseInt(userAns) === q.answer;
+        if (isCorrect) score++;
+
+        output += `
+          <div>
+            <strong>Q${i + 1}:</strong> ${q.question}<br>
+            당신의 답변: ${q.options[userAns] || "선택 안함"}<br>
+            <span class="${isCorrect ? 'correct' : 'wrong'}">
+              ${isCorrect ? '정답입니다!' : `오답입니다. 정답은 ${q.options[q.answer]}`}
+            </span>
+          </div><br>
+        `;
+      });
+
+      output += `<h3>총점: ${score} / ${questions.length}</h3>`;
+      output += `<button onclick="location.reload()">다시 풀기</button>`;
+
+      document.getElementById("result").innerHTML = output;
+      form.style.display = "none";
+    });
+  </script>
+</body>
+</html>
