@@ -81,35 +81,67 @@
       ["strip_tags", ["HTML 태그 제거", "문자열 인코딩", "문자열 정렬", "문자열 합치기"], 0],
     ];
 
-    let current = 0;
-    let score = 0;
+  let current = 0;
+  let score = 0;
+  const userAnswers = [];
 
-    function showQuestion() {
-      const q = questions[current];
-      const container = document.getElementById("quiz");
-      container.innerHTML = `
-        <div class="question">
-          <h3>문제 ${current + 1}. ${q[0]}</h3>
-          <div class="choices">
-            ${q[1].map((choice, i) => `<button onclick="checkAnswer(${i})">${choice}</button>`).join("")}
-          </div>
+  function showQuestion() {
+    const q = questions[current];
+    const container = document.getElementById("quiz");
+    container.innerHTML = `
+      <div class="question">
+        <h3>문제 ${current + 1}. ${q[0]}</h3>
+        <div class="choices">
+          ${q[1].map((choice, i) => `<button onclick="checkAnswer(${i})">${choice}</button>`).join("")}
         </div>
-      `;
-    }
+      </div>
+    `;
+  }
 
-    function checkAnswer(choice) {
-      if (choice === questions[current][2]) score++;
-      current++;
-      if (current < questions.length) {
-        showQuestion();
-      } else {
-        document.getElementById("quiz").innerHTML = "";
-        document.getElementById("result").innerText = `퀴즈 완료! 점수: ${score} / ${questions.length}`;
-      }
+  function checkAnswer(choice) {
+    const correct = questions[current][2];
+    userAnswers.push({
+      question: questions[current][0],
+      choices: questions[current][1],
+      correct: correct,
+      selected: choice
+    });
+    if (choice === correct) score++;
+    current++;
+    if (current < questions.length) {
+      showQuestion();
+    } else {
+      showResults();
     }
+  }
 
-    showQuestion();
-  </script>
+  function showResults() {
+    const container = document.getElementById("quiz");
+    const result = document.getElementById("result");
+    container.innerHTML = "";
+
+    result.innerHTML = `<p>퀴즈 완료! 점수: ${score} / ${questions.length}</p>`;
+
+    const wrongAnswers = userAnswers.filter(a => a.selected !== a.correct);
+    if (wrongAnswers.length > 0) {
+      const wrongHtml = wrongAnswers.map((a, index) => {
+        return `
+          <div style="margin-top: 1rem;">
+            <strong>오답 ${index + 1}.</strong> ${a.question}<br />
+            ✅ 정답: <strong>${a.choices[a.correct]}</strong><br />
+            ❌ 선택한 답: <span style="color:red;">${a.choices[a.selected]}</span>
+          </div>
+        `;
+      }).join("");
+      result.innerHTML += `<h3>오답 복습</h3>${wrongHtml}`;
+    } else {
+      result.innerHTML += `<p>🎉 모든 문제를 맞히셨습니다!</p>`;
+    }
+  }
+
+  showQuestion();
+</script>
+
 </body>
 </html>
 
