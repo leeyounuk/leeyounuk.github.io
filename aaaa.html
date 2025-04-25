@@ -1,142 +1,131 @@
 <!DOCTYPE html>
-<html lang="ko">
+<html lang="ja">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>PHP 함수 퀴즈</title>
+  <meta charset="UTF-8" />
+  <title>형용사 퀴즈</title>
   <style>
-    body {
-      font-family: 'Segoe UI', sans-serif;
-      margin: 0;
-      padding: 0;
-      background: #f8f9fa;
-      color: #333;
-    }
-    .container {
-      max-width: 800px;
-      margin: auto;
-      padding: 20px;
-    }
-    .question {
-      background: #fff;
-      padding: 20px;
-      margin-bottom: 20px;
-      border-radius: 8px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-    }
-    .question h3 {
-      margin-top: 0;
-    }
-    .options label {
-      display: block;
-      margin-bottom: 10px;
-      cursor: pointer;
-    }
-    button {
-      background: #007bff;
-      color: white;
-      border: none;
-      padding: 10px 20px;
-      border-radius: 5px;
-      cursor: pointer;
-      margin-top: 10px;
-    }
-    button:hover {
-      background: #0056b3;
-    }
-    .correct {
-      color: green;
-      font-weight: bold;
-    }
-    .wrong {
-      color: red;
-      font-weight: bold;
-    }
+    body { font-family: sans-serif; max-width: 600px; margin: auto; padding: 1em; }
+    .question { font-weight: bold; margin-top: 20px; }
+    .choices label { display: block; margin: 5px 0; }
+    .result { font-weight: bold; margin-top: 10px; }
   </style>
 </head>
 <body>
-  <div class="container">
-    <h1>PHP 함수 간단 퀴즈</h1>
-    <div id="quiz"></div>
-  </div>
+  <h1>일본어 な형용사・い형용사 퀴즈</h1>
+  <div id="quizContainer"></div>
+  <button onclick="generateQuiz()">다음 문제</button>
+  <div id="result" class="result"></div>
 
   <script>
-    const quizData = [
-      {func: "addslashes()", question: "이 함수는 어떤 문자를 이스케이프 처리하나요?", options: ["공백 문자", "작은따옴표, 큰따옴표, 백슬래시 등", "숫자", "태그"], answer: 1},
-      {func: "stripslashes()", question: "어떤 처리를 제거하나요?", options: ["줄바꿈", "공백", "이스케이프 문자", "태그"], answer: 2},
-      {func: "htmlspecialchars()", question: "이 함수는 어떤 것을 변환하나요?", options: ["CSS", "특수문자를 HTML 엔티티로", "URL", "이미지 경로"], answer: 1},
-      {func: "nl2br()", question: "줄바꿈 문자를 HTML에서 보이게 하려면 어떤 함수?", options: ["str_replace()", "nl2br()", "explode()", "print()"], answer: 1},
-      {func: "echo", question: "echo의 주요 용도는?", options: ["변수 선언", "암호화", "값 출력", "조건문 처리"], answer: 2},
-      {func: "print", question: "print는 어떤 역할을 하나요?", options: ["배열을 초기화", "값을 출력", "파일 생성", "루프 반복"], answer: 1},
-      {func: "sprintf()", question: "이 함수는 무엇을 반환하나요?", options: ["숫자", "문자열 출력", "포맷된 문자열", "배열"], answer: 2},
-      {func: "printf()", question: "printf()는 어떤 차이가 있나요?", options: ["값을 반환하지 않고 출력함", "배열을 만든다", "정렬한다", "HTML로 변환"], answer: 0},
-      {func: "explode()", question: "이 함수는 문자열을 어떻게 처리하나요?", options: ["연결", "나눔 → 배열 반환", "대문자로 변환", "암호화"], answer: 1},
-      {func: "implode()", question: "implode() 함수의 기능은?", options: ["문자열을 쪼갠다", "배열을 문자열로 합침", "문자열을 암호화", "HTML 제거"], answer: 1},
-      {func: "split()", question: "split() 함수는 무엇을 기준으로 문자열을 나누나요?", options: ["정규 표현식", "숫자", "고정 길이", "태그"], answer: 0},
-      {func: "strcmp()", question: "이 함수는 무엇을 비교하나요?", options: ["정수", "문자열", "배열", "날짜"], answer: 1},
-      {func: "substr()", question: "substr() 함수는 어떤 기능을 하나요?", options: ["문자열 자르기", "문자열 붙이기", "문자열 교체", "배열 만들기"], answer: 0},
-      {func: "strstr()", question: "이 함수는 어떤 문자열에서 특정 문자열 이후를 반환하나요?", options: ["끝에서", "중간에서", "처음 발견된 위치부터", "무작위"], answer: 2},
-      {func: "stristr()", question: "stristr()는 strstr()과 유사하지만 어떤 차이가 있나요?", options: ["대소문자를 구분하지 않음", "문자열을 뒤집음", "배열을 반환함", "날짜를 포함함"], answer: 0},
-      {func: "strrchr()", question: "이 함수는 어떤 값을 기준으로 마지막 위치 이후의 문자열을 반환하나요?", options: ["공백", "특정 문자", "배열", "정수"], answer: 1},
-      {func: "strpos()", question: "이 함수는 특정 문자열이 어디에서 처음 나오는지 무엇으로 반환하나요?", options: ["문자열", "정수 위치", "배열", "없음"], answer: 1},
-      {func: "strtolower()", question: "strtolower()는 무슨 역할을 하나요?", options: ["대문자 → 소문자", "숫자 제거", "배열화", "공백 제거"], answer: 0},
-      {func: "strtoupper()", question: "strtoupper()는 어떤 변환을 하나요?", options: ["공백 삽입", "문자열 반전", "소문자 → 대문자", "HTML 인코딩"], answer: 2},
-      {func: "ucfirst()", question: "이 함수는 어떤 문자를 대문자로 바꾸나요?", options: ["전체", "마지막 문자", "첫 문자", "모든 모음"], answer: 2},
-      {func: "ucwords()", question: "ucwords()는 문자열의 어떤 부분을 대문자로 하나요?", options: ["첫 글자만", "각 단어의 첫 글자", "마지막 글자", "모든 자음"], answer: 1},
-      {func: "strrev()", question: "strrev() 함수의 기능은?", options: ["문자열 뒤집기", "문자열 정렬", "배열 변환", "삭제"], answer: 0},
-      {func: "strtr()", question: "이 함수는 어떤 역할을 하나요?", options: ["문자열 복사", "문자 하나하나를 치환", "암호화", "배열화"], answer: 1},
-      {func: "str_replace()", question: "str_replace()는 어떤 기능을 하나요?", options: ["문자열 대체", "문자열 반전", "HTML 제거", "문자열 정렬"], answer: 0},
-      {func: "chop()", question: "chop()은 어떤 처리를 하나요?", options: ["앞 공백 제거", "뒷 공백 제거", "모든 공백 제거", "특수 문자 제거"], answer: 1},
-      {func: "trim()", question: "trim()은 어떤 처리를 하나요?", options: ["모든 공백 제거", "양쪽 끝 공백 제거", "중복 문자 제거", "문자열 역순"], answer: 1},
-      {func: "ord()", question: "ord() 함수는 어떤 값을 반환하나요?", options: ["문자", "문자열", "문자의 ASCII 코드", "날짜"], answer: 2},
-      {func: "chr()", question: "chr()는 어떤 값을 받아 문자로 바꾸나요?", options: ["문자열", "정수(ASCII 코드)", "배열", "날짜"], answer: 1},
-      {func: "strip_tags()", question: "strip_tags()는 어떤 작업을 하나요?", options: ["HTML 태그를 제거", "문자열 치환", "공백 삽입", "대소문자 변환"], answer: 0}
+    const naAdjectives = [
+      { kanji: "親切だ", hiragana: "しんせつだ" },
+      { kanji: "有名だ", hiragana: "ゆうめいだ" },
+      { kanji: "大切だ", hiragana: "たいせつだ" },
+      { kanji: "元気だ", hiragana: "げんきだ" },
+      { kanji: "静かだ", hiragana: "しずかだ" },
+      { kanji: "便利だ", hiragana: "べんりだ" },
+      { kanji: "大丈夫だ", hiragana: "だいじょうぶだ" },
+      { kanji: "まじめだ", hiragana: "まじめだ" },
+      { kanji: "好きだ", hiragana: "すきだ" },
+      { kanji: "嫌いだ", hiragana: "きらいだ" },
+      { kanji: "同じだ", hiragana: "おなじだ" },
+      { kanji: "暇だ", hiragana: "ひまだ" },
     ];
 
-    const quizContainer = document.getElementById('quiz');
+    const iAdjectives = [
+      { kanji: "楽しい", hiragana: "たのしい" },
+      { kanji: "高い", hiragana: "たかい" },
+      { kanji: "安い", hiragana: "やすい" },
+      { kanji: "新しい", hiragana: "あたらしい" },
+      { kanji: "古い", hiragana: "ふるい" },
+      { kanji: "難しい", hiragana: "むずかしい" },
+      { kanji: "易しい", hiragana: "やさしい" },
+      { kanji: "かわいい", hiragana: "かわいい" },
+      { kanji: "暑い", hiragana: "あつい" },
+      { kanji: "短い", hiragana: "みじかい" },
+      { kanji: "広い", hiragana: "ひろい" },
+      { kanji: "強い", hiragana: "つよい" }
+    ];
 
-    quizData.forEach((item, index) => {
-      const qDiv = document.createElement('div');
-      qDiv.className = 'question';
+    function getRandom(arr) {
+      return arr[Math.floor(Math.random() * arr.length)];
+    }
 
-      const qTitle = document.createElement('h3');
-      qTitle.textContent = `${index + 1}. [${item.func}] ${item.question}`;
-      qDiv.appendChild(qTitle);
+    function generateQuiz() {
+      const container = document.getElementById('quizContainer');
+      const result = document.getElementById('result');
+      result.textContent = '';
+      container.innerHTML = '';
 
-      const form = document.createElement('form');
-      form.className = 'options';
+      const quizType = Math.random() < 0.5 ? 'hiragana' : 'conjugation';
+      const isNa = Math.random() < 0.5;
 
-      item.options.forEach((opt, i) => {
-        const label = document.createElement('label');
-        const input = document.createElement('input');
-        input.type = 'radio';
-        input.name = `q${index}`;
-        input.value = i;
-        label.appendChild(input);
-        label.append(` ${opt}`);
-        form.appendChild(label);
-      });
+      const data = isNa ? getRandom(naAdjectives) : getRandom(iAdjectives);
 
-      const btn = document.createElement('button');
-      btn.textContent = '정답 확인';
-      btn.type = 'button';
+      if (quizType === 'hiragana') {
+        container.innerHTML = `
+          <div class="question">[히라가나 쓰기] 다음 단어의 히라가나를 입력하세요:<br><strong>${data.kanji}</strong></div>
+          <input type="text" id="answerInput" />
+          <button onclick="checkAnswer('${data.hiragana}')">정답 확인</button>
+        `;
+      } else {
+        // 활용형 문제
+        let questionText, correctAnswer, choices = [];
+        if (isNa) {
+          questionText = `"${data.hiragana}"의 <strong>부정형</strong>은?`;
+          correctAnswer = data.hiragana.replace("だ", "じゃない");
+          choices = [
+            correctAnswer,
+            data.hiragana.replace("だ", "くない"),
+            data.hiragana.replace("だ", "ない"),
+            data.hiragana.replace("だ", "たくない")
+          ];
+        } else {
+          questionText = `"${data.hiragana}"의 <strong>과거형</strong>은?`;
+          correctAnswer = data.hiragana.replace("い", "かった");
+          choices = [
+            correctAnswer,
+            data.hiragana.replace("い", "かっただ"),
+            data.hiragana.replace("い", "でした"),
+            data.hiragana.replace("い", "くなかった")
+          ];
+        }
 
-      const result = document.createElement('div');
+        // 무작위 섞기
+        choices.sort(() => Math.random() - 0.5);
 
-      btn.onclick = () => {
-        const selected = form.querySelector('input:checked');
-        if (!selected) return alert('정답을 선택해주세요!');
-        const correct = parseInt(selected.value) === item.answer;
-        result.textContent = correct ? '정답입니다! 🎉' : `틀렸습니다. 정답: ${item.options[item.answer]}`;
-        result.className = correct ? 'correct' : 'wrong';
-      };
+        container.innerHTML = `
+          <div class="question">${questionText}</div>
+          <div class="choices">
+            ${choices.map(choice => `
+              <label>
+                <input type="radio" name="choice" value="${choice}" />
+                ${choice}
+              </label>
+            `).join('')}
+          </div>
+          <button onclick="checkChoice('${correctAnswer}')">정답 확인</button>
+        `;
+      }
+    }
 
-      qDiv.appendChild(form);
-      qDiv.appendChild(btn);
-      qDiv.appendChild(result);
-      quizContainer.appendChild(qDiv);
-    });
+    function checkAnswer(correct) {
+      const input = document.getElementById('answerInput').value.trim();
+      const result = document.getElementById('result');
+      result.textContent = input === correct ? '✅ 정답입니다!' : `❌ 오답입니다. 정답: ${correct}`;
+    }
+
+    function checkChoice(correct) {
+      const selected = document.querySelector('input[name="choice"]:checked');
+      const result = document.getElementById('result');
+      if (!selected) {
+        result.textContent = "⛔ 보기를 선택해주세요.";
+        return;
+      }
+      result.textContent = selected.value === correct ? '✅ 정답입니다!' : `❌ 오답입니다. 정답: ${correct}`;
+    }
+
+    window.onload = generateQuiz;
   </script>
 </body>
 </html>
-
