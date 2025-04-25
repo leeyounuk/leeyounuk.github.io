@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>히라가나 입력 퀴즈</title>
+  <style>
+    body { font-family: sans-serif; padding: 2em; }
+    .question { margin-bottom: 1.5em; }
+    .result { margin-top: 2em; font-weight: bold; }
+    input[type="text"] { padding: 0.4em; font-size: 1em; }
+    .correct { color: green; }
+    .incorrect { color: red; }
+  </style>
+</head>
+<body>
+
+  <h1>히라가나 입력 퀴즈</h1>
+  <form id="quizForm">
+    <div id="quizContainer"></div>
+    <button type="submit">정답 확인</button>
+  </form>
+
+  <div id="results" class="result"></div>
+
+  <script>
+   const quizData = [
+  // [문제, 정답, 유형]
+  ["会社員", "かいしゃいん", "word"],
+  ["회사원", "かいしゃいん", "meaning"],
+  ["先生", "せんせい", "word"],
+  ["선생님", "せんせい", "meaning"],
+  ["部屋", "へや", "word"],
+  ["방", "へや", "meaning"],
+  ["4号室", "よんごうしつ", "word"],
+  ["4호실", "よんごうしつ", "meaning"],
+  ["電話番号", "でんわばんごう", "word"],
+  ["전화번호", "でんわばんごう", "meaning"],
+  ["医者", "いしゃ", "word"],
+  ["의사", "いしゃ", "meaning"],
+  ["銀行員", "ぎんこういん", "word"],
+  ["은행원", "ぎんこういん", "meaning"],
+  ["教師", "きょうし", "word"],
+  ["교사", "きょうし", "meaning"],
+  ["雑誌", "ざっし", "word"],
+  ["잡지", "ざっし", "meaning"],
+  ["誰", "だれ", "word"],
+  ["누구", "だれ", "meaning"],
+  ["ボールペン", "ぼーるぺん", "word"],
+  ["볼펜", "ぼーるぺん", "meaning"],
+  ["故郷", "ふるさと", "word"],
+  ["고향", "ふるさと", "meaning"],
+  ["教室", "きょうしつ", "word"],
+  ["교실", "きょうしつ", "meaning"],
+  ["鉛筆", "えんぴつ", "word"],
+  ["연필", "えんぴつ", "meaning"],
+  ["時計", "とけい", "word"],
+  ["시계", "とけい", "meaning"],
+  ["ケータイ", "けーたい", "word"],
+  ["휴대폰", "けーたい", "meaning"],
+  ["授業", "じゅぎょう", "word"],
+  ["수업", "じゅぎょう", "meaning"],
+  ["生活", "せいかつ", "word"],
+  ["생활", "せいかつ", "meaning"],
+  ["文学", "ぶんがく", "word"],
+  ["문학", "ぶんがく", "meaning"],
+  ["頭", "あたま", "word"],
+  ["머리", "あたま", "meaning"],
+  ["建物", "たてもの", "word"],
+  ["건물", "たてもの", "meaning"],
+  ["値段", "ねだん", "word"],
+  ["가격", "ねだん", "meaning"],
+  ["コーヒー", "こーひー", "word"],
+  ["커피", "こーひー", "meaning"],
+  ["写真", "しゃしん", "word"],
+  ["사진", "しゃしん", "meaning"],
+  ["料理", "りょうり", "word"],
+  ["요리", "りょうり", "meaning"],
+  ["ビビンバ", "びびんば", "word"],
+  ["비빔밥", "びびんば", "meaning"],
+  ["仕事", "しごと", "word"],
+  ["일", "しごと", "meaning"],
+  ["町", "まち", "word"],
+  ["마을", "まち", "meaning"],
+  ["数学", "すうがく", "word"],
+  ["수학", "すうがく", "meaning"],
+  ["一番", "いちばん", "word"],
+  ["가장", "いちばん", "meaning"],
+  ["小説", "しょうせつ", "word"],
+  ["소설", "しょうせつ", "meaning"],
+  ["沖縄", "おきなわ", "word"],
+  ["오키나와", "おきなわ", "meaning"]
+];
+
+    ];
+
+    const quizContainer = document.getElementById('quizContainer');
+
+    quizData.forEach(([question, answer, type], index) => {
+      const qDiv = document.createElement('div');
+      qDiv.className = 'question';
+      const label = document.createElement('label');
+      label.textContent = type === 'word'
+        ? `Q${index + 1}: 「${question}」의 히라가나는?`
+        : `Q${index + 1}: 「${question}」에 해당하는 일본어(히라가나)는?`;
+      const input = document.createElement('input');
+      input.type = 'text';
+      input.name = `q${index}`;
+      input.dataset.answer = answer;
+      qDiv.appendChild(label);
+      qDiv.appendChild(document.createElement('br'));
+      qDiv.appendChild(input);
+      quizContainer.appendChild(qDiv);
+    });
+
+    document.getElementById('quizForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+      const inputs = document.querySelectorAll('input[type="text"]');
+      let score = 0;
+      let resultHTML = "";
+
+      inputs.forEach((input, index) => {
+        const userAnswer = input.value.trim();
+        const correctAnswer = input.dataset.answer.trim();
+        if (userAnswer === correctAnswer) {
+          resultHTML += `<p class="correct">Q${index + 1}: 정답! (${correctAnswer})</p>`;
+          score++;
+        } else {
+          resultHTML += `<p class="incorrect">Q${index + 1}: 오답. 정답은 (${correctAnswer})</p>`;
+        }
+      });
+
+      resultHTML += `<p>총점: ${score} / ${quizData.length}</p>`;
+      document.getElementById('results').innerHTML = resultHTML;
+    });
+  </script>
+</body>
+</html>
