@@ -1,0 +1,75 @@
+
+//classscore.php
+<?php
+$link = mysqli_connect("localhost", 'root', '','classscore');
+$_GET['order'] = isset($order) ? $_GET['order'] : null;
+?>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>classscore</title>
+    <style>
+        .input-wrap {
+            width: 960px;
+            margin: 0 auto;
+        }
+        h1 { text-align: center; }
+        th, td { text-align: center; }
+        table {
+            border: 1px solid #000;
+            margin: 0 auto;
+        }
+        td, th {
+            border: 1px solid #ccc;
+        }
+        a { text-decoration: none; }
+    </style>
+</head>
+<body>
+    <div class="input-wrap">
+        <form action="classscore.php" method="POST">
+            <p>고객성명 <input type="text">                                         <input type="submit" name="합계"></p>
+            <table>
+                <thead>
+                    <tr>
+                        <th>no</th>
+                        <th>구분</th>
+                        <th>어린이</th>
+                        <th>어른</th>
+                        <th>비고</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>1</td>
+                        <td>입장권</td>
+                        <td>7,000</td>
+                        <td><input type="checkbox"></td>
+                        <td>입장</td>
+                    </tr>
+                    <tr>
+                        <td>2</td>
+                        <td>입장권</td>
+                        <td>7,000</td>
+                        <td><input type="checkbox"></td>
+                        <td>입장</td>
+                    </tr>
+                    <tr>  
+                       <td>3</td>
+                        <td>자유이용권</td>
+                        <td>21,000</td>
+                        <td><input type="checkbox"></td>
+                        <td>입장</td>
+                        </td>   
+                    </tr>
+                       <td>4</td>
+                        <td>연간이용권</td>
+                        <td>70,000</td>
+                        <td><input type="checkbox"></td>
+                        <td>입장</td>
+                        </td>   
+                </tbody>
+            </table>
+       </form>
+       <?php echo date("h:i:sa"); ?>
+
