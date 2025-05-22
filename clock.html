@@ -43,21 +43,22 @@
             font-size: 24px;
             transform: translate(-50%, -50%);
         }
-        .number1  { top: 20%; left: 85%; }
-        .number2  { top: 35%; left: 92%; }
+        .number1  { top: 10%; left: 75%; }
+        .number2  { top: 30%; left: 92%; }
         .number3  { top: 50%; left: 97%; }
-        .number4  { top: 65%; left: 92%; }
-        .number5  { top: 80%; left: 85%; }
-        .number6  { top: 85%; left: 50%; }
-        .number7  { top: 80%; left: 15%; }
-        .number8  { top: 65%; left: 8%; }
+        .number4  { top: 70%; left: 92%; }
+        .number5  { top: 90%; left: 75%; }
+        .number6  { top: 95%; left: 50%; }
+        .number7  { top: 90%; left: 25%; }
+        .number8  { top: 70%; left: 8%; }
         .number9  { top: 50%; left: 3%; }
-        .number10 { top: 35%; left: 8%; }
-        .number11 { top: 20%; left: 15%; }
-        .number12 { top: 15%; left: 50%; }
+        .number10 { top: 30%; left: 8%; }
+        .number11 { top: 10%; left: 25%; }
+        .number12 { top: 5; left: 50%; }
     </style>
 </head>
 <body>
+    
     <div class="clock">
         <div class="clock-face">
             <div class="number number1">1</div>
@@ -96,29 +97,3 @@
         setInterval(setClock, 1000);
         setClock();
     </script>
-<html lang="en">
-<head>
-<meta charset="utf-8">
-<title>A JavaScript Clock</title>
-<script type="text/javascript">
-window.onload = initClock;
-
-function initClock() {
-  var now = new Date();
-  var hr  = now.getHours();
-  var min = now.getMinutes();
-  var sec = now.getSeconds();
-  if (min < 10) min = "0" + min;  // insert a leading zero
-  if (sec < 10) sec = "0" + sec;
-  document.getElementById('clockDisplay').innerHTML
-        = "Time is " + hr + ":" + min + ":" + sec;
-  setTimeout('initClock()', 500);
-}
-</script>
-</head>
-<body>
-<h1 id="clockDisplay"></h1>
-</body>
-</html>
-</body>
-</html>
