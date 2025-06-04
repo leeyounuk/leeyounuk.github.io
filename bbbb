@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>찌그러진 애니메이션</title>
+  <style>
+    canvas {
+      border: 1px solid black;
+      display: block;
+      margin: auto;
+      transform: scaleY(0.85); /* 찌그러진 느낌 */
+      transform-origin: top;
+    }
+  </style>
+</head>
+<body>
+  <canvas id="canvas" width="500" height="500"></canvas>
+  <script>
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+
+    // 살짝 비켜난 중심점
+    const centerX = canvas.width / 2 + 20;
+    const centerY = canvas.height / 2 + 10;
+
+    const redLineLength = 100; // 바늘 더 김
+    const greenCircleRadius = 30;
+    let angle = 0;
+
+    function draw() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      // 초록 원 (가장 먼저 그림 → 대각선이 앞에 오게 하기 위해)
+      ctx.fillStyle = 'green';
+      ctx.beginPath();
+      ctx.arc(centerX, centerY, greenCircleRadius, 0, Math.PI * 2);
+      ctx.fill();
+
+      // 빨간 회전 바늘
+      const endX = centerX + redLineLength * Math.cos(angle);
+      const endY = centerY + redLineLength * Math.sin(angle);
+
+      ctx.strokeStyle = 'red';
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.moveTo(centerX, centerY);
+      ctx.lineTo(endX, endY);
+      ctx.stroke();
+
+      // 파란 대각선 (마지막에 그림 → 앞에 보이게 됨)
+      ctx.strokeStyle = 'blue';
+      ctx.lineWidth = 1;
+
+      ctx.beginPath();
+      ctx.moveTo(0, 0);
+      ctx.lineTo(canvas.width, canvas.height);
+      ctx.moveTo(canvas.width, 0);
+      ctx.lineTo(0, canvas.height);
+      ctx.stroke();
+
+      // 회전 각도 업데이트
+      angle += 0.02;
+      requestAnimationFrame(draw);
+    }
+
+    draw();
+  </script>
+</body>
+</html>
