@@ -38,65 +38,45 @@
 
   <script>
     const quizData = [
-      { kanji: "紅茶", hiragana: "こうちゃ" },
-      { kanji: "価格", hiragana: "かかく" },
-      { kanji: "種類", hiragana: "しゅるい" },
-      { kanji: "図書館", hiragana: "としょかん" },
-      { kanji: "野球", hiragana: "やきゅう" },
-      { kanji: "旅行", hiragana: "りょこう" },
-      { kanji: "短い", hiragana: "みじかい" },
-      { kanji: "教室", hiragana: "きょうしつ" },
-      { kanji: "季節", hiragana: "きせつ" },
-      { kanji: "果物", hiragana: "くだもの" },
-      { kanji: "建物", hiragana: "たてもの" },
-      { kanji: "一階", hiragana: "いっかい" },
-      { kanji: "体育館", hiragana: "たいいくかん" },
-      { kanji: "事務所", hiragana: "じむしょ" },
-      { kanji: "三階", hiragana: "さんがい" },
-      { kanji: "箱", hiragana: "はこ" },
-      { kanji: "猫", hiragana: "ねこ" },
-      { kanji: "机", hiragana: "つくえ" },
-      { kanji: "帽子", hiragana: "ぼうし" },
-      { kanji: "椅子", hiragana: "いす" },
-      { kanji: "雑誌", hiragana: "ざっし" },
-      { kanji: "発表", hiragana: "はっぴょう" },
-      { kanji: "準備", hiragana: "じゅんび" },
-      { kanji: "渋谷", hiragana: "しぶや" },
-      { kanji: "時々", hiragana: "ときどき" },
-      { kanji: "遅い", hiragana: "おそい" },
-      { kanji: "痛い", hiragana: "いたい" },
-      { kanji: "両親", hiragana: "りょうしん" },
-      { kanji: "宿題", hiragana: "しゅくだい" },
-      { kanji: "紙", hiragana: "かみ" },
-      { kanji: "病院", hiragana: "びょういん" },
-      { kanji: "郵便局", hiragana: "ゆうびんきょく" },
-      { kanji: "上野", hiragana: "うえの" },
-      { kanji: "遊ぶ", hiragana: "あそぶ" },
-      { kanji: "弁当", hiragana: "べんとう" },
-      { kanji: "手伝う", hiragana: "てつだう" },
-      { kanji: "写真", hiragana: "しゃしん" },
-      { kanji: "誕生日", hiragana: "たんじょうび" },
-      { kanji: "金曜日", hiragana: "きんようび" },
-      { kanji: "打つ", hiragana: "うつ" },
-      { kanji: "運転", hiragana: "うんてん" },
-      { kanji: "提出", hiragana: "ていしゅつ" },
+      { kanji: "紅茶", hiragana: "こうちゃ" }, { kanji: "価格", hiragana: "かかく" }, { kanji: "種類", hiragana: "しゅるい" },
+      { kanji: "図書館", hiragana: "としょかん" }, { kanji: "野球", hiragana: "やきゅう" }, { kanji: "旅行", hiragana: "りょこう" },
+      { kanji: "短い", hiragana: "みじかい" }, { kanji: "教室", hiragana: "きょうしつ" }, { kanji: "季節", hiragana: "きせつ" },
+      { kanji: "果物", hiragana: "くだもの" }, { kanji: "建物", hiragana: "たてもの" }, { kanji: "一階", hiragana: "いっかい" },
+      { kanji: "体育館", hiragana: "たいいくかん" }, { kanji: "事務所", hiragana: "じむしょ" }, { kanji: "三階", hiragana: "さんがい" },
+      { kanji: "箱", hiragana: "はこ" }, { kanji: "猫", hiragana: "ねこ" }, { kanji: "机", hiragana: "つくえ" },
+      { kanji: "帽子", hiragana: "ぼうし" }, { kanji: "椅子", hiragana: "いす" }, { kanji: "雑誌", hiragana: "ざっし" },
+      { kanji: "発表", hiragana: "はっぴょう" }, { kanji: "準備", hiragana: "じゅんび" }, { kanji: "渋谷", hiragana: "しぶや" },
+      { kanji: "時々", hiragana: "ときどき" }, { kanji: "遅い", hiragana: "おそい" }, { kanji: "痛い", hiragana: "いたい" },
+      { kanji: "両親", hiragana: "りょうしん" }, { kanji: "宿題", hiragana: "しゅくだい" }, { kanji: "紙", hiragana: "かみ" },
+      { kanji: "病院", hiragana: "びょういん" }, { kanji: "郵便局", hiragana: "ゆうびんきょく" }, { kanji: "上野", hiragana: "うえの" },
+      { kanji: "遊ぶ", hiragana: "あそぶ" }, { kanji: "弁当", hiragana: "べんとう" }, { kanji: "手伝う", hiragana: "てつだう" },
+      { kanji: "写真", hiragana: "しゃしん" }, { kanji: "誕生日", hiragana: "たんじょうび" }, { kanji: "金曜日", hiragana: "きんようび" },
+      { kanji: "打つ", hiragana: "うつ" }, { kanji: "運転", hiragana: "うんてん" }, { kanji: "提出", hiragana: "ていしゅつ" },
       { kanji: "祭り", hiragana: "まつり" }
     ];
 
+    let shuffledQuiz = [];
     let current = 0;
 
+    function shuffle(array) {
+      for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+      }
+    }
+
     function loadQuestion() {
-      if (current >= quizData.length) {
+      if (current >= shuffledQuiz.length) {
         document.getElementById("kanji").innerText = "퀴즈 완료!";
         document.getElementById("feedback").innerText = "";
-        document.getElementById("progress").innerText = `총 ${quizData.length}문제 완료`;
+        document.getElementById("progress").innerText = `총 ${shuffledQuiz.length}문제 완료`;
         document.querySelector("input").style.display = "none";
         document.querySelector("button").style.display = "none";
         return;
       }
 
-      document.getElementById("kanji").innerText = quizData[current].kanji;
-      document.getElementById("progress").innerText = `문제 ${current + 1} / ${quizData.length}`;
+      document.getElementById("kanji").innerText = shuffledQuiz[current].kanji;
+      document.getElementById("progress").innerText = `문제 ${current + 1} / ${shuffledQuiz.length}`;
       document.getElementById("answerInput").value = "";
       document.getElementById("answerInput").focus();
       document.getElementById("feedback").innerText = "";
@@ -104,7 +84,7 @@
 
     function checkAnswer() {
       const userInput = document.getElementById("answerInput").value.trim();
-      if (userInput === quizData[current].hiragana) {
+      if (userInput === shuffledQuiz[current].hiragana) {
         document.getElementById("feedback").innerText = "✅ 정답!";
         current++;
         setTimeout(loadQuestion, 1000);
@@ -113,7 +93,12 @@
       }
     }
 
-    window.onload = loadQuestion;
+    window.onload = () => {
+      shuffledQuiz = [...quizData]; // 원본 보호
+      shuffle(shuffledQuiz);        // 순서 섞기
+      loadQuestion();
+    };
   </script>
 </body>
 </html>
+
