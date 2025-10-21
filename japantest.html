@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>日本語オノマトペ練習問題</title>
+    <style>
+        body {
+            font-family: 'Hiragino Kaku Gothic Pro', 'Meiryo', sans-serif;
+            background-color: #f4f7f6;
+            color: #333;
+            line-height: 1.6;
+            padding: 20px;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background-color: #fff;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            color: #1e88e5;
+            text-align: center;
+            border-bottom: 3px solid #1e88e5;
+            padding-bottom: 10px;
+            margin-bottom: 30px;
+        }
+        h2 {
+            color: #555;
+            border-left: 5px solid #ffb300;
+            padding-left: 10px;
+            margin-top: 40px;
+            margin-bottom: 20px;
+        }
+        .question-group {
+            margin-bottom: 40px;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            background-color: #fafafa;
+        }
+        .question {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+            padding: 10px;
+            border-bottom: 1px dashed #eee;
+        }
+        .question:last-child {
+            border-bottom: none;
+        }
+        .q-number {
+            font-weight: bold;
+            color: #d84315;
+            margin-right: 10px;
+        }
+        .q-text {
+            flex-grow: 1;
+            margin-right: 15px;
+        }
+        .select-wrapper select {
+            padding: 8px 10px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            background-color: #fff;
+            min-width: 150px;
+            font-size: 16px;
+        }
+        .result-icon {
+            margin-left: 10px;
+            font-size: 1.2em;
+            font-weight: bold;
+        }
+        .correct { color: green; }
+        .incorrect { color: red; }
+
+        .button-group {
+            text-align: center;
+            margin-top: 30px;
+        }
+        .button-group button {
+            padding: 12px 25px;
+            font-size: 18px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 0 10px;
+            transition: background-color 0.3s;
+        }
+        #check-btn {
+            background-color: #4CAF50;
+            color: white;
+        }
+        #check-btn:hover {
+            background-color: #45a049;
+        }
+        #reset-btn {
+            background-color: #f44336;
+            color: white;
+        }
+        #reset-btn:hover {
+            background-color: #da190b;
+        }
+
+        .choices {
+            margin-top: 15px;
+            padding: 10px;
+            border-top: 2px solid #ccc;
+            font-size: 0.9em;
+        }
+        .choices p {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        .choices span {
+            display: inline-block;
+            margin-right: 10px;
+            padding: 3px 5px;
+            background-color: #e0e0e0;
+            border-radius: 3px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>日本語 オノマトペ 練習問題</h1>
+
+    <div id="quiz-app">
+        </div>
+
+    <div class="button-group">
+        <button id="check-btn" onclick="checkAnswers()">解答チェック</button>
+        <button id="reset-btn" onclick="resetQuiz()">リセット</button>
+    </div>
+</div>
+
+<script>
+    const quizData = [
+        {
+            title: "◆天気のオノマトペ",
+            questions: [
+                { id: "q1_1", text: "① 空が明るく、さわやかに晴れている様子", answer: "からっと" },
+                { id: "q1_2", text: "② 気持ちよく感じるほど、暖かい様子", answer: "ぽかぽか" },
+                { id: "q1_3", text: "③ 湿度が高く、蒸し暑い様子", answer: "むしむし" },
+                { id: "q1_4", text: "④ 不快なほど湿度が高い様子", answer: "じとじと" },
+                { id: "q1_5", text: "⑤ 激しく雨が降る様子、その雨の音", answer: "ザーザー" },
+                { id: "q1_6", text: "⑥ 激しく風が吹く様子、その風の音", answer: "ビュウビュウ" },
+                { id: "q1_7", text: "⑦ 気持ちよく、静かに風が吹く様子", answer: "そよそよ" },
+                { id: "q1_8", text: "⑧ 音もなく、静かに雪が降っている様子", answer: "しんしん" },
+                { id: "q1_9", text: "⑨ 雷が鳴る音", answer: "ゴロゴロ" },
+                { id: "q1_10", text: "⑩ 雷が瞬間的に光る様子", answer: "ぴかっと" }
+            ],
+            choices: ["からっと", "ぽかぽか", "むしむし", "じとじと", "ザーザー", "ビュウビュウ", "そよそよ", "しんしん", "ゴロゴロ", "ぴかっと"]
+        },
+        {
+            title: "◆見る、話すのオノマトペ",
+            questions: [
+                { id: "q2_1", text: "① 失礼な感じで、全体をしつこく見る様子", answer: "じろじろ" },
+                { id: "q2_2", text: "② 視線を動かさず、集中して見る様子", answer: "じっと" },
+                { id: "q2_3", text: "③ 気づかれないように、瞬間的に見る様子", answer: "ちらっと" },
+                { id: "q2_4", text: "④ 外国語をとても上手に話す様子", answer: "ぺらぺら" },
+                { id: "q2_5", text: "⑤ 会話が止まらず、長くしゃべり続ける様子", answer: "ぺちゃくちゃ" },
+                { id: "q2_6", text: "⑥ 聞き取りやすく、大きな声で元気に話す様子", answer: "はきはき" },
+                { id: "q2_7", text: "⑦ 聞き取りにくく、小さく低い声で話す様子", answer: "ぼそぼそ" },
+                { id: "q2_8", text: "⑧ 一言だけ、静かに短く話す様子", answer: "ぽつりと" },
+                { id: "q2_9", text: "⑨ 少し小さな声で不満や文句を言う様子", answer: "ぶつぶつ" },
+                { id: "q2_10", text: "⑩ 聞きに聞こえないように小さな声で話す様子", answer: "ひそひそ" }
+            ],
+            choices: ["じろじろ", "じっと", "ちらっと", "ぺらぺら", "ぺちゃくちゃ", "はきはき", "ぼそぼそ", "ぽつりと", "ぶつぶつ", "ひそひそ"]
+        },
+        {
+            title: "◆笑う、泣く、怒るのオノマトペ",
+            questions: [
+                { id: "q3_1", text: "① 楽しそう、嬉しそうな明るい笑顔", answer: "にこにこ" },
+                { id: "q3_2", text: "② 悪いことを考えていそうな笑顔", answer: "にやにや" },
+                { id: "q3_3", text: "③ 周りを気にしない大きな笑い声", answer: "げらげら" },
+                { id: "q3_4", text: "④ 不真面目で緊張感なく笑う様子", answer: "へらへら" },
+                { id: "q3_5", text: "⑤ 子供が大声で泣く様子", answer: "えんえん" },
+                { id: "q3_6", text: "⑥ 大人が大声で泣く様子", answer: "おいおい" },
+                { id: "q3_7", text: "⑦ 弱弱しく泣く様子", answer: "めそめそ" },
+                { id: "q3_8", text: "⑧ 激しく怒る様子", answer: "かんかん" },
+                { id: "q3_9", text: "⑨ 思い通りにならず不機嫌な様子", answer: "いらいら" },
+                { id: "q3_10", text: "⑩ うるさく小言を言う様子", answer: "がみがみ" }
+            ],
+            choices: ["にこにこ", "にやにや", "げらげら", "へらへら", "えんえん", "おいおい", "めそめそ", "かんかん", "いらいら", "がみがみ"]
+        },
+        {
+            title: "◆料理、味、食べ方のオノマトペ",
+            questions: [
+                { id: "q4_1", text: "① 強火で激しく沸いたり、煮えたりする様子", answer: "ぐつぐつ" },
+                { id: "q4_2", text: "② 弱火で静かに、長時間、煮込む様子", answer: "ことこと" },
+                { id: "q4_3", text: "③ ちょうどよくおいしそうに焦げている様子", answer: "こんがり" },
+                { id: "q4_4", text: "④ 舌に刺激を感じるような辛さ", answer: "ぴりっと" },
+                { id: "q4_5", text: "⑤ 油や調味料などが少なく、淡白で薄い味", answer: "あっさり" },
+                { id: "q4_6", text: "⑥ 脂っこくて、口の中にしつこく残る濃い味", answer: "こってり" },
+                { id: "q4_7", text: "⑦ 食べ物を勢いよく、たくさん食べる様子", answer: "がっつり" },
+                { id: "q4_8", text: "⑧ ラーメンやそばなどを音を立てて食べる様子", answer: "ずるずる" },
+                { id: "q4_9", text: "⑨ 口を大きく開けて、おいしそうに食べる様子", answer: "ぱくぱく" },
+                { id: "q4_10", text: "⑩ 口を閉じて、よく噛みながら食べる様子", answer: "もぐもぐ" }
+            ],
+            choices: ["ぐつぐつ", "ことこと", "こんがり", "ぴりっと", "あっさり", "こってり", "がっつり", "ずるずる", "ぱくぱく", "もぐもぐ"]
+        },
+        {
+            title: "◆ぶつかる、割れる、折れるなどのオノマトペ",
+            questions: [
+                { id: "q5_1", text: "① 窓ガラスが割れる音", answer: "パリン" },
+                { id: "q5_2", text: "② 木の枝が折れる音", answer: "ポキッ" },
+                { id: "q5_3", text: "③ 手紙を破る音", answer: "ビリビリ" },
+                { id: "q5_4", text: "④ はさみで紙を切る音", answer: "チョキチョキ" },
+                { id: "q5_5", text: "⑤ 頭が痛いほど大きい音", answer: "ガンガン" },
+                { id: "q5_6", text: "⑥ ドアをノックする音", answer: "トントン" },
+                { id: "q5_7", text: "⑦ 手のひらで机を叩く音", answer: "パンパン" },
+                { id: "q5_8", text: "⑧ 指の骨を鳴らす音", answer: "ポキポキ" }
+            ],
+            choices: ["パリン", "ガチャン", "バリバリ", "ポキッ", "ビリビリ", "チョキチョキ", "ガンガン", "トントン", "パンパン", "ポキポキ"]
+        }
+    ];
+
+    const quizApp = document.getElementById('quiz-app');
+
+    // 問題と選択肢をDOMに描画する関数
+    function renderQuiz() {
+        quizApp.innerHTML = quizData.map((group, groupIndex) => `
+            <div class="question-group">
+                <h2>${group.title}</h2>
+                ${group.questions.map(q => `
+                    <div class="question" id="q-container-${q.id}">
+                        <div class="q-text">${q.text}</div>
+                        <div class="select-wrapper">
+                            <select id="${q.id}">
+                                <option value="">選択してください</option>
+                                ${group.choices.map(choice => `
+                                    <option value="${choice}">${choice}</option>
+                                `).join('')}
+                            </select>
+                        </div>
+                        <div class="result-icon" id="result-${q.id}"></div>
+                    </div>
+                `).join('')}
+                <div class="choices">
+                    <p>【選択肢】</p>
+                    ${group.choices.map(choice => `<span>${choice}</span>`).join('')}
+                </div>
+            </div>
+        `).join('');
+    }
+
+    // 解答をチェックする関数
+    window.checkAnswers = function() {
+        let correctCount = 0;
+        let totalCount = 0;
+
+        quizData.forEach(group => {
+            group.questions.forEach(q => {
+                totalCount++;
+                const selectElement = document.getElementById(q.id);
+                const resultIcon = document.getElementById(`result-${q.id}`);
+                const container = document.getElementById(`q-container-${q.id}`);
+
+                const userAnswer = selectElement.value;
+                const correctAnswer = q.answer;
+
+                resultIcon.textContent = '';
+                resultIcon.classList.remove('correct', 'incorrect');
+                container.style.backgroundColor = '#fafafa';
+
+                if (userAnswer === correctAnswer) {
+                    resultIcon.textContent = 'O';
+                    resultIcon.classList.add('correct');
+                    container.style.backgroundColor = '#e8f5e9'; // Green light background
+                    correctCount++;
+                } else if (userAnswer !== "") {
+                    resultIcon.textContent = 'X';
+                    resultIcon.classList.add('incorrect');
+                    container.style.backgroundColor = '#ffebee'; // Red light background
+                } else {
+                     resultIcon.textContent = '?'
+                }
+            });
+        });
+
+        alert(`結果: ${totalCount}問中 ${correctCount}問正解です！`);
+    };
+
+    // クイズをリセットする関数
+    window.resetQuiz = function() {
+        if (confirm("全ての解答をリセットしますか？")) {
+            quizData.forEach(group => {
+                group.questions.forEach(q => {
+                    document.getElementById(q.id).value = "";
+                    document.getElementById(`result-${q.id}`).textContent = "";
+                    document.getElementById(`result-${q.id}`).classList.remove('correct', 'incorrect');
+                    document.getElementById(`q-container-${q.id}`).style.backgroundColor = '#fafafa';
+                });
+            });
+        }
+    };
+
+    // ページロード時にクイズを描画
+    renderQuiz();
+</script>
+
+</body>
+</html>
