@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>日本語オノマトペ空欄補充問題</title>
+    <style>
+        body {
+            font-family: 'Hiragino Kaku Gothic Pro', 'Meiryo', sans-serif;
+            background-color: #f4f7f6;
+            color: #333;
+            line-height: 1.6;
+            padding: 20px;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: #fff;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            color: #d84315;
+            text-align: center;
+            border-bottom: 3px solid #d84315;
+            padding-bottom: 10px;
+            margin-bottom: 30px;
+        }
+        .question-list {
+            list-style: none;
+            padding: 0;
+        }
+        .question-item {
+            margin-bottom: 25px;
+            padding: 15px;
+            border: 1px solid #e0e0e0;
+            border-radius: 6px;
+            background-color: #fafafa;
+        }
+        .q-text {
+            font-size: 1.1em;
+            margin-bottom: 10px;
+        }
+        .q-text span {
+            font-weight: bold;
+            color: #1e88e5;
+        }
+        .input-wrapper {
+            display: flex;
+            align-items: center;
+        }
+        .input-wrapper input[type="text"] {
+            padding: 8px 10px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            min-width: 120px;
+            font-size: 16px;
+            margin-right: 10px;
+        }
+        .result-feedback {
+            font-weight: bold;
+            margin-left: 10px;
+        }
+        .correct { color: green; }
+        .incorrect { color: red; }
+        .correct-answer {
+            color: green;
+            font-size: 0.9em;
+            margin-top: 5px;
+            display: none; /* 初期状態では非表示 */
+        }
+
+        .button-group {
+            text-align: center;
+            margin-top: 40px;
+        }
+        .button-group button {
+            padding: 12px 25px;
+            font-size: 18px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 0 10px;
+            transition: background-color 0.3s;
+        }
+        #check-btn {
+            background-color: #4CAF50;
+            color: white;
+        }
+        #check-btn:hover {
+            background-color: #45a049;
+        }
+        #show-answer-btn {
+            background-color: #ff9800;
+            color: white;
+        }
+        #show-answer-btn:hover {
+            background-color: #fb8c00;
+        }
+        #reset-btn {
+            background-color: #f44336;
+            color: white;
+        }
+        #reset-btn:hover {
+            background-color: #da190b;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>日本語オノマトペ 空欄補充問題</h1>
+    <p style="text-align: center; color: #555;">( )の中に適切なオノマトペを入力してください。</p>
+
+    <ul id="quiz-list" class="question-list">
+        </ul>
+
+    <div class="button-group">
+        <button id="check-btn" onclick="checkAnswers()">解答チェック</button>
+        <button id="show-answer-btn" onclick="toggleAnswers()">答えを表示/非表示</button>
+        <button id="reset-btn" onclick="resetQuiz()">リセット</button>
+    </div>
+</div>
+
+<script>
+    const fillInTheBlanksData = [
+        // 이미지 1: 날씨
+        { id: "q1_1", text: "① 遠くで雷が（）鳴ってるよ。もうすぐ雨が降り始めそうだね。", answer: "ゴロゴロ" },
+        { id: "q1_2", text: "② 今日は朝から（）していて、少し動いただけでも汗が出る。", answer: "むしむし" },
+        { id: "q1_3", text: "③ 夜のうちに雪が（）と降り続け、朝起きるとだいぶ積もっていた。", answer: "しんしん" },
+        { id: "q1_4", text: "④ 空が（）と光ったと思ったら、雷が鳴り、すぐに雨も降り始めた。", answer: "ぴかっと" },
+        { id: "q1_5", text: "⑤ 台風が近づいているのか、風が（）と吹いています。", answer: "ビュウビュウ" },
+        { id: "q1_6", text: "⑥ 朝から空が（）と晴れていたので、散歩に出かけた。", answer: "からっと" },
+
+        // 이미지 2: 웃음/울음/분노
+        { id: "q2_1", text: "① あの子はいつも（）しているので、こっちも気分が良くなります。", answer: "にこにこ" },
+        { id: "q2_2", text: "② そんなことで（）しないで、元気出しなさい。", answer: "めそめそ" },
+        { id: "q2_3", text: "③ 彼女は何を考えているのか、一人で（）笑っています。", answer: "にやにや" },
+        { id: "q2_4", text: "④ 彼は大事にしていたフィギュアを壊されて、（）に怒っていました。", answer: "かんかん" },
+        { id: "q2_5", text: "⑤ かわいがっていたペットが死んで、母は（）と声上げて泣きました。", answer: "おいおい" },
+        { id: "q2_6", text: "⑥ 急いでいるのに、バスがなかなか来なくて（）しました。", answer: "いらいら" },
+
+        // 이미지 3: 보기/말하기
+        { id: "q3_1", text: "① 面接官の質問に（）と答えることができたので、合格しました。", answer: "はきはき" },
+        { id: "q3_2", text: "② 学生たちが「試験が難すぎる」と（）文句を言っています。", answer: "ぶつぶつ" },
+        { id: "q3_3", text: "③ となりの学生の答案用紙を（）と見ただけでも、カンニングで0点になります。", answer: "ちらっと" },
+        { id: "q3_4", text: "④ 彼女はずっと話を聞いていたが、最後に「ごめん」と一言だけ（）と漏らした。", answer: "ぽつりと" },
+        { id: "q3_5", text: "⑤ 彼はいつも（）話すので、何が言いたいのかよく理解できません。", answer: "ぶつぶつ" }, // 원 문제와 중복되나, 문맥상 웅얼거림도 가능 (ぼそぼそ 등)
+        { id: "q3_6", text: "⑥ あの二人が私に聞こえないように、何か（）話していたのが気になります。", answer: "ひそひそ" },
+
+        // 이미지 4: 요리/식사
+        { id: "q4_1", text: "① 韓国料理と比べて、日本料理は（）したものが多い。", answer: "あっさり" },
+        { id: "q4_2", text: "② パン屋さんに（）と焼けたおいしそうなパンが並んでいます。", answer: "こんがり" },
+        { id: "q4_3", text: "③ 弱火で長時間（）と煮込むと、おいしいシチューができます。", answer: "ことこと" },
+        { id: "q4_4", text: "④ 日本でラーメンを食べるとき、（）と音を立てて食べても失礼にはなりません。", answer: "ずるずる" },
+        { id: "q4_5", text: "⑤ 彼は朝から何も食べてなかったので、出された料理を（）食べた。", answer: "がっつり" },
+        { id: "q4_6", text: "⑥ 一蘭(いちらん)のとんこつラーメンはスープが（）していて、おいしい。", answer: "こってり" },
+
+        // 이미지 5: 충돌/소리
+        { id: "q5_1", text: "① 強い風で窓が（）鳴っています。", answer: "ガタガタ" },
+        { id: "q5_2", text: "② 美容師さんが髪を（）切っています。", answer: "チョキチョキ" },
+        { id: "q5_3", text: "③ 赤ちゃんが新聞紙を（）破って遊んでいます。", answer: "ビリビリ" },
+        { id: "q5_4", text: "④ 会場に入ると、音楽が（）鳴っていました。", answer: "ガンガン" },
+        { id: "q5_5", text: "⑤ 彼は木の枝を（）と折って、焚き火に入れました。", answer: "ポキッ" }
+    ];
+
+    const quizList = document.getElementById('quiz-list');
+
+    // 問題をDOMに描画する関数
+    function renderQuiz() {
+        quizList.innerHTML = fillInTheBlanksData.map(q => `
+            <li class="question-item">
+                <div class="q-text">
+                    ${q.text.replace('（）', `
+                        <input type="text" id="${q.id}" placeholder="オノマトペ" data-answer="${q.answer}" onkeydown="if(event.key === 'Enter') checkSpecificAnswer('${q.id}')">
+                    `)}
+                </div>
+                <div class="input-wrapper">
+                    <span class="result-feedback" id="result-${q.id}"></span>
+                </div>
+                <div class="correct-answer" id="answer-display-${q.id}">正解: ${q.answer}</div>
+            </li>
+        `).join('');
+    }
+
+    // 全ての解答をチェックする関数
+    window.checkAnswers = function() {
+        let correctCount = 0;
+        let totalCount = fillInTheBlanksData.length;
+
+        fillInTheBlanksData.forEach(q => {
+            const inputElement = document.getElementById(q.id);
+            const resultElement = document.getElementById(`result-${q.id}`);
+
+            const userAnswer = inputElement.value.trim().toLowerCase();
+            const correctAnswer = q.answer.toLowerCase();
+
+            resultElement.textContent = '';
+            resultElement.classList.remove('correct', 'incorrect');
+            inputElement.style.borderColor = '#ccc';
+
+            if (userAnswer === correctAnswer) {
+                resultElement.textContent = 'O 正解！';
+                resultElement.classList.add('correct');
+                inputElement.style.borderColor = 'green';
+                correctCount++;
+            } else if (userAnswer !== "") {
+                resultElement.textContent = 'X 不正解';
+                resultElement.classList.add('incorrect');
+                inputElement.style.borderColor = 'red';
+            }
+        });
+
+        alert(`結果: ${totalCount}問中 ${correctCount}問正解です！`);
+    };
+    
+    // 個別の解答をチェックする関数 (Enterキー用)
+    window.checkSpecificAnswer = function(id) {
+        const q = fillInTheBlanksData.find(item => item.id === id);
+        if (!q) return;
+        
+        const inputElement = document.getElementById(q.id);
+        const resultElement = document.getElementById(`result-${q.id}`);
+
+        const userAnswer = inputElement.value.trim().toLowerCase();
+        const correctAnswer = q.answer.toLowerCase();
+        
+        resultElement.textContent = '';
+        resultElement.classList.remove('correct', 'incorrect');
+        inputElement.style.borderColor = '#ccc';
+        
+        if (userAnswer === correctAnswer) {
+            resultElement.textContent = 'O 正解！';
+            resultElement.classList.add('correct');
+            inputElement.style.borderColor = 'green';
+        } else if (userAnswer !== "") {
+            resultElement.textContent = 'X 不正解';
+            resultElement.classList.add('incorrect');
+            inputElement.style.borderColor = 'red';
+        }
+    }
+
+    // 答えの表示/非表示を切り替える関数
+    window.toggleAnswers = function() {
+        const answerDisplays = document.querySelectorAll('.correct-answer');
+        const isVisible = answerDisplays[0].style.display === 'block';
+
+        answerDisplays.forEach(el => {
+            el.style.display = isVisible ? 'none' : 'block';
+        });
+
+        document.getElementById('show-answer-btn').textContent = isVisible ? '答えを表示' : '答えを非表示';
+    };
+
+    // クイズをリセットする関数
+    window.resetQuiz = function() {
+        if (confirm("全ての解答と結果をリセットしますか？")) {
+            fillInTheBlanksData.forEach(q => {
+                document.getElementById(q.id).value = "";
+                document.getElementById(`result-${q.id}`).textContent = "";
+                document.getElementById(`result-${q.id}`).classList.remove('correct', 'incorrect');
+                document.getElementById(`answer-display-${q.id}`).style.display = 'none';
+                document.getElementById(q.id).style.borderColor = '#ccc'; // Reset border color
+            });
+            document.getElementById('show-answer-btn').textContent = '答えを表示';
+        }
+    };
+
+    // ページロード時にクイズを描画
+    renderQuiz();
+</script>
+
+</body>
+</html>
