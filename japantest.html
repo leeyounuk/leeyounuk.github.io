@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>日本語オノマトペ練習問題</title>
+    <title>日本語オノマトペ練習問題 (ランダム選択肢)</title>
     <style>
         body {
             font-family: 'Hiragino Kaku Gothic Pro', 'Meiryo', sans-serif;
@@ -127,6 +127,7 @@
 
 <div class="container">
     <h1>日本語 オノマトペ 練習問題</h1>
+    <p style="text-align: center; color: #d84315;">※各問題の選択肢はランダムな順番で表示されます。</p>
 
     <div id="quiz-app">
         </div>
@@ -138,6 +139,15 @@
 </div>
 
 <script>
+    // Fisher-Yates 셔플 알고리즘
+    function shuffleArray(array) {
+        for (let i = array.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [array[i], array[j]] = [array[j], array[i]];
+        }
+        return array;
+    }
+
     const quizData = [
         {
             title: "◆天気のオノマトペ",
@@ -221,34 +231,47 @@
 
     const quizApp = document.getElementById('quiz-app');
 
-    // 問題と選択肢をDOMに描画する関数
+    // 문제와 선택지를 DOM에 그리는 함수
     function renderQuiz() {
-        quizApp.innerHTML = quizData.map((group, groupIndex) => `
-            <div class="question-group">
-                <h2>${group.title}</h2>
-                ${group.questions.map(q => `
-                    <div class="question" id="q-container-${q.id}">
-                        <div class="q-text">${q.text}</div>
-                        <div class="select-wrapper">
-                            <select id="${q.id}">
-                                <option value="">選択してください</option>
-                                ${group.choices.map(choice => `
-                                    <option value="${choice}">${choice}</option>
-                                `).join('')}
-                            </select>
+        quizApp.innerHTML = quizData.map((group, groupIndex) => {
+            // 1. 그룹별 선택지 배열을 복사하고 무작위로 섞음
+            const shuffledChoices = shuffleArray([...group.choices]);
+            
+            // 2. 섞인 선택지를 기반으로 드롭다운 옵션 HTML 생성
+            const optionsHtml = shuffledChoices.map(choice => `
+                <option value="${choice}">${choice}</option>
+            `).join('');
+
+            // 3. 문제 그룹 HTML 생성
+            return `
+                <div class="question-group">
+                    <h2>${group.title}</h2>
+                    ${group.questions.map(q => `
+                        <div class="question" id="q-container-${q.id}">
+                            <div class="q-text">${q.text}</div>
+                            <div class="select-wrapper">
+                                <select id="${q.id}">
+                                    <option value="">選択してください</option>
+                                    ${optionsHtml}
+                                </select>
+                            </div>
+                            <div class="result-icon" id="result-${q.id}"></div>
                         </div>
-                        <div class="result-icon" id="result-${q.id}"></div>
+                    `).join('')}
+                    <div class="choices">
+                        <p>【今回の選択肢一覧】</p>
+                        ${shuffledChoices.map(choice => `<span>${choice}</span>`).join('')}
                     </div>
-                `).join('')}
-                <div class="choices">
-                    <p>【選択肢】</p>
-                    ${group.choices.map(choice => `<span>${choice}</span>`).join('')}
                 </div>
-            </div>
-        `).join('');
+            `;
+        }).join('');
     }
 
-    // 解答をチェックする関数
+    // Fisher-Yates 셔플 알고리즘 함수
+    // (이미 위에 정의되어 있으나, 명확성을 위해 다시 포함)
+    // function shuffleArray(array) { ... }
+
+    // 解答をチェックする関数 (이전과 동일)
     window.checkAnswers = function() {
         let correctCount = 0;
         let totalCount = 0;
@@ -285,7 +308,7 @@
         alert(`結果: ${totalCount}問中 ${correctCount}問正解です！`);
     };
 
-    // クイズをリセットする関数
+    // クイズをリセットする関数 (이전과 동일)
     window.resetQuiz = function() {
         if (confirm("全ての解答をリセットしますか？")) {
             quizData.forEach(group => {
@@ -299,7 +322,7 @@
         }
     };
 
-    // ページロード時にクイズを描画
+    // 페이지 로드 시 퀴즈를 그립니다. (선택지 순서가 매번 무작위로 결정됩니다)
     renderQuiz();
 </script>
 
