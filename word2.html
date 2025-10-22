@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>영단어 한국어 의미 타이핑 퀴즈</title>
+    <style>
+        body {
+            font-family: 'Malgun Gothic', '맑은 고딕', sans-serif;
+            background-color: #f4f4f9;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            color: #333;
+        }
+        .quiz-container {
+            background-color: #ffffff;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+            width: 90%;
+            max-width: 600px;
+            text-align: center;
+        }
+        h1 {
+            color: #dc3545; /* 빨간색 계열 */
+            margin-bottom: 25px;
+            font-size: 1.8em;
+        }
+        #question-area {
+            margin-bottom: 25px;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            background-color: #f7f7f7;
+        }
+        #word {
+            font-size: 2.5em;
+            font-weight: bold;
+            color: #34495e;
+            margin-bottom: 15px;
+            display: block;
+        }
+        #answer-input {
+            width: 80%;
+            padding: 12px;
+            font-size: 1.1em;
+            border: 2px solid #ccc;
+            border-radius: 6px;
+            text-align: center;
+            margin-bottom: 15px;
+        }
+        #check-button, #next-button {
+            background-color: #007bff;
+            color: white;
+            padding: 12px 25px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 1.1em;
+            margin: 5px;
+            transition: background-color 0.2s;
+        }
+        #check-button:hover, #next-button:hover {
+            background-color: #0056b3;
+        }
+        #feedback {
+            margin-top: 15px;
+            min-height: 50px;
+            padding: 10px;
+            border-radius: 4px;
+        }
+        .correct-feedback {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+            font-weight: bold;
+        }
+        .incorrect-feedback {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+            font-weight: bold;
+        }
+        #next-button {
+            background-color: #28a745;
+            display: none; /* 초기에는 숨김 */
+        }
+        #score-display {
+            font-size: 1.2em;
+            margin-top: 20px;
+            color: #6c757d;
+        }
+        /* 결과 화면 스타일 */
+        #results-screen {
+            display: none;
+            margin-top: 20px;
+            padding: 20px;
+            border: 2px solid #dc3545;
+            border-radius: 10px;
+            background-color: #fff0f0;
+        }
+        #results-screen h2 {
+            color: #dc3545;
+        }
+        .restart-button {
+            background-color: #007bff;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 1.1em;
+            margin-top: 15px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="quiz-container">
+        <h1>⌨️ 영단어 한국어 의미 타이핑 퀴즈 📚</h1>
+        <div id="quiz-screen">
+            <div id="question-area">
+                <span id="word">로딩 중...</span>
+            </div>
+            
+            <input type="text" id="answer-input" placeholder="여기에 한국어 의미를 입력하세요" onkeypress="handleKeyPress(event)">
+            
+            <button id="check-button" onclick="checkAnswer()">정답 확인</button>
+            <button id="next-button" onclick="nextQuestion()">다음 문제</button>
+            
+            <div id="feedback"></div>
+            
+            <div id="score-display">점수: 0 / 0</div>
+        </div>
+
+        <div id="results-screen">
+            <h2>🎉 퀴즈 완료! 🎉</h2>
+            <p id="final-score"></p>
+            <p id="result-message"></p>
+            <button class="restart-button" onclick="startQuiz()">다시 시작</button>
+        </div>
+    </div>
+
+    <script>
+        // --- 영단어와 한국어 의미 정의 ---
+        // 여러 가지 정답 가능성을 허용하기 위해 배열 형태로 정의했습니다.
+        // 첫 번째 요소가 주 정답(표시 정답)입니다.
+        const vocabulary = {
+            'gadget': ['작은 기계 장치', '도구', '전자 기기'],
+            'migrating': ['이동하는', '이주하는'],
+            'in accordance with': ['~에 따라서', '~에 부합하여', '~에 따라'],
+            'consist of': ['~으로 구성되다', '~으로 이루어져 있다'],
+            'substantial': ['상당한', '실질적인', '중요한'],
+            'composed of': ['~으로 구성된', '~으로 이루어진'],
+            'Census Bureau': ['인구 조사국'],
+            'convert': ['변환하다', '전환하다', '개조하다'],
+            'complete': ['완료하다', '완성하다', '완전한'],
+            'refer to': ['~을 언급하다', '참고하다', '지칭하다'],
+            'enable': ['가능하게 하다', '할 수 있게 하다'],
+            'manipulate': ['조작하다', '다루다'],
+            'intervention': ['개입', '간섭', '중재'],
+            'ubiquitous': ['어디에나 있는', '매우 흔한'],
+            'calm': ['침착한', '차분한', '진정시키다'],
+            'expansion': ['확대', '확장', '팽창'],
+            'peripheral': ['주변의', '지엽적인', '주변 장치'],
+            'ready to start': ['시작할 준비가 된'],
+            'cool': ['시원한', '멋진', '침착한'],
+            'prevail': ['만연하다', '우세하다', '이기다'],
+            'skeptic': ['회의론자', '의심 많은 사람'],
+            'day-to-day': ['일상적인', '매일의'],
+            'fundamental': ['근본적인', '기본적인', '주요한'],
+            'multitasking': ['다중 작업', '여러 일을 동시에 처리하는 능력'],
+            'flexible': ['유연한', '융통성 있는'],
+            'portability': ['휴대성', '이동성'],
+            'leading': ['선두의', '주요한', '이끄는'],
+            'feature': ['특징', '특색', '기능'],
+            'swipe': ['문지르다', '(화면을) 쓸어 넘기다', '쓸어넘기다'],
+            'pinch': ['(화면을) 집게손가락과 엄지손가락으로 오므리거나 펼치다', '집게손가락과 엄지손가락으로 오므리거나 펼치다'],
+            'compatibility': ['호환성', '양립성'],
+            'entrepreneur': ['사업가', '기업가'],
+            'cofounder': ['공동 창업자'],
+            'manage': ['관리하다', '경영하다', '다루다'],
+            'interact': ['상호 작용하다', '소통하다'],
+            'stuck': ['꼼짝 못하는', '막힌', '갇힌'],
+            'ringer': ['매우 흡사한 사람', '대리 선수'],
+            'goof up': ['실수하다', '망치다'],
+            'screw up': ['망치다', '엉망으로 만들다'],
+            'substitute': ['대용품', '대리인', '대체하다'],
+            'regardless of': ['~에 상관없이', '관계없이'],
+            'lend itself to': ['~에 적합하다', '~하기 쉽다'],
+            'readable': ['읽기 쉬운', '독해력이 좋은'],
+            'a variety of': ['다양한 종류의', '여러 가지의'],
+            'inextricably': ['불가분하게', '떼려야 뗄 수 없게'],
+            'predecessor': ['전임자', '선임자', '이전 모델'],
+            'burgeon': ['급성장하다', '싹트다', '번창하다'],
+            'handheld': ['손에 들고 쓰는', '휴대용의'],
+            'compete with': ['~와 경쟁하다'],
+            'critic': ['비평가', '평론가'],
+            'productivity': ['생산성'],
+            'procedure': ['절차', '과정', '순서'],
+            'generalize': ['일반화하다', '보편화하다'],
+            'corrupt': ['부패한', '타락한', '손상시키다'],
+            'inheritance': ['상속', '유전'],
+            'relevant': ['관련된', '적절한', '타당한'],
+            'based on': ['~에 근거하여', '~을 바탕으로', '~에 기반을 두어'],
+            'install': ['설치하다', '장치하다'],
+            'regret': ['후회하다', '유감으로 생각하다'],
+            'issue': ['문제', '쟁점', '발행하다'],
+            'immediate': ['즉각적인', '당면한', '곧바로의'],
+        };
+
+        let currentQuizIndex = 0;
+        let score = 0;
+        let shuffledWords = [];
+        const wordsList = Object.keys(vocabulary);
+        const totalQuestions = wordsList.length;
+        let isAnswered = false;
+
+        const wordDisplay = document.getElementById('word');
+        const answerInput = document.getElementById('answer-input');
+        const checkButton = document.getElementById('check-button');
+        const feedbackDisplay = document.getElementById('feedback');
+        const nextButton = document.getElementById('next-button');
+        const scoreDisplay = document.getElementById('score-display');
+        const quizScreen = document.getElementById('quiz-screen');
+        const resultsScreen = document.getElementById('results-screen');
+        const finalScoreDisplay = document.getElementById('final-score');
+        const resultMessageDisplay = document.getElementById('result-message');
+
+
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+        }
+
+        function normalizeAnswer(text) {
+            // 공백 제거 및 소문자 변환
+            return text.trim().toLowerCase().replace(/\s/g, '');
+        }
+
+        function startQuiz() {
+            currentQuizIndex = 0;
+            score = 0;
+            shuffledWords = [...wordsList];
+            shuffleArray(shuffledWords);
+
+            quizScreen.style.display = 'block';
+            resultsScreen.style.display = 'none';
+            nextButton.style.display = 'none';
+            checkButton.style.display = 'inline-block';
+            answerInput.disabled = false;
+            
+            updateScoreDisplay();
+            loadQuestion();
+        }
+
+        function loadQuestion() {
+            if (currentQuizIndex >= totalQuestions) {
+                showResults();
+                return;
+            }
+
+            isAnswered = false;
+            feedbackDisplay.textContent = '';
+            feedbackDisplay.className = '';
+            answerInput.value = '';
+            answerInput.focus();
+            
+            checkButton.style.display = 'inline-block';
+            nextButton.style.display = 'none';
+            answerInput.disabled = false;
+
+            const currentWord = shuffledWords[currentQuizIndex];
+            wordDisplay.textContent = currentWord.toUpperCase();
+        }
+
+        function checkAnswer() {
+            if (isAnswered) return;
+            isAnswered = true;
+            answerInput.disabled = true;
+            checkButton.style.display = 'none';
+            nextButton.style.display = 'inline-block';
+            
+            const currentWord = shuffledWords[currentQuizIndex];
+            const correctAnswers = vocabulary[currentWord];
+            const userAnswer = answerInput.value;
+            
+            const normalizedUserAnswer = normalizeAnswer(userAnswer);
+            const isCorrect = correctAnswers.some(correct => normalizeAnswer(correct) === normalizedUserAnswer);
+
+            const primaryAnswer = correctAnswers[0]; // 주 정답 (피드백용)
+
+            if (isCorrect) {
+                score++;
+                feedbackDisplay.textContent = `✅ 정답입니다! (${primaryAnswer})`;
+                feedbackDisplay.classList.add('correct-feedback');
+                feedbackDisplay.classList.remove('incorrect-feedback');
+            } else {
+                feedbackDisplay.textContent = `❌ 오답입니다. 정답: ${primaryAnswer}`;
+                feedbackDisplay.classList.add('incorrect-feedback');
+                feedbackDisplay.classList.remove('correct-feedback');
+            }
+            updateScoreDisplay();
+        }
+
+        function nextQuestion() {
+            currentQuizIndex++;
+            loadQuestion();
+        }
+        
+        function handleKeyPress(event) {
+            // 엔터 키 (keyCode 13 또는 key 'Enter')가 눌렸을 때 정답 확인
+            if (event.key === 'Enter' && !isAnswered) {
+                checkAnswer();
+            } else if (event.key === 'Enter' && isAnswered) {
+                nextQuestion();
+            }
+        }
+
+        function updateScoreDisplay() {
+            scoreDisplay.textContent = `점수: ${score} / ${currentQuizIndex}`;
+        }
+
+        function showResults() {
+            quizScreen.style.display = 'none';
+            resultsScreen.style.display = 'block';
+            
+            finalScoreDisplay.textContent = `총 ${totalQuestions} 문제 중 ${score} 문제를 맞히셨습니다.`;
+            
+            const percentage = (score / totalQuestions) * 100;
+            let message = '';
+            
+            if (percentage === 100) {
+                message = "🥳 완벽한 점수! 어휘력이 최고입니다!";
+            } else if (percentage >= 80) {
+                message = "👍 훌륭합니다! 아주 강한 어휘력을 가지고 계시네요.";
+            } else if (percentage >= 60) {
+                message = "👏 잘하셨어요! 더 연습하면 완벽해질 거예요.";
+            } else {
+                message = "📚 조금 더 노력해 봅시다! 단어 암기는 꾸준함이 중요합니다.";
+            }
+            
+            resultMessageDisplay.textContent = message;
+        }
+
+        // 퀴즈 시작
+        window.onload = startQuiz;
+    </script>
+
+</body>
+</html>
