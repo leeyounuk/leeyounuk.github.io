@@ -1,167 +1,353 @@
-import random
-import os
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>영단어 한국어 의미 맞추기 퀴즈</title>
+    <style>
+        body {
+            font-family: 'Malgun Gothic', '맑은 고딕', sans-serif;
+            background-color: #f4f4f9;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            color: #333;
+        }
+        .quiz-container {
+            background-color: #ffffff;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+            width: 90%;
+            max-width: 600px;
+            text-align: center;
+        }
+        h1 {
+            color: #007bff;
+            margin-bottom: 25px;
+            font-size: 1.8em;
+        }
+        #question-area {
+            margin-bottom: 20px;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            background-color: #fafafa;
+        }
+        #word {
+            font-size: 2.5em;
+            font-weight: bold;
+            color: #34495e;
+            margin-bottom: 15px;
+            display: block;
+        }
+        #options-container {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .option-button {
+            background-color: #e9ecef;
+            color: #333;
+            border: none;
+            padding: 15px 20px;
+            text-align: left;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background-color 0.3s, transform 0.1s;
+            font-size: 1.1em;
+        }
+        .option-button:hover {
+            background-color: #dee2e6;
+            transform: translateY(-2px);
+        }
+        .option-button:active {
+            transform: translateY(0);
+        }
+        .correct {
+            background-color: #28a745 !important;
+            color: white;
+            font-weight: bold;
+        }
+        .incorrect {
+            background-color: #dc3545 !important;
+            color: white;
+            font-weight: bold;
+        }
+        #feedback {
+            margin-top: 15px;
+            min-height: 40px;
+            font-weight: bold;
+        }
+        #next-button {
+            background-color: #007bff;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 1.1em;
+            margin-top: 20px;
+        }
+        #next-button:disabled {
+            background-color: #b3d9ff;
+            cursor: not-allowed;
+        }
+        #score-display {
+            font-size: 1.2em;
+            margin-top: 15px;
+            color: #6c757d;
+        }
+        /* 결과 화면 스타일 */
+        #results-screen {
+            display: none;
+            margin-top: 20px;
+            padding: 20px;
+            border: 2px solid #007bff;
+            border-radius: 10px;
+            background-color: #e6f0ff;
+        }
+        #results-screen h2 {
+            color: #007bff;
+        }
+        .restart-button {
+            background-color: #28a745;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 1.1em;
+            margin-top: 15px;
+        }
+    </style>
+</head>
+<body>
 
-# --- 영단어와 한국어 의미 정의 ---
-# 퀴즈에 사용할 단어와 정확한 한국어 의미를 매칭합니다.
-vocabulary_korean = {
-    'gadget': '작은 기계 장치, 도구 (전자 기기)',
-    'migrating': '이동하는, 이주하는',
-    'in accordance with': '~에 따라서, ~에 부합하여',
-    'consist of': '~으로 구성되다, 이루어져 있다',
-    'substantial': '상당한, 실질적인, 중요한',
-    'composed of': '~으로 구성된, 이루어진',
-    'Census Bureau': '인구 조사국 (주로 미국)',
-    'convert': '변환하다, 전환하다, 개조하다',
-    'complete': '완료하다, 완성하다; 완전한',
-    'refer to': '~을 언급하다, 참고하다, 지칭하다',
-    'enable': '가능하게 하다, 할 수 있게 하다',
-    'manipulate': '조작하다, 다루다',
-    'intervention': '개입, 간섭, 중재',
-    'ubiquitous': '어디에나 있는, 매우 흔한',
-    'calm': '침착한, 차분한; 진정시키다',
-    'expansion': '확대, 확장, 팽창',
-    'peripheral': '주변의, 지엽적인; 주변 장치 (컴퓨터)',
-    'ready to start': '시작할 준비가 된',
-    'cool': '시원한, 멋진, 침착한',
-    'prevail': '만연하다, 우세하다, 이기다',
-    'skeptic': '회의론자, 의심 많은 사람',
-    'day-to-day': '일상적인, 매일의',
-    'fundamental': '근본적인, 기본적인, 주요한',
-    'multitasking': '다중 작업 (여러 일을 동시에 처리하는 능력)',
-    'flexible': '유연한, 융통성 있는',
-    'portability': '휴대성, 이동성',
-    'leading': '선두의, 주요한, 이끄는',
-    'feature': '특징, 특색, 기능',
-    'swipe': '문지르다, (화면을) 쓸어 넘기다',
-    'pinch': '(화면을) 집게손가락과 엄지손가락으로 오므리거나 펼치다',
-    'compatibility': '호환성, 양립성',
-    'entrepreneur': '사업가, 기업가',
-    'cofounder': '공동 창업자',
-    'manage': '관리하다, 경영하다, 다루다',
-    'interact': '상호 작용하다, 소통하다',
-    'stuck': '꼼짝 못하는, 막힌, 갇힌',
-    'ringer': '매우 흡사한 사람/물건; 대리 선수',
-    'goof up': '실수하다, 망치다 (구어체)',
-    'screw up': '망치다, 엉망으로 만들다 (구어체)',
-    'substitute': '대용품, 대리인; 대체하다',
-    'regardless of': '~에 상관없이, 관계없이',
-    'lend itself to': '~에 적합하다, ~하기 쉽다',
-    'readable': '읽기 쉬운, 독해력이 좋은',
-    'a variety of': '다양한 종류의, 여러 가지의',
-    'inextricably': '불가분하게, 떼려야 뗄 수 없게',
-    'predecessor': '전임자, 선임자; 이전 모델/것',
-    'burgeon': '급성장하다, 싹트다, 번창하다',
-    'handheld': '손에 들고 쓰는, 휴대용의',
-    'compete with': '~와 경쟁하다',
-    'critic': '비평가, 평론가',
-    'productivity': '생산성',
-    'procedure': '절차, 과정, 순서',
-    'generalize': '일반화하다, 보편화하다',
-    'corrupt': '부패한, 타락한; 손상시키다',
-    'inheritance': '상속, 유전',
-    'relevant': '관련된, 적절한, 타당한',
-    'based on': '~에 근거하여, ~을 바탕으로',
-    'install': '설치하다, 장치하다',
-    'regret': '후회하다, 유감으로 생각하다',
-    'issue': '문제, 쟁점; 발행하다',
-    'immediate': '즉각적인, 당면한, 곧바로의',
-}
-
-def clear_screen():
-    """콘솔 화면을 지웁니다."""
-    # For Windows
-    if os.name == 'nt':
-        os.system('cls')
-    # For Unix/Linux/Mac
-    else:
-        os.system('clear')
-
-def run_quiz():
-    """메인 단어 의미 맞추기 퀴즈 게임을 실행합니다."""
-    words = list(vocabulary_korean.keys())
-    score = 0
-    total_questions = len(words)
-
-    clear_screen()
-    print("🧠 영단어 한국어 의미 맞추기 퀴즈! 📚")
-    print("-----------------------------------------------------")
-    input("시작하려면 Enter 키를 누르세요...")
-    clear_screen()
-
-    # 퀴즈에 사용할 단어를 섞습니다.
-    quiz_words = words[:]
-    random.shuffle(quiz_words)
-
-    for i, word in enumerate(quiz_words):
-        correct_definition = vocabulary_korean[word]
-        
-        # 3개의 오답을 선택합니다.
-        all_definitions = list(vocabulary_korean.values())
-        # 정답을 제외하고 오답 후보 목록을 만듭니다.
-        if correct_definition in all_definitions:
-             all_definitions.remove(correct_definition)
-        
-        # 오답이 3개 미만일 경우를 대비하여 처리합니다.
-        num_distractors = 3
-        if len(all_definitions) >= num_distractors:
-            distractors = random.sample(all_definitions, num_distractors)
-        else:
-            # 단어가 많으므로 이 경우는 거의 없지만, 안전을 위해 처리
-            distractors = all_definitions
-            while len(distractors) < num_distractors:
-                distractors.append(f"오답 보기 {len(distractors) + 1}")
-
-        
-        options = [correct_definition] + distractors
-        random.shuffle(options)
-        
-        # 섞인 보기에서 정답의 인덱스를 찾습니다.
-        correct_index = options.index(correct_definition)
-        
-        # 문제 제시
-        clear_screen()
-        print(f"--- 문제 {i+1} / {total_questions} ---")
-        print(f"\n다음 영단어의 정확한 한국어 의미는 무엇일까요? : '{word.upper()}'\n")
-        
-        # 보기 출력
-        for j, option in enumerate(options):
-            # 사용자에게는 1번부터 보여줍니다.
-            print(f"  {j+1}. {option}")
-        
-        # 사용자 입력 받기
-        while True:
-            try:
-                user_choice = input("\n선택지를 입력하세요 (1, 2, 3 또는 4): ")
-                choice_number = int(user_choice)
-                if 1 <= choice_number <= len(options):
-                    break
-                else:
-                    print(f"🚫 잘못된 선택입니다. 1에서 {len(options)} 사이의 숫자를 입력해주세요.")
-            except ValueError:
-                print("🚫 잘못된 입력입니다. 숫자를 입력해주세요.")
-        
-        # 정답 확인
-        if choice_number == correct_index + 1:
-            score += 1
-            print("\n✅ 정답입니다! 멋져요.")
-        else:
-            print(f"\n❌ 오답입니다. 정답은 {correct_index + 1}번 입니다.")
-            print(f"   정답 의미: {correct_definition}")
+    <div class="quiz-container">
+        <h1>🧠 영단어 한국어 의미 맞추기 퀴즈 📚</h1>
+        <div id="quiz-screen">
+            <div id="question-area">
+                <span id="word">로딩 중...</span>
+            </div>
             
-        input("\n계속하려면 Enter 키를 누르세요...")
+            <div id="options-container">
+                </div>
+            
+            <div id="feedback"></div>
+            
+            <button id="next-button" onclick="nextQuestion()" disabled>다음 문제</button>
 
-    # --- 퀴즈 결과 ---
-    clear_screen()
-    print("🌟 퀴즈 완료! 🌟")
-    print("-----------------------------------------------------")
-    print(f"당신의 최종 점수는: {total_questions}점 만점에 {score}점 입니다.")
-    if score == total_questions:
-        print("🥳 완벽한 점수입니다! 어휘력이 대단하시네요!")
-    elif score >= total_questions * 0.75:
-        print("👍 아주 훌륭합니다! 대부분의 단어를 알고 계시네요.")
-    else:
-        print("조금 더 공부하면 좋을 것 같아요! 반복이 중요합니다.")
-    print("-----------------------------------------------------")
+            <div id="score-display">점수: 0 / 0</div>
+        </div>
 
-if __name__ == "__main__":
-    run_quiz()
+        <div id="results-screen">
+            <h2>🎉 퀴즈 완료! 🎉</h2>
+            <p id="final-score"></p>
+            <p id="result-message"></p>
+            <button class="restart-button" onclick="startQuiz()">다시 시작</button>
+        </div>
+    </div>
+
+    <script>
+        // --- 영단어와 한국어 의미 정의 ---
+        const vocabulary = {
+            'gadget': '작은 기계 장치, 도구 (전자 기기)',
+            'migrating': '이동하는, 이주하는',
+            'in accordance with': '~에 따라서, ~에 부합하여',
+            'consist of': '~으로 구성되다, 이루어져 있다',
+            'substantial': '상당한, 실질적인, 중요한',
+            'composed of': '~으로 구성된, 이루어진',
+            'Census Bureau': '인구 조사국 (주로 미국)',
+            'convert': '변환하다, 전환하다, 개조하다',
+            'complete': '완료하다, 완성하다; 완전한',
+            'refer to': '~을 언급하다, 참고하다, 지칭하다',
+            'enable': '가능하게 하다, 할 수 있게 하다',
+            'manipulate': '조작하다, 다루다',
+            'intervention': '개입, 간섭, 중재',
+            'ubiquitous': '어디에나 있는, 매우 흔한',
+            'calm': '침착한, 차분한; 진정시키다',
+            'expansion': '확대, 확장, 팽창',
+            'peripheral': '주변의, 지엽적인; 주변 장치 (컴퓨터)',
+            'ready to start': '시작할 준비가 된',
+            'cool': '시원한, 멋진, 침착한',
+            'prevail': '만연하다, 우세하다, 이기다',
+            'skeptic': '회의론자, 의심 많은 사람',
+            'day-to-day': '일상적인, 매일의',
+            'fundamental': '근본적인, 기본적인, 주요한',
+            'multitasking': '다중 작업 (여러 일을 동시에 처리하는 능력)',
+            'flexible': '유연한, 융통성 있는',
+            'portability': '휴대성, 이동성',
+            'leading': '선두의, 주요한, 이끄는',
+            'feature': '특징, 특색, 기능',
+            'swipe': '문지르다, (화면을) 쓸어 넘기다',
+            'pinch': '(화면을) 집게손가락과 엄지손가락으로 오므리거나 펼치다',
+            'compatibility': '호환성, 양립성',
+            'entrepreneur': '사업가, 기업가',
+            'cofounder': '공동 창업자',
+            'manage': '관리하다, 경영하다, 다루다',
+            'interact': '상호 작용하다, 소통하다',
+            'stuck': '꼼짝 못하는, 막힌, 갇힌',
+            'ringer': '매우 흡사한 사람/물건; 대리 선수',
+            'goof up': '실수하다, 망치다 (구어체)',
+            'screw up': '망치다, 엉망으로 만들다 (구어체)',
+            'substitute': '대용품, 대리인; 대체하다',
+            'regardless of': '~에 상관없이, 관계없이',
+            'lend itself to': '~에 적합하다, ~하기 쉽다',
+            'readable': '읽기 쉬운, 독해력이 좋은',
+            'a variety of': '다양한 종류의, 여러 가지의',
+            'inextricably': '불가분하게, 떼려야 뗄 수 없게',
+            'predecessor': '전임자, 선임자; 이전 모델/것',
+            'burgeon': '급성장하다, 싹트다, 번창하다',
+            'handheld': '손에 들고 쓰는, 휴대용의',
+            'compete with': '~와 경쟁하다',
+            'critic': '비평가, 평론가',
+            'productivity': '생산성',
+            'procedure': '절차, 과정, 순서',
+            'generalize': '일반화하다, 보편화하다',
+            'corrupt': '부패한, 타락한; 손상시키다',
+            'inheritance': '상속, 유전',
+            'relevant': '관련된, 적절한, 타당한',
+            'based on': '~에 근거하여, ~을 바탕으로',
+            'install': '설치하다, 장치하다',
+            'regret': '후회하다, 유감으로 생각하다',
+            'issue': '문제, 쟁점; 발행하다',
+            'immediate': '즉각적인, 당면한, 곧바로의',
+        };
+
+        let currentQuizIndex = 0;
+        let score = 0;
+        let shuffledWords = [];
+        const wordsList = Object.keys(vocabulary);
+        const totalQuestions = wordsList.length;
+        let isAnswered = false;
+
+        const wordDisplay = document.getElementById('word');
+        const optionsContainer = document.getElementById('options-container');
+        const feedbackDisplay = document.getElementById('feedback');
+        const nextButton = document.getElementById('next-button');
+        const scoreDisplay = document.getElementById('score-display');
+        const quizScreen = document.getElementById('quiz-screen');
+        const resultsScreen = document.getElementById('results-screen');
+        const finalScoreDisplay = document.getElementById('final-score');
+        const resultMessageDisplay = document.getElementById('result-message');
+
+
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+        }
+
+        function startQuiz() {
+            currentQuizIndex = 0;
+            score = 0;
+            shuffledWords = [...wordsList];
+            shuffleArray(shuffledWords);
+
+            quizScreen.style.display = 'block';
+            resultsScreen.style.display = 'none';
+            updateScoreDisplay();
+            loadQuestion();
+        }
+
+        function loadQuestion() {
+            if (currentQuizIndex >= totalQuestions) {
+                showResults();
+                return;
+            }
+
+            isAnswered = false;
+            nextButton.disabled = true;
+            feedbackDisplay.textContent = '';
+            optionsContainer.innerHTML = '';
+
+            const currentWord = shuffledWords[currentQuizIndex];
+            const correctAnswer = vocabulary[currentWord];
+            wordDisplay.textContent = currentWord.toUpperCase();
+
+            // 오답 보기 3개 선택 (Distractors)
+            let allDefinitions = Object.values(vocabulary).filter(def => def !== correctAnswer);
+            shuffleArray(allDefinitions);
+            
+            const distractors = allDefinitions.slice(0, 3);
+            let options = [correctAnswer, ...distractors];
+            shuffleArray(options);
+
+            // 보기 버튼 생성
+            options.forEach((option, index) => {
+                const button = document.createElement('button');
+                button.classList.add('option-button');
+                button.textContent = `${index + 1}. ${option}`;
+                button.onclick = () => checkAnswer(button, option, correctAnswer);
+                optionsContainer.appendChild(button);
+            });
+        }
+
+        function checkAnswer(selectedButton, selectedAnswer, correctAnswer) {
+            if (isAnswered) return;
+            isAnswered = true;
+            nextButton.disabled = false;
+
+            // 모든 버튼 비활성화
+            document.querySelectorAll('.option-button').forEach(btn => btn.disabled = true);
+
+            if (selectedAnswer === correctAnswer) {
+                score++;
+                selectedButton.classList.add('correct');
+                feedbackDisplay.textContent = '✅ 정답입니다!';
+            } else {
+                selectedButton.classList.add('incorrect');
+                feedbackDisplay.textContent = `❌ 오답입니다. 정답은: ${correctAnswer}`;
+                
+                // 정답 버튼 표시
+                document.querySelectorAll('.option-button').forEach(btn => {
+                    if (btn.textContent.includes(correctAnswer)) {
+                        btn.classList.add('correct');
+                    }
+                });
+            }
+            updateScoreDisplay();
+        }
+
+        function nextQuestion() {
+            currentQuizIndex++;
+            loadQuestion();
+        }
+
+        function updateScoreDisplay() {
+            scoreDisplay.textContent = `점수: ${score} / ${currentQuizIndex}`;
+        }
+
+        function showResults() {
+            quizScreen.style.display = 'none';
+            resultsScreen.style.display = 'block';
+            
+            finalScoreDisplay.textContent = `총 ${totalQuestions} 문제 중 ${score} 문제를 맞히셨습니다.`;
+            
+            const percentage = (score / totalQuestions) * 100;
+            let message = '';
+            
+            if (percentage === 100) {
+                message = "🥳 완벽한 점수! 어휘력이 최고입니다!";
+            } else if (percentage >= 80) {
+                message = "👍 훌륭합니다! 아주 강한 어휘력을 가지고 계시네요.";
+            } else if (percentage >= 60) {
+                message = "👏 잘하셨어요! 더 연습하면 완벽해질 거예요.";
+            } else {
+                message = "📚 조금 더 노력해 봅시다! 단어 암기는 꾸준함이 중요합니다.";
+            }
+            
+            resultMessageDisplay.textContent = message;
+        }
+
+        // 퀴즈 시작
+        window.onload = startQuiz;
+    </script>
+
+</body>
+</html>
