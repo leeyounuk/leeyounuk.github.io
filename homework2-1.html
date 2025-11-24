@@ -1,35 +1,209 @@
 <!DOCTYPE html>
-<html>
+<html lang="ko">
 <head>
-<title>Page Title</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>일단합격 JLPT N2 단어 퀴즈</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700&family=Noto+Sans+JP:wght@400;700&display=swap');
+        body { font-family: 'Noto Sans KR', 'Noto Sans JP', sans-serif; }
+        .fade-in { animation: fadeIn 0.3s ease-in-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
 </head>
-<body>
+<body class="bg-gray-100 min-h-screen flex items-center justify-center p-4">
 
-<h1>전동 킥보드 타고 무단횡단하길래 경찰서 데려갔더니… 아동학대로 피소</h1>
+    <div class="bg-white rounded-xl shadow-lg w-full max-w-md overflow-hidden">
+        <div class="bg-emerald-600 p-4 text-white text-center">
+            <h1 class="text-xl font-bold">JLPT N2 단어장 퀴즈</h1>
+            <p class="text-sm opacity-80">뜻을 맞추면 발음 퀴즈로 넘어갑니다</p>
+        </div>
 
-<a href="https://naver.com">링크</a>
+        <div class="bg-gray-200 h-2 w-full">
+            <div id="progress-bar" class="bg-emerald-400 h-2 transition-all duration-300" style="width: 0%"></div>
+        </div>
 
-<p>전통 킥보드를 위험하게 운전했다는 이유로 학생을 경찰서로 데려간 운전자가 아동학대로 처벌될 위기에 처했다.
+        <div id="quiz-container" class="p-8 text-center fade-in">
+            <div class="mb-6">
+                <span class="text-sm text-gray-500 mb-1 block">문제 <span id="current-index">1</span> / <span id="total-count">10</span></span>
+                <h2 id="question-word" class="text-5xl font-bold text-gray-800 mb-2"></h2>
+                <p id="status-msg" class="text-emerald-600 font-medium h-6"></p>
+            </div>
 
-11일 광주지법 형사8단독은 아동복지법 위반(아동학대) 혐의로 기소된 50대 운전자 A 씨에 대한 첫 공판기일을 열었다.</p>
+            <div class="space-y-4">
+                <div class="relative">
+                    <label id="input-label" class="block text-left text-sm font-bold text-gray-700 mb-1">뜻을 입력하세요 (한국어)</label>
+                    <input type="text" id="user-input" 
+                        class="w-full px-4 py-3 rounded-lg border-2 border-gray-300 focus:border-emerald-500 focus:outline-none transition-colors text-lg text-center"
+                        placeholder="예: 약속" autocomplete="off">
+                </div>
 
-<img src="https://i.namu.wiki/i/ssHTvk9KsNtop6OqXQ5osIBughO0g2tmsxFrlhQpnsRjXsWVrPKgR4Zza7dyt7cv8j_ZMbU-EYSh3w7fn9IMPA.webp" alt="ggg" width="300" height="142">
+                <button onclick="checkAnswer()" 
+                    class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 rounded-lg transition-transform active:scale-95 shadow-md">
+                    확인
+                </button>
+                
+                <div id="feedback" class="h-6 text-sm font-bold"></div>
+            </div>
+        </div>
 
-<p>A 씨는 지난해 7월 광주 서구의 한 도로에서 전동 킥보드를 타고 도로를 무단 횡단한 학생을 자신의 차량에 태워 경찰서로 데려간 혐의를 받는다.
+        <div id="result-container" class="hidden p-8 text-center">
+            <h2 class="text-3xl font-bold text-gray-800 mb-4">퀴즈 완료! 🎉</h2>
+            <p class="text-lg mb-6">총 <span id="final-score" class="font-bold text-emerald-600"></span>점을 획득했습니다.</p>
+            <button onclick="location.reload()" class="bg-emerald-600 text-white px-6 py-2 rounded-lg hover:bg-emerald-700">다시 하기</button>
+        </div>
+    </div>
 
-당시 도로를 횡단한 학생을 상대로 경적을 울리고 차량을 후진시켜 멈춰 세운  <br> A 씨는 "교통사고가 날 뻔했다"며 학생을 자신의 차량에 태워 경찰서에 데려다 놓고 떠났다.</p>
+    <script>
+        // PDF 파일에서 추출한 샘플 데이터 (필요 시 이 부분을 수정하여 단어를 추가하세요)
+        const vocabularyData = [
+            { kanji: "相互", kana: "そうご", meaning: ["상호", "서로"] },
+            { kanji: "補う", kana: "おぎなう", meaning: ["보완하다", "보충하다"] },
+            { kanji: "至急", kana: "しきゅう", meaning: ["지급", "매우 급함", "급히"] },
+            { kanji: "率直な", kana: "そっちょくな", meaning: ["솔직한", "솔직"] },
+            { kanji: "規模", kana: "きぼ", meaning: ["규모"] },
+            { kanji: "装置", kana: "そうち", meaning: ["장치"] },
+            { kanji: "辛い", kana: "からい", meaning: ["맵다", "괴롭다"] }, // 문맥에 따라 뜻이 다르지만 대표 뜻 추가
+            { kanji: "触れる", kana: "ふれる", meaning: ["닿다", "언급하다"] },
+            { kanji: "景色", kana: "けしき", meaning: ["경치"] },
+            { kanji: "占める", kana: "しめる", meaning: ["차지하다", "점유하다"] },
+            { kanji: "削除", kana: "さくじょ", meaning: ["삭제"] },
+            { kanji: "尊重", kana: "そんちょう", meaning: ["존중"] },
+            { kanji: "備える", kana: "そなえる", meaning: ["대비하다", "갖추다"] },
+            { kanji: "治療", kana: "ちりょう", meaning: ["치료"] },
+            { kanji: "防災", kana: "ぼうさい", meaning: ["방재"] },
+            { kanji: "隣", kana: "となり", meaning: ["옆", "이웃"] },
+            { kanji: "敗れる", kana: "やぶれる", meaning: ["패배하다", "지다"] },
+            { kanji: "地元", kana: "じもと", meaning: ["고장", "현지", "지역"] },
+            { kanji: "要求", kana: "ようきゅう", meaning: ["요구"] },
+            { kanji: "焦点", kana: "しょうてん", meaning: ["초점"] },
+            { kanji: "撮影", kana: "さつえい", meaning: ["촬영"] },
+            { kanji: "拡充", kana: "かくじゅう", meaning: ["확충"] },
+            { kanji: "損害", kana: "そんがい", meaning: ["손해"] },
+            { kanji: "積む", kana: "つむ", meaning: ["쌓다"] },
+            { kanji: "模範", kana: "もはん", meaning: ["모범"] },
+            { kanji: "行事", kana: "ぎょうじ", meaning: ["행사"] },
+            { kanji: "現象", kana: "げんしょう", meaning: ["현상"] },
+            { kanji: "逃亡", kana: "とうぼう", meaning: ["도망"] },
+            { kanji: "詳しい", kana: "くわしい", meaning: ["자세하다", "상세하다"] },
+            { kanji: "大幅", kana: "おおはば", meaning: ["대폭", "대폭적"] }
+        ];
 
-<p>이후 학생 측은 고소장을 제출했고, 검찰은 A 씨의 행위가 아동학대에 <br> 해당한다고 판단하고 재판에 넘겼다.
+        let currentIndex = 0;
+        let score = 0;
+        let currentStep = 'meaning'; // 'meaning' (뜻) or 'reading' (발음)
 
-재판에서 A 씨는 "위험한 행동을 알려주고 경찰서에 보내 훈육하려 데려갔을 뿐, 차량에 강제로 태우지 않았다"며 아동학대 사실을 부인했다.
+        const questionWordEl = document.getElementById('question-word');
+        const inputLabelEl = document.getElementById('input-label');
+        const userInputEl = document.getElementById('user-input');
+        const statusMsgEl = document.getElementById('status-msg');
+        const feedbackEl = document.getElementById('feedback');
+        const progressBarEl = document.getElementById('progress-bar');
+        const currentIndexEl = document.getElementById('current-index');
+        const totalCountEl = document.getElementById('total-count');
 
-재판부는 사실관계를 확인하기 위해 관련자들을 증인 신문할 계획이다</p>
-<ul>
-    <li>Coffee</li>
-    <li>Tea</li>
-    <li>Milk</li>
-</ul>
-  
-  
+        // 초기화
+        function initQuiz() {
+            document.getElementById('total-count').innerText = vocabularyData.length;
+            loadQuestion();
+            
+            // 엔터키 입력 시 정답 확인
+            userInputEl.addEventListener("keypress", function(event) {
+                if (event.key === "Enter") {
+                    checkAnswer();
+                }
+            });
+        }
+
+        function loadQuestion() {
+            const currentData = vocabularyData[currentIndex];
+            currentIndexEl.innerText = currentIndex + 1;
+            
+            // 프로그래스 바 업데이트
+            const progress = (currentIndex / vocabularyData.length) * 100;
+            progressBarEl.style.width = `${progress}%`;
+
+            // 문제 세팅
+            questionWordEl.innerText = currentData.kanji;
+            userInputEl.value = '';
+            feedbackEl.innerText = '';
+            
+            // 1단계: 뜻 맞추기
+            currentStep = 'meaning';
+            inputLabelEl.innerText = "Step 1. 뜻을 입력하세요 (한국어)";
+            statusMsgEl.innerText = "";
+            userInputEl.placeholder = "예: " + currentData.meaning[0];
+            userInputEl.focus();
+        }
+
+        function checkAnswer() {
+            const currentData = vocabularyData[currentIndex];
+            const userVal = userInputEl.value.trim();
+
+            if (!userVal) return;
+
+            if (currentStep === 'meaning') {
+                // 뜻 확인 로직 (포함 여부 확인)
+                const isCorrect = currentData.meaning.some(m => userVal.includes(m) || m.includes(userVal));
+                
+                if (isCorrect) {
+                    feedbackEl.className = "h-6 text-sm font-bold text-blue-600";
+                    feedbackEl.innerText = "정답! 이제 발음을 입력하세요.";
+                    
+                    // 2단계 전환
+                    currentStep = 'reading';
+                    inputLabelEl.innerText = `Step 2. '${currentData.kanji}'의 발음을 입력하세요 (히라가나)`;
+                    statusMsgEl.innerText = `뜻: ${currentData.meaning.join(', ')}`; // 정답 뜻 보여주기
+                    userInputEl.value = '';
+                    userInputEl.placeholder = "예: " + currentData.kana;
+                    userInputEl.focus();
+                } else {
+                    feedbackEl.className = "h-6 text-sm font-bold text-red-500";
+                    feedbackEl.innerText = "틀렸습니다. 다시 시도해보세요.";
+                    userInputEl.classList.add('animate-pulse');
+                    setTimeout(() => userInputEl.classList.remove('animate-pulse'), 500);
+                }
+            } else if (currentStep === 'reading') {
+                // 발음 확인 로직 (정확히 일치해야 함)
+                if (userVal === currentData.kana) {
+                    score++;
+                    feedbackEl.className = "h-6 text-sm font-bold text-emerald-600";
+                    feedbackEl.innerText = "완벽합니다! 다음 문제로 넘어갑니다.";
+                    
+                    setTimeout(() => {
+                        nextQuestion();
+                    }, 1000);
+                } else {
+                    feedbackEl.className = "h-6 text-sm font-bold text-red-500";
+                    feedbackEl.innerText = `오답입니다. 정답은 '${currentData.kana}' 입니다.`;
+                    // 틀려도 다음으로 넘어갈지, 계속 시도할지 결정 (여기선 1.5초 후 넘어감)
+                    setTimeout(() => {
+                        nextQuestion();
+                    }, 1500);
+                }
+            }
+        }
+
+        function nextQuestion() {
+            currentIndex++;
+            if (currentIndex < vocabularyData.length) {
+                loadQuestion();
+            } else {
+                showResult();
+            }
+        }
+
+        function showResult() {
+            document.getElementById('quiz-container').classList.add('hidden');
+            document.getElementById('result-container').classList.remove('hidden');
+            document.getElementById('final-score').innerText = score + " / " + vocabularyData.length;
+            progressBarEl.style.width = '100%';
+        }
+
+        // 실행
+        initQuiz();
+    </script>
 </body>
 </html>
+
