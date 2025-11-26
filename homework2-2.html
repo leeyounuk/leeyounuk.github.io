@@ -1,74 +1,307 @@
 <!DOCTYPE html>
-<html>
+<html lang="ko">
 <head>
-<style>
-
-h1{
- font-family:courier;
- font-size: 50px;
-}
-  
-table {
-  font-family: arial, sans-serif;
-  border-collapse: collapse;
-  width: 100%;
-}
-
-td, th {
-  border: 1px solid #000000;
-  text-align: left;
-  padding: 8px;
-}
-th {	
-    border: 1px solid white;
-    }
-
-tr:nth-child(odd) {
-  background-color: #dddddd;
-}
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>일단합격 JLPT N2 단어장 (선지형)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700&family=Noto+Sans+JP:wght@400;700&display=swap');
+        body { font-family: 'Noto Sans KR', 'Noto Sans JP', sans-serif; }
+        .fade-in { animation: fadeIn 0.3s ease-in-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .choice-btn { transition: all 0.2s; }
+        .choice-btn:active { transform: scale(0.98); }
+    </style>
 </head>
-<body>
+<body class="bg-gray-100 min-h-screen flex items-center justify-center p-4">
 
-<h1>HTML Table</h1>
+    <div class="bg-white rounded-xl shadow-lg w-full max-w-md overflow-hidden">
+        <div id="header-bg" class="bg-emerald-600 p-4 text-white text-center transition-colors duration-500">
+            <h1 id="header-title" class="text-xl font-bold">JLPT N2 단어장</h1>
+            <p id="header-desc" class="text-sm opacity-80">4지 선다형 퀴즈 (뜻 → 발음)</p>
+        </div>
 
-<table>
-  <tr style="background-color:black;color:white;">
-    <th>Company</th>
-    <th>Contact</th>
-    <th>Country</th>
-  </tr>
-  <tr>
-    <td>Alfreds Futterkiste</td>
-    <td>Maria Anders</td>
-    <td>Germany</td>
-  </tr>
-  <tr>
-    <td>Centro comercial Moctezuma</td>
-    <td>Francisco Chang</td>
-    <td>Mexico</td>
-  </tr>
-  <tr>
-    <td>Ernst Handel</td>
-    <td>Roland Mendel</td>
-    <td>Austria</td>
-  </tr>
-  <tr>
-    <td>Island Trading</td>
-    <td>Helen Bennett</td>
-    <td>UK</td>
-  </tr>
-  <tr>
-    <td>Laughing Bacchus Winecellars</td>
-    <td>Yoshi Tannamuri</td>
-    <td>Canada</td>
-  </tr>
-  <tr>
-    <td>Magazzini Alimentari Riuniti</td>
-    <td>Giovanni Rovelli</td>
-    <td>Italy</td>
-  </tr>
-</table>
+        <div class="bg-gray-200 h-2 w-full">
+            <div id="progress-bar" class="bg-emerald-400 h-2 transition-all duration-300" style="width: 0%"></div>
+        </div>
 
+        <div id="quiz-container" class="p-6 text-center fade-in">
+            <div class="mb-6">
+                <span class="text-sm text-gray-500 mb-1 block">문제 <span id="current-index">1</span> / <span id="total-count">10</span></span>
+                <h2 id="question-word" class="text-6xl font-bold text-gray-800 mb-2 min-h-[4.5rem]"></h2>
+                <p id="step-label" class="text-emerald-600 font-bold text-sm mb-1"></p>
+                <p id="hint-text" class="text-gray-500 text-sm h-5"></p>
+            </div>
+
+            <div id="choices-container" class="grid grid-cols-1 gap-3 mb-2">
+                </div>
+
+            <div id="feedback" class="h-8 text-sm font-bold flex items-center justify-center"></div>
+        </div>
+
+        <div id="result-container" class="hidden p-8 text-center fade-in">
+            <h2 class="text-3xl font-bold text-gray-800 mb-2">퀴즈 완료! 🎉</h2>
+            <p class="text-lg mb-6 text-gray-600">
+                총 <span id="final-score" class="font-bold text-emerald-600 text-2xl"></span>점을 획득했습니다.
+            </p>
+            
+            <div id="review-section" class="hidden mb-6 bg-red-50 p-4 rounded-lg border border-red-200">
+                <p class="text-red-600 font-bold mb-2">틀린 단어가 <span id="wrong-count">0</span>개 있습니다.</p>
+                <button onclick="startReview()" class="w-full bg-red-500 hover:bg-red-600 text-white font-bold py-3 rounded-lg shadow transition-colors">
+                    틀린 단어만 복습하기 🔄
+                </button>
+            </div>
+
+            <button onclick="location.reload()" class="w-full bg-gray-600 hover:bg-gray-700 text-white font-bold py-3 rounded-lg shadow transition-colors">
+                처음부터 다시 하기 (전체 리셋)
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // 여기에 이전에 드린 전체 vocabularyData를 붙여넣으세요!
+        // 예시 데이터 (테스트용)
+        const vocabularyData = [
+            { kanji: "相互", kana: "そうご", meaning: ["상호", "서로"] },
+            { kanji: "補う", kana: "おぎなう", meaning: ["보완하다", "보충하다"] },
+            { kanji: "至急", kana: "しきゅう", meaning: ["지급", "매우 급함"] },
+            { kanji: "率直な", kana: "そっちょくな", meaning: ["솔직한"] },
+            { kanji: "規模", kana: "きぼ", meaning: ["규모"] },
+            // ... (전체 데이터를 여기에 넣으세요) ...
+        ];
+
+        let currentIndex = 0;
+        let score = 0;
+        let currentStep = 'meaning'; // 'meaning' or 'reading'
+        let quizList = [];
+        let incorrectList = [];
+        let isReviewMode = false;
+        let isProcessing = false; // 중복 클릭 방지
+
+        // DOM 요소
+        const elements = {
+            questionWord: document.getElementById('question-word'),
+            stepLabel: document.getElementById('step-label'),
+            hintText: document.getElementById('hint-text'),
+            choicesContainer: document.getElementById('choices-container'),
+            feedback: document.getElementById('feedback'),
+            progressBar: document.getElementById('progress-bar'),
+            currentIndex: document.getElementById('current-index'),
+            totalCount: document.getElementById('total-count'),
+            quizContainer: document.getElementById('quiz-container'),
+            resultContainer: document.getElementById('result-container'),
+            finalScore: document.getElementById('final-score'),
+            reviewSection: document.getElementById('review-section'),
+            wrongCount: document.getElementById('wrong-count'),
+            headerBg: document.getElementById('header-bg'),
+            headerTitle: document.getElementById('header-title'),
+            headerDesc: document.getElementById('header-desc')
+        };
+
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+        function initQuiz() {
+            quizList = shuffleArray([...vocabularyData]);
+            incorrectList = [];
+            isReviewMode = false;
+            score = 0;
+            currentIndex = 0;
+            updateHeaderUI();
+            startCycle();
+        }
+
+        function startReview() {
+            quizList = shuffleArray([...incorrectList]);
+            incorrectList = [];
+            isReviewMode = true;
+            score = 0;
+            currentIndex = 0;
+            
+            elements.resultContainer.classList.add('hidden');
+            elements.quizContainer.classList.remove('hidden');
+            updateHeaderUI();
+            startCycle();
+        }
+
+        function updateHeaderUI() {
+            if (isReviewMode) {
+                elements.headerBg.className = "bg-orange-500 p-4 text-white text-center transition-colors duration-500";
+                elements.headerTitle.innerText = "오답 복습 모드";
+                elements.headerDesc.innerText = "틀린 단어를 확실하게 외워봅시다!";
+            } else {
+                elements.headerBg.className = "bg-emerald-600 p-4 text-white text-center transition-colors duration-500";
+                elements.headerTitle.innerText = "JLPT N2 단어장";
+                elements.headerDesc.innerText = "4지 선다형 퀴즈 (뜻 → 발음)";
+            }
+        }
+
+        function startCycle() {
+            elements.totalCount.innerText = quizList.length;
+            loadQuestion();
+        }
+
+        function loadQuestion() {
+            const currentData = quizList[currentIndex];
+            elements.currentIndex.innerText = currentIndex + 1;
+            
+            const progress = (currentIndex / quizList.length) * 100;
+            elements.progressBar.style.width = `${progress}%`;
+
+            elements.questionWord.innerText = currentData.kanji;
+            elements.feedback.innerText = '';
+            
+            currentStep = 'meaning';
+            renderChoices();
+            isProcessing = false;
+        }
+
+        function renderChoices() {
+            const currentData = quizList[currentIndex];
+            elements.choicesContainer.innerHTML = ''; // 기존 버튼 삭제
+
+            let correctAnswer = '';
+            let distractors = [];
+
+            if (currentStep === 'meaning') {
+                // 뜻 맞추기
+                elements.stepLabel.innerText = "Q. 올바른 뜻은?";
+                elements.hintText.innerText = "";
+                correctAnswer = currentData.meaning.join(', ');
+
+                // 오답 생성 (현재 정답이 아닌 것들 중에서 랜덤 3개)
+                const others = vocabularyData.filter(item => item.kanji !== currentData.kanji);
+                const randomOthers = shuffleArray(others).slice(0, 3);
+                distractors = randomOthers.map(item => item.meaning.join(', '));
+
+            } else {
+                // 발음 맞추기
+                elements.stepLabel.innerText = "Q. 올바른 발음(요미가나)은?";
+                elements.hintText.innerText = `뜻: ${currentData.meaning.join(', ')}`;
+                correctAnswer = currentData.kana;
+
+                const others = vocabularyData.filter(item => item.kanji !== currentData.kanji);
+                const randomOthers = shuffleArray(others).slice(0, 3);
+                distractors = randomOthers.map(item => item.kana);
+            }
+
+            // 정답 + 오답 섞기
+            const options = shuffleArray([correctAnswer, ...distractors]);
+
+            // 버튼 생성
+            options.forEach(option => {
+                const btn = document.createElement('button');
+                btn.className = "choice-btn w-full bg-white border-2 border-gray-200 hover:border-emerald-500 hover:bg-emerald-50 text-gray-700 font-bold py-4 rounded-xl text-lg shadow-sm";
+                btn.innerText = option;
+                btn.onclick = () => checkAnswer(btn, option === correctAnswer, correctAnswer);
+                elements.choicesContainer.appendChild(btn);
+            });
+        }
+
+        function checkAnswer(btnElement, isCorrect, correctAnswerText) {
+            if (isProcessing) return;
+            isProcessing = true;
+
+            const currentData = quizList[currentIndex];
+
+            if (isCorrect) {
+                // 정답 처리
+                btnElement.className = "choice-btn w-full bg-emerald-500 border-2 border-emerald-600 text-white font-bold py-4 rounded-xl text-lg shadow-md"; // 초록색
+                
+                if (currentStep === 'meaning') {
+                    elements.feedback.className = "text-emerald-600";
+                    elements.feedback.innerText = "정답! ⭕ 발음도 맞춰보세요.";
+                    setTimeout(() => {
+                        currentStep = 'reading';
+                        renderChoices();
+                        isProcessing = false;
+                    }, 800);
+                } else {
+                    // 발음까지 맞춤 -> 점수 획득
+                    score++;
+                    elements.feedback.className = "text-emerald-600";
+                    elements.feedback.innerText = "완벽합니다! ⭕";
+                    setTimeout(() => {
+                        nextQuestion();
+                    }, 800);
+                }
+
+            } else {
+                // 오답 처리
+                btnElement.className = "choice-btn w-full bg-red-500 border-2 border-red-600 text-white font-bold py-4 rounded-xl text-lg shadow-md"; // 빨간색
+                addIncorrectWord(currentData);
+
+                // 정답 버튼 찾아서 표시해주기
+                const buttons = elements.choicesContainer.getElementsByTagName('button');
+                for (let btn of buttons) {
+                    if (btn.innerText === correctAnswerText) {
+                        btn.className = "choice-btn w-full bg-emerald-500 border-2 border-emerald-600 text-white font-bold py-4 rounded-xl text-lg shadow-md opacity-70";
+                    }
+                }
+
+                elements.feedback.className = "text-red-500";
+                elements.feedback.innerText = "오답입니다 ❌ 정답을 확인하세요.";
+
+                // 오답 확인 시간 (1.5초) 후 진행
+                setTimeout(() => {
+                    if (currentStep === 'meaning') {
+                        // 뜻 틀림 -> 발음으로 넘어감
+                        currentStep = 'reading';
+                        renderChoices();
+                        isProcessing = false;
+                    } else {
+                        // 발음 틀림 -> 다음 문제
+                        nextQuestion();
+                    }
+                }, 1500);
+            }
+        }
+
+        function addIncorrectWord(wordObj) {
+            if (!incorrectList.includes(wordObj)) {
+                incorrectList.push(wordObj);
+            }
+        }
+
+        function nextQuestion() {
+            currentIndex++;
+            if (currentIndex < quizList.length) {
+                loadQuestion();
+            } else {
+                showResult();
+            }
+        }
+
+        function showResult() {
+            elements.quizContainer.classList.add('hidden');
+            elements.resultContainer.classList.remove('hidden');
+            elements.finalScore.innerText = score + " / " + quizList.length;
+            elements.progressBar.style.width = '100%';
+
+            if (incorrectList.length > 0) {
+                elements.reviewSection.classList.remove('hidden');
+                elements.wrongCount.innerText = incorrectList.length;
+            } else {
+                elements.reviewSection.classList.add('hidden');
+                if(isReviewMode) {
+                    elements.finalScore.innerText += " (복습 완료!)";
+                }
+            }
+        }
+
+        // 초기 실행
+        // 데이터가 없으면 에러가 날 수 있으므로 더미 데이터 확인
+        if (vocabularyData.length > 0) {
+            initQuiz();
+        } else {
+            alert("단어 데이터가 없습니다. 코드를 확인해주세요.");
+        }
+    </script>
 </body>
 </html>
