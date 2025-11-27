@@ -1,137 +1,1000 @@
 <!DOCTYPE html>
-<html>
+<html lang="ko">
 <head>
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<style>
-* {
-  box-sizing: border-box;
-  font-family: Arial, sans-serif;
-}
-
-/* 투 컬럼 레이아웃 */
-.column {
-  float: left;
-  width: 50%;
-  padding: 10px;
-  height: auto;
-}
-
-/* Float 정리 */
-.row:after {
-  content: "";
-  display: table;
-  clear: both;
-}
-
-/* 이미지 스타일 */
-.image {
-  width: 100%;
-  height: auto;
-  border-radius: 8px;
-}
-
-/* 왼쪽 제목 스타일 */
-.left-title {
-  font-size: 40px;
-  color: red;
-}
-
-/* 오른쪽 제목 스타일 */
-.right-title {
-  font-size: 30px;
-  color: red;
-}
-
-/* 테이블 스타일 */
-table {
-  width: 100%;
-  border-collapse: collapse;
-  background-color: white;
-}
-
-/* 테이블 헤더 스타일 */
-th {
-  background-color: white;
-  color: black;
-  padding: 8px;
-  text-align: left;
-  border-bottom: 2px solid black;
-}
-
-/* 일반 셀 스타일 */
-td {
-  padding: 8px;
-  text-align: left;
-  border: none;
-}
-
-/* 행 스타일: 가로 테두리 추가 (맨 위, 맨 아래 제외) */
-tr:not(:first-child):not(:last-child) {
-  border-bottom: 1px solid black;
-}
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>일단합격 JLPT N2 (고난도 거꾸로 암기)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700&family=Noto+Sans+JP:wght@400;700&display=swap');
+        body { font-family: 'Noto Sans KR', 'Noto Sans JP', sans-serif; }
+        .fade-in { animation: fadeIn 0.3s ease-in-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .choice-btn { transition: all 0.2s; }
+        .choice-btn:active { transform: scale(0.98); }
+    </style>
 </head>
-<body>
+<body class="bg-slate-100 min-h-screen flex items-center justify-center p-4">
 
-<!-- 제목 -->
-<h2>Title</h2>
+    <div class="bg-white rounded-xl shadow-xl w-full max-w-md overflow-hidden border-t-4 border-indigo-600">
+        <div id="header-bg" class="bg-indigo-600 p-5 text-white text-center transition-colors duration-500">
+            <h1 id="header-title" class="text-2xl font-bold">JLPT N2 거꾸로 암기</h1>
+            <p id="header-desc" class="text-sm opacity-80 mt-1">뜻을 보고 한자(유사 글자 주의) 맞추기</p>
+        </div>
 
-<!-- 투 컬럼 -->
-<div class="row">
-  <!-- 왼쪽 컬럼 -->
-  <div class="column" style="background-color:#ffffff;">
-    <h2 class="left-title">Left Title</h2>
-    
-    <!-- 이미지 추가 -->
-    <img src="https://i.esdrop.com/d/ZklKfna5T3.jpg">
-    
-    <p>Some text..</p>
-  </div>
-  
-  <!-- 오른쪽 컬럼 -->
-  <div class="column" style="background-color:#ffffff;">
-    <h2 class="right-title">Right Title</h2>
+        <div class="bg-gray-200 h-2 w-full">
+            <div id="progress-bar" class="bg-indigo-400 h-2 transition-all duration-300" style="width: 0%"></div>
+        </div>
 
-    <!-- 테이블 -->
-    <table>
-      <tr>
-        <th>Company</th>
-        <th>Contact</th>
-        <th>Country</th>
-      </tr>
-      <tr>
-        <td>Alfreds Futterkiste</td>
-        <td>Maria Anders</td>
-        <td>Germany</td>
-      </tr>
-      <tr>
-        <td>Centro comercial Moctezuma</td>
-        <td>Francisco Chang</td>
-        <td>Mexico</td>
-      </tr>
-      <tr>
-        <td>Ernst Handel</td>
-        <td>Roland Mendel</td>
-        <td>Austria</td>
-      </tr>
-      <tr>
-        <td>Island Trading</td>
-        <td>Helen Bennett</td>
-        <td>UK</td>
-      </tr>
-      <tr>
-        <td>Laughing Bacchus Winecellars</td>
-        <td>Yoshi Tannamuri</td>
-        <td>Canada</td>
-      </tr>
-      <tr>
-        <td>Magazzini Alimentari Riuniti</td>
-        <td>Giovanni Rovelli</td>
-        <td>Italy</td>
-      </tr>
-    </table>
-  </div>
-</div>
+        <div id="quiz-container" class="p-6 text-center fade-in">
+            <div class="mb-8">
+                <span class="text-xs font-bold text-gray-400 tracking-widest mb-2 block uppercase">Question <span id="current-index">1</span> / <span id="total-count">10</span></span>
+                
+                <h2 id="question-text" class="text-4xl font-bold text-gray-800 mb-3 min-h-[3.5rem] break-keep leading-tight flex items-center justify-center"></h2>
+                
+                <div class="flex justify-center items-center gap-2">
+                    <span id="step-badge" class="bg-indigo-100 text-indigo-700 text-xs font-bold px-3 py-1 rounded-full">Step 1</span>
+                    <p id="step-guide" class="text-gray-500 text-sm font-medium"></p>
+                </div>
+            </div>
 
+            <div id="choices-container" class="grid grid-cols-2 gap-3 mb-4">
+                </div>
+
+            <div id="feedback" class="h-12 text-sm font-bold flex items-center justify-center whitespace-pre-line"></div>
+        </div>
+
+        <div id="result-container" class="hidden p-8 text-center fade-in">
+            <div class="mb-6">
+                <div class="inline-block p-4 rounded-full bg-indigo-50 mb-4">
+                    <span class="text-4xl">🏆</span>
+                </div>
+                <h2 class="text-3xl font-bold text-gray-800 mb-2">학습 완료!</h2>
+                <p class="text-gray-600">수고하셨습니다.</p>
+            </div>
+            
+            <p class="text-lg mb-8 text-gray-700 bg-gray-50 py-4 rounded-lg border border-gray-100">
+                최종 점수: <span id="final-score" class="font-bold text-indigo-600 text-3xl align-middle ml-2"></span>
+            </p>
+            
+            <div id="review-section" class="hidden mb-4">
+                <button onclick="startReview()" class="w-full bg-orange-500 hover:bg-orange-600 text-white font-bold py-3 rounded-xl shadow-lg shadow-orange-200 transition-all transform hover:-translate-y-1 flex items-center justify-center gap-2">
+                    <span>🔄</span> 틀린 단어 (<span id="wrong-count">0</span>개) 복습하기
+                </button>
+            </div>
+
+            <button onclick="location.reload()" class="w-full bg-gray-800 hover:bg-gray-900 text-white font-bold py-3 rounded-xl shadow-lg transition-all transform hover:-translate-y-1">
+                처음부터 다시 하기
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // 🔥 배치 1 (4~8p) 데이터 + AI가 생성한 '한 글자가 겹치는' 고난도 오답 포함
+// --- 9페이지 ---
+    { 
+        kanji: "湿っぽい", kana: "しめっぽい", meaning: ["눅눅하다", "습기 차다"],
+        wrongKanjis: ["汚い", "辛い", "暑い"], // 'い' 형용사 매칭 (원형 아님)
+        wrongKanas: ["ぬれっぽい", "じめっぽい", "いそがしい"] 
+    },
+    { 
+        kanji: "鮮やかな", kana: "あざやかな", meaning: ["선명한"],
+        wrongKanjis: ["爽やかな", "和やかな", "穏やかな"], // 'やかな' 일치
+        wrongKanas: ["ささやかな", "しなやかな", "こまやかな"]
+    },
+    { 
+        kanji: "接続", kana: "せつぞく", meaning: ["접속"],
+        wrongKanjis: ["持続", "連続", "接近"], // '続' 또는 '接' 겹침
+        wrongKanas: ["せっそく", "ぜつぞく", "せつしょく"]
+    },
+    { 
+        kanji: "援助", kana: "えんじょ", meaning: ["원조"],
+        wrongKanjis: ["応援", "救助", "支援"], // '援' 또는 '助' 겹침
+        wrongKanas: ["えんじょう", "あんじょ", "えんしょ"]
+    },
+    { 
+        kanji: "逆らう", kana: "さからう", meaning: ["거스르다", "거역하다"],
+        wrongKanjis: ["疑う", "失う", "戦う"], // 'う' 일치
+        wrongKanas: ["ぎゃくらう", "かわらう", "とららう"]
+    },
+    { 
+        kanji: "破れる", kana: "やぶれる", meaning: ["찢어지다", "파손되다"],
+        wrongKanjis: ["放れる", "改れる", "攻れる"], // 'れる' 일치
+        wrongKanas: ["たおれる", "あばれる", "こわれる"]
+    },
+    { 
+        kanji: "批判", kana: "ひはん", meaning: ["비판"],
+        wrongKanjis: ["評判", "判断", "批評"], // '判' 또는 '評' 겹침
+        wrongKanas: ["ひばん", "びはん", "ひはん(pitch)"]
+    },
+    { 
+        kanji: "面倒な", kana: "めんどうな", meaning: ["귀찮은", "성가신"],
+        wrongKanjis: ["正面な", "顔面な", "外面な"], // '面な' 일치
+        wrongKanas: ["めんとうな", "めんどな", "みどうな"]
+    },
+    { 
+        kanji: "簡潔な", kana: "かんけつな", meaning: ["간결한"],
+        wrongKanjis: ["清潔な", "簡便な", "簡素な"], // '簡' 또는 '潔' 겹침
+        wrongKanas: ["かんげつな", "けんけつな", "かんきつな"]
+    },
+    { 
+        kanji: "招く", kana: "まねく", meaning: ["부르다", "초대하다"],
+        wrongKanjis: ["引く", "聞く", "解く"], // 'く' 일치
+        wrongKanas: ["おのく", "ひびく", "なつく"]
+    },
+    { 
+        kanji: "参照", kana: "さんしょう", meaning: ["참조"],
+        wrongKanjis: ["参観", "照明", "対照"], // '参' 또는 '照' 겹침
+        wrongKanas: ["さんしょ", "ざんしょう", "さしょう"]
+    },
+    { 
+        kanji: "保証", kana: "ほしょう", meaning: ["보증"],
+        wrongKanjis: ["証明", "保護", "証拠"], // '証' 또는 '保' 겹침
+        wrongKanas: ["ほうしょう", "ほしょ", "ぼしょう"]
+    },
+    { 
+        kanji: "焦げる", kana: "こげる", meaning: ["눋다", "타다"],
+        wrongKanjis: ["熱げる", "黒げる", "集める"], // 'げる' 일치
+        wrongKanas: ["こげる(pitch)", "ねげる", "あせる"]
+    },
+    { 
+        kanji: "催し", kana: "もよおし", meaning: ["행사", "모임"],
+        wrongKanjis: ["予知し", "予感し", "気配し"], // 'し' 일치
+        wrongKanas: ["もよほし", "およおし", "ともし"]
+    },
+    { 
+        kanji: "症状", kana: "しょうじょう", meaning: ["증상"],
+        wrongKanjis: ["事情", "感情", "状態"], // '情' 또는 '状' 겹침
+        wrongKanas: ["しょうぞう", "じょうしょう", "そうじょう"]
+    },
+    { 
+        kanji: "劣る", kana: "おとる", meaning: ["열등하다", "뒤떨어지다"],
+        wrongKanjis: ["寄る", "募る", "勝る"], // 'る' 일치
+        wrongKanas: ["おどる", "おこる", "のこる"]
+    },
+    { 
+        kanji: "拾う", kana: "ひろう", meaning: ["줍다"],
+        wrongKanjis: ["縫う", "買う", "狂う"], // 'う' 일치
+        wrongKanas: ["ねらう", "もらう", "ふかう"]
+    },
+    { 
+        kanji: "距離", kana: "きょり", meaning: ["거리"],
+        wrongKanjis: ["記憶", "離陸", "離別"], // '離'와 뜻 유사
+        wrongKanas: ["きょい", "きょし", "ぎょり"]
+    },
+    { 
+        kanji: "混乱", kana: "こんらん", meaning: ["혼란"],
+        wrongKanjis: ["混雑", "乱暴", "混合"], // '混' 또는 '乱' 겹침
+        wrongKanas: ["こらん", "こんろん", "ごんらん"]
+    },
+    { 
+        kanji: "驚く", kana: "おどろく", meaning: ["놀라다"],
+        wrongKanjis: ["動く", "動かす", "働く"], // 'く' 일치
+        wrongKanas: ["おどろかす", "いたわる", "わらう"]
+    },
+    { 
+        kanji: "硬貨", kana: "こうか", meaning: ["동전", "주화"],
+        wrongKanjis: ["硬い", "貨物", "金貨"], // '硬' 또는 '貨' 겹침
+        wrongKanas: ["ごうか", "こうが", "かこう"]
+    },
+    { 
+        kanji: "快く", kana: "こころよく", meaning: ["흔쾌히"],
+        wrongKanjis: ["早く", "悪く", "優しく"], // 'く' 일치
+        wrongKanas: ["こころわるく", "こころきく", "こころづよく"]
+    },
+    { 
+        kanji: "凍る", kana: "こおる", meaning: ["얼다"],
+        wrongKanjis: ["燃る", "寄る", "取る"], // 'る' 일치
+        wrongKanas: ["こおらす", "とおる", "かおる"]
+    },
+    { 
+        kanji: "製造", kana: "せいぞう", meaning: ["제조"],
+        wrongKanjis: ["構造", "改造", "制動"], // '造' 또는 '制' 겹침
+        wrongKanas: ["せいそ", "せいぞ", "ぜいぞう"]
+    },
+    { 
+        kanji: "討論", kana: "とうろん", meaning: ["토론"],
+        wrongKanjis: ["議論", "結論", "理論"], // '論' 겹침
+        wrongKanas: ["とろん", "どうろん", "とうろう"]
+    },
+    { 
+        kanji: "順調な", kana: "じゅんちょうな", meaning: ["순조로운"],
+        wrongKanjis: ["順序な", "順位な", "調和な"], // '順' 또는 '調' 겹침
+        wrongKanas: ["じゅんじょうな", "じゅうちょうな", "じょうじゅんな"]
+    },
+    { 
+        kanji: "救う", kana: "すくう", meaning: ["구조하다"],
+        wrongKanjis: ["救助", "助ける", "救済"], // '救' 또는 '助' 겹침
+        wrongKanas: ["すかう", "すこう", "つくう"]
+    },
+    { 
+        kanji: "講師", kana: "こうし", meaning: ["강사"],
+        wrongKanjis: ["講義", "教員", "技術士"], // '講' 겹침
+        wrongKanas: ["こうじ", "きょうし", "ごうし"]
+    },
+    { 
+        kanji: "争う", kana: "あらそう", meaning: ["다투다"],
+        wrongKanjis: ["思う", "買う", "会う"], // 'う' 일치
+        wrongKanas: ["いさかう", "うたがう", "たたかう"]
+    },
+    { 
+        kanji: "好調な", kana: "こうちょうな", meaning: ["호조인", "순조로운"],
+        wrongKanjis: ["好意な", "順調な", "調和な"], // '調' 또는 '好' 겹침
+        wrongKanas: ["ごうちょうな", "こうじょうな", "こうどうな"]
+    },
+    { 
+        kanji: "永久", kana: "えいきゅう", meaning: ["영구", "영원"],
+        wrongKanjis: ["永遠", "持久", "久遠"], // '久' 또는 '永' 겹침
+        wrongKanas: ["えいきゅ", "えいく", "えきゅう"]
+    },
+    { 
+        kanji: "腹", kana: "はら", meaning: ["배"],
+        wrongKanjis: ["胸", "背", "腰"],
+        wrongKanas: ["ふく", "ばら", "はる"]
+    },
+    { 
+        kanji: "在籍", kana: "ざいせき", meaning: ["재적"],
+        wrongKanjis: ["存在", "席上", "在宅"], // '在' 또는 '席' 겹침
+        wrongKanas: ["ざいしょく", "さいせき", "ざいしゃく"]
+    },
+    { 
+        kanji: "指摘", kana: "してき", meaning: ["지적"],
+        wrongKanjis: ["指導", "採点", "地積"], // '指' 또는 '積' 겹침
+        wrongKanas: ["しちゃく", "してい", "じてき"]
+    },
+    { 
+        kanji: "従う", kana: "したがう", meaning: ["따르다", "복종하다"],
+        wrongKanjis: ["疑う", "失う", "戦う"], // 'う' 일치
+        wrongKanas: ["したがえる", "したかう", "さしたがう"]
+    },
+    { 
+        kanji: "恵まれる", kana: "めぐまれる", meaning: ["혜택 받다", "풍부하다"],
+        wrongKanjis: ["許される", "認められる", "負われる"], // 'れる' 일치
+        wrongKanas: ["めぐます", "めぐす", "めくまれる"]
+    },
+    { 
+        kanji: "領収書", kana: "りょうしゅうしょ", meaning: ["영수증"],
+        wrongKanjis: ["領事", "収入", "証書"], // '領' 또는 '収' 또는 '証' 겹침
+        wrongKanas: ["りゅうしゅうしょ", "りょうじゅしょ", "りょうしゅつしょ"]
+    },
+
+    // --- 10페이지 ---
+    { 
+        kanji: "荒い", kana: "あらい", meaning: ["거칠다"],
+        wrongKanjis: ["辛い", "遠い", "甘い"], // 'い' 일치
+        wrongKanas: ["おそい", "かたい", "すくない"]
+    },
+    { 
+        kanji: "見逃す", kana: "みのがす", meaning: ["놓치다"],
+        wrongKanjis: ["見張る", "見送る", "見出す"], // '見' 겹침
+        wrongKanas: ["みおとす", "みのがす(pitch)", "みまわす"]
+    },
+    { 
+        kanji: "豊かな", kana: "ゆたかな", meaning: ["풍부한", "부유한"],
+        wrongKanjis: ["豊作な", "裕福な", "豊かな(同形)"], // '豊' 겹침
+        wrongKanas: ["ひろやかな", "ゆたかさな", "ゆかたな"]
+    },
+    { 
+        kanji: "養う", kana: "やしなう", meaning: ["기르다", "부양하다"],
+        wrongKanjis: ["疑う", "失う", "戦う"], // 'う' 일치
+        wrongKanas: ["おぎなう", "うしなう", "たずさわる"]
+    },
+    { 
+        kanji: "警備", kana: "けいび", meaning: ["경비"],
+        wrongKanjis: ["警察", "装備", "準備"], // '警' 또는 '備' 겹침
+        wrongKanas: ["けいひ", "げいび", "かび"]
+    },
+    { 
+        kanji: "省く", kana: "はぶく", meaning: ["생략하다"],
+        wrongKanjis: ["略す", "減らす", "除く"], // 'く' 일치
+        wrongKanas: ["はぶれる", "やぶく", "おもく"]
+    },
+    { 
+        kanji: "迎える", kana: "むかえる", meaning: ["맞이하다"],
+        wrongKanjis: ["変える", "超える", "増える"], // 'える' 일치
+        wrongKanas: ["むかえる(pitch)", "むかえ", "まかえる"]
+    },
+    { 
+        kanji: "拡張", kana: "かくちょう", meaning: ["확장"],
+        wrongKanjis: ["拡大", "拡張(同形)", "緊張"], // '拡' 또는 '張' 겹침
+        wrongKanas: ["かくきょう", "かちょう", "かくだい"]
+    },
+    { 
+        kanji: "帰省", kana: "きせい", meaning: ["귀성"],
+        wrongKanjis: ["反省", "帰宅", "帰国"], // '帰' 또는 '省' 겹침
+        wrongKanas: ["きせい(pitch)", "きそ", "かいせい"]
+    },
+    { 
+        kanji: "縮める", kana: "ちぢめる", meaning: ["줄이다"],
+        wrongKanjis: ["詰める", "認める", "努める"], // 'める' 일치
+        wrongKanas: ["ちぢまる", "ちぢめる(pitch)", "つめる"]
+    },
+    { 
+        kanji: "実践", kana: "じっせん", meaning: ["실천"],
+        wrongKanjis: ["実施", "実現", "実行"], // '実' 또는 '行' 겹침
+        wrongKanas: ["じっせん(pitch)", "しつせん", "じせん"]
+    },
+    { 
+        kanji: "異色", kana: "いしょく", meaning: ["이색"],
+        wrongKanjis: ["異臭", "色", "特色"], // '異' 또는 '色' 겹침
+        wrongKanas: ["いそく", "いしき", "いしょ"]
+    },
+    { 
+        kanji: "系統", kana: "けいとう", meaning: ["계통"],
+        wrongKanjis: ["継承", "伝統", "線路"], // '系' 또는 '統' 겹침
+        wrongKanas: ["けいとう(pitch)", "けいと", "けいず"]
+    },
+    { 
+        kanji: "束ねる", kana: "たばねる", meaning: ["묶다"],
+        wrongKanjis: ["認める", "努める", "続ける"], // 'める' 일치
+        wrongKanas: ["つかむる", "たばまる", "たがめる"]
+    },
+    { 
+        kanji: "精算", kana: "せいさん", meaning: ["정산"],
+        wrongKanjis: ["清算", "計算", "生産"], // '算' 겹침
+        wrongKanas: ["せいそん", "せいざん", "せいせん"]
+    },
+    { 
+        kanji: "趣味", kana: "しゅみ", meaning: ["취미"],
+        wrongKanjis: ["興味", "美味", "無味"], // '味' 겹침
+        wrongKanas: ["しゅい", "しゅもく", "しゅうみ"]
+    },
+    { 
+        kanji: "返品", kana: "へんぴん", meaning: ["반품"],
+        wrongKanjis: ["返済", "売品", "新品"], // '品' 또는 '返' 겹침
+        wrongKanas: ["はんぴん", "へんぶつ", "ひんぴん"]
+    },
+    { 
+        kanji: "乱暴", kana: "らんぼう", meaning: ["난폭"],
+        wrongKanjis: ["暴動", "混乱", "乱れる"], // '乱' 또는 '暴' 겹침
+        wrongKanas: ["ろんぼう", "らんぽう", "らんぼ"]
+    },
+    { 
+        kanji: "弱点", kana: "じゃくてん", meaning: ["약점"],
+        wrongKanjis: ["弱さ", "欠点", "焦点"], // '点' 또는 '弱' 겹침
+        wrongKanas: ["じゃくでん", "よわてん", "じゃくてん(pitch)"]
+    },
+    { 
+        kanji: "濃い", kana: "こい", meaning: ["짙다", "진하다"],
+        wrongKanjis: ["薄い", "細い", "重い"], // 'い' 일치
+        wrongKanas: ["おもい", "うすい", "つよい"]
+    },
+    { 
+        kanji: "混じる", kana: "まじる", meaning: ["섞이다"],
+        wrongKanjis: ["交じる", "交ぜる", "入る"], // 'る' 일치
+        wrongKanas: ["まぜる", "まざる", "こんじる"]
+    },
+    { 
+        kanji: "任せる", kana: "まかせる", meaning: ["맡기다"],
+        wrongKanjis: ["決める", "止める", "集める"], // 'る' 일치
+        wrongKanas: ["まかされる", "まかせる(pitch)", "まかせ"]
+    },
+    { 
+        kanji: "勧誘", kana: "かんゆう", meaning: ["권유"]
+    },
+    { 
+        kanji: "損", kana: "そん", meaning: ["손해"],
+        wrongKanjis: ["得", "利", "損失"], // '損' 포함
+        wrongKanas: ["こん", "せん", "じん"]
+    },
+    { 
+        kanji: "順調", kana: "じゅんちょう", meaning: ["순조로움"],
+        wrongKanjis: ["順番", "調子", "順序"], // '順' 또는 '調' 겹침
+        wrongKanas: ["じゅんじょう", "じゅうちょう", "じょうじゅん"]
+    },
+    { 
+        kanji: "演技", kana: "えんぎ", meaning: ["연기"],
+        wrongKanjis: ["技術", "演説", "演技(同形)"], // '演' 겹침
+        wrongKanas: ["えんぎ(pitch)", "えんじ", "えんき"]
+    },
+    { 
+        kanji: "積もる", kana: "つもる", meaning: ["쌓이다"],
+        wrongKanjis: ["積む", "積雪", "積荷"], // 'る' 일치
+        wrongKanas: ["つもらす", "つまる", "すわる"]
+    },
+    { 
+        kanji: "違反", kana: "いはん", meaning: ["위반"],
+        wrongKanjis: ["違法", "反則", "反抗"], // '違' 또는 '反' 겹침
+        wrongKanas: ["いばん", "いはん(pitch)", "いけん"]
+    },
+    { 
+        kanji: "勇ましい", kana: "いさましい", meaning: ["용감하다", "활발하다"],
+        wrongKanjis: ["羨ましい", "懐かしい", "騒がしい"], // 'しい' 일치
+        wrongKanas: ["うらやましい", "さびしい", "やかましい"]
+    },
+    { 
+        kanji: "陽気な", kana: "ようきな", meaning: ["明랑한", "밝은"],
+        wrongKanjis: ["陰気な", "気分な", "天気な"], // '気な' 일치
+        wrongKanas: ["ようきさな", "よきな", "おんきな"]
+    },
+    { 
+        kanji: "登る", kana: "のぼる", meaning: ["오르다"],
+        wrongKanjis: ["上る", "下る", "上る(同形)"], // 'る' 일치
+        wrongKanas: ["のぼせる", "のぼりる", "のぼらす"]
+    },
+    { 
+        kanji: "垂直", kana: "すいちょく", meaning: ["수직"]
+    },
+
+    // --- 11페이지 ---
+    { 
+        kanji: "住居", kana: "じゅうきょ", meaning: ["주거"],
+        wrongKanjis: ["居住", "住所", "居間"], // '住' 또는 '居' 겹침
+        wrongKanas: ["じゅうい", "じゅうしょ", "じゅうきょ(pitch)"]
+    },
+    { 
+        kanji: "短編", kana: "たんぺん", meaning: ["단편"],
+        wrongKanjis: ["長編", "短所", "編集"], // '短' 또는 '編' 겹침
+        wrongKanas: ["ちょうへん", "たんぺい", "たんへん(pitch)"]
+    },
+    { 
+        kanji: "散る", kana: "ちる", meaning: ["떨어지다", "흩어지다"],
+        wrongKanjis: ["散らかす", "散歩", "飛ぶ"], // 'る' 일치
+        wrongKanas: ["ちらす", "ちる(pitch)", "はれる"]
+    },
+    { 
+        kanji: "典型的な", kana: "てんけいてきな", meaning: ["전형적인"],
+        wrongKanjis: ["形式的な", "模範的な", "標準的な"], // '的' 일치
+        wrongKanas: ["でんけいてきな", "てんかいてきな", "けいしきてきな"]
+    },
+    { 
+        kanji: "欲", kana: "よく", meaning: ["욕심"],
+        wrongKanjis: ["欲望", "食欲", "貪欲"], // '欲' 겹침
+        wrongKanas: ["よっく", "よく(pitch)", "ごく"]
+    },
+    { 
+        kanji: "柔らかい", kana: "やわらかい", meaning: ["부드럽다"],
+        wrongKanjis: ["温かい", "甘い", "低い"], // 'い' 일치
+        wrongKanas: ["やわらかさ", "やわら", "あたたかい"]
+    },
+    { 
+        kanji: "疲労", kana: "ひろう", meaning: ["피로"],
+        wrongKanjis: ["苦労", "疲れる", "労働"], // '労' 또는 '疲' 겹침
+        wrongKanas: ["ひろ(pitch)", "ひろう(同形)", "きろう"]
+    },
+    { 
+        kanji: "俳優", kana: "はいゆう", meaning: ["배우"],
+        wrongKanjis: ["女優", "優秀", "排他"], // '優' 겹침
+        wrongKanas: ["はいゆう(pitch)", "はいゆ", "はいふく"]
+    },
+    { 
+        kanji: "避難", kana: "ひなん", meaning: ["피난"],
+        wrongKanjis: ["非難", "避ける", "困難"], // '避' 또는 '難' 겹침
+        wrongKanas: ["ひなん(pitch)", "ひなんさ", "ひばん"]
+    },
+    { 
+        kanji: "診断", kana: "しんだん", meaning: ["진단"],
+        wrongKanjis: ["判断", "断定", "診察"], // '断' 또는 '診' 겹침
+        wrongKanas: ["しんだん(pitch)", "しんかん", "じんだん"]
+    },
+    { 
+        kanji: "敬う", kana: "うやまう", meaning: ["존경하다"],
+        wrongKanjis: ["思う", "買う", "会う"], // 'う' 일치
+        wrongKanas: ["うやまえる", "うやまい", "うやまる"]
+    },
+    { 
+        kanji: "受講", kana: "じゅこう", meaning: ["수강"],
+        wrongKanjis: ["受験", "受領", "講義"], // '受' 또는 '講' 겹침
+        wrongKanas: ["じゅこう(pitch)", "じゅんこう", "しゅこう"]
+    },
+    { 
+        kanji: "布", kana: "ぬの", meaning: ["천", "직물"],
+        wrongKanjis: ["糸", "紙", "木"],
+        wrongKanas: ["ふ", "ねの", "のの"]
+    },
+    { 
+        kanji: "捨てる", kana: "すてる", meaning: ["버리다"],
+        wrongKanjis: ["建てる", "伝える", "燃やす"], // 'る' 일치
+        wrongKanas: ["すてた", "すてる(pitch)", "すてない"]
+    },
+    { 
+        kanji: "機嫌", kana: "きげん", meaning: ["기분"],
+        wrongKanjis: ["機会", "不機嫌", "期限"], // '機' 또는 '嫌' 겹침
+        wrongKanas: ["きかん", "きけん(pitch)", "ごきげん"]
+    },
+    { 
+        kanji: "損失", kana: "そんしつ", meaning: ["손실"],
+        wrongKanjis: ["損害", "失う", "失敗"], // '損' 또는 '失' 겹침
+        wrongKanas: ["そんしつ(pitch)", "そんし", "そんがく"]
+    },
+    { 
+        kanji: "研修", kana: "けんしゅう", meaning: ["연수"],
+        wrongKanjis: ["研究", "進修", "編集"], // '修' 또는 '研' 겹침
+        wrongKanas: ["けんしゅう(pitch)", "きんしゅう", "けんせい"]
+    },
+    { 
+        kanji: "諸問題", kana: "しょもんだい", meaning: ["여러 문제"],
+        wrongKanjis: ["問題", "話題", "課題"], // '問題' 겹침
+        wrongKanas: ["しょもん", "しょもんだい(pitch)", "しょだい"]
+    },
+    { 
+        kanji: "商店街", kana: "しょうてんがい", meaning: ["상점가"],
+        wrongKanjis: ["商店", "街道", "市場"], // '店' 또는 '街' 겹침
+        wrongKanas: ["しょうがい", "しょうてんがい(pitch)", "じょうてんがい"]
+    },
+    { 
+        kanji: "耐える", kana: "たえる", meaning: ["견디다"],
+        wrongKanjis: ["燃える", "越える", "増える"], // 'える' 일치
+        wrongKanas: ["たえれる", "たえさせる", "たえる(pitch)"]
+    },
+    { 
+        kanji: "再放送", kana: "さいほうそう", meaning: ["재방송"],
+        wrongKanjis: ["再開", "再提出", "放送"], // '再' 또는 '放' 겹침
+        wrongKanas: ["さいほそ", "さいそう", "さいほうそう(pitch)"]
+    },
+    { 
+        kanji: "投票", kana: "とうひょう", meaning: ["투표"],
+        wrongKanjis: ["投げる", "標語", "投入"], // '投' 또는 '標' 겹침
+        wrongKanas: ["とうひょう(pitch)", "どうひょう", "とうほう"]
+    },
+    { 
+        kanji: "抱える", kana: "かかえる", meaning: ["감싸 쥐다", "안다"]
+    },
+    { 
+        kanji: "志望", kana: "しぼう", meaning: ["지망"],
+        wrongKanjis: ["希望", "失望", "意志"], // '望' 겹침
+        wrongKanas: ["しぼう(pitch)", "きぼう", "いし"]
+    },
+    { 
+        kanji: "副社長", kana: "ふくしゃちょう", meaning: ["부사장"],
+        wrongKanjis: ["社長", "部長", "副業"], // '副' 또는 '社' 겹침
+        wrongKanas: ["ふくじちょう", "ふくしゃちょう(pitch)", "ふくちょう"]
+    },
+    { 
+        kanji: "高収入", kana: "こうしゅうにゅう", meaning: ["고수입"],
+        wrongKanjis: ["収入", "高額", "高水準"], // '高' 또는 '入' 겹침
+        wrongKanas: ["こうしゅにゅう", "こうじゅにゅう", "こうしゅうにゅう(pitch)"]
+    },
+    { 
+        kanji: "予約制", kana: "よやくせい", meaning: ["예약제"],
+        wrongKanjis: ["予約", "制度", "体制"], // '約' 또는 '制' 겹침
+        wrongKanas: ["よやくせい(pitch)", "よやくせいど", "やくせい"]
+    },
+
+    // --- 12페이지 ---
+    { 
+        kanji: "就職率", kana: "しゅうしょくりつ", meaning: ["취직률"],
+        wrongKanjis: ["就職", "確率", "能率"], // '率' 또는 '職' 겹침
+        wrongKanas: ["しゅうしょくりつ(pitch)", "しゅうしょくり", "しゅうしりつ"]
+    },
+    { 
+        kanji: "集中力", kana: "しゅうちゅうりょく", meaning: ["집중력"],
+        wrongKanjis: ["集中", "能力", "協力"], // '力' 또는 '中' 겹침
+        wrongKanas: ["しゅうちゅうりょく(pitch)", "じゅうちゅうりょく", "しゅうしりょく"]
+    },
+    { 
+        kanji: "旧制度", kana: "きゅうせいど", meaning: ["구제도"],
+        wrongKanjis: ["制度", "新制度", "旧式"], // '制' 또는 '旧' 겹침
+        wrongKanas: ["きゅうせいど(pitch)", "ぐせいど", "きゅうじょ"]
+    },
+    { 
+        kanji: "医学界", kana: "いがくかい", meaning: ["의학계"],
+        wrongKanjis: ["世界", "医学", "学会"], // '学' 또는 '界' 겹침
+        wrongKanas: ["いがくかい(pitch)", "いかくかい", "いじゅつかい"]
+    },
+    { 
+        kanji: "文学賞", kana: "ぶんがくしょう", meaning: ["문학상"],
+        wrongKanjis: ["賞金", "文学", "学習"], // '文' 또는 '賞' 겹침
+        wrongKanas: ["ぶんがくしょう(pitch)", "ぶんがくそう", "もんがくしょう"]
+    },
+    { 
+        kanji: "準優勝", kana: "じゅんゆうしょう", meaning: ["준우승"],
+        wrongKanjis: ["優勝", "準備", "基準"], // '準' 또는 '優' 겹침
+        wrongKanas: ["じゅんゆうしょう(pitch)", "じゅんしょう", "じゅんい"]
+    },
+    { 
+        kanji: "悪条件", kana: "あくじょうけん", meaning: ["악조건"],
+        wrongKanjis: ["条件", "悪化", "事件"], // '件' 또는 '悪' 겹침
+        wrongKanas: ["あくじょうけん(pitch)", "わるじょうけん", "あくけん"]
+    },
+    { 
+        kanji: "現段階", kana: "げんだんかい", meaning: ["현 단계"],
+        wrongKanjis: ["階段", "現在", "階級"], // '現' 또는 '段' 겹침
+        wrongKanas: ["げんだんかい(pitch)", "げんかん", "けんだんかい"]
+    },
+    { 
+        kanji: "非公式", kana: "ひこうしき", meaning: ["비공식"],
+        wrongKanjis: ["公式", "非常", "形式"], // '非' 또는 '式' 겹침
+        wrongKanas: ["ひこうしき(pitch)", "ふこうしき", "ひきょうしき"]
+    },
+    { 
+        kanji: "一日おき", kana: "いちにちおき", meaning: ["하루 걸러"],
+        wrongKanjis: ["一日", "二日", "一月"], // '一' 또는 '日' 겹침
+        wrongKanas: ["いちにちおき(pitch)", "いちにちごと", "いちじつおき"]
+    },
+    { 
+        kanji: "総売上", kana: "そううりあげ", meaning: ["총매출"],
+        wrongKanjis: ["売上", "総合", "販売"], // '売' 또는 '上' 겹침
+        wrongKanas: ["そううりあげ(pitch)", "そうりあげ", "ぜんうりあげ"]
+    },
+    { 
+        kanji: "真夜中", kana: "まよなか", meaning: ["한밤중"],
+        wrongKanjis: ["夜中", "真実", "昼間"], // '夜' 또는 '中' 겹침
+        wrongKanas: ["まよなか(pitch)", "しんやなか", "まひるなか"]
+    },
+    { 
+        kanji: "仮採用", kana: "かりさいよう", meaning: ["임시 채용"],
+        wrongKanjis: ["採用", "仮定", "使用"], // '採' 또는 '用' 겹침
+        wrongKanas: ["かりさいよう(pitch)", "かさいよう", "かそうよう"]
+    },
+    { 
+        kanji: "投票率", kana: "とうひょうりつ", meaning: ["투표율"],
+        wrongKanjis: ["投票", "確率", "能率"], // '率' 또는 '投' 겹침
+        wrongKanas: ["とうひょうりつ(pitch)", "とうりつ", "ひょうとうりつ"]
+    },
+    { 
+        kanji: "国際色", kana: "こくさいしょく", meaning: ["国際色"],
+        wrongKanjis: ["国際", "色彩", "景色"], // '色' 또는 '際' 겹침
+        wrongKanas: ["こくさいしょく(pitch)", "がいこくしょく", "こくさいろ"]
+    },
+    { 
+        kanji: "諸外国", kana: "しょがいこく", meaning: ["諸外国", "여러 나라"],
+        wrongKanjis: ["外国", "諸々", "国外"], // '国' 또는 '外' 겹침
+        wrongKanas: ["しょがいこく(pitch)", "しょこく", "がいこくじん"]
+    },
+    { 
+        kanji: "半透明", kana: "はんとうめい", meaning: ["半透明"],
+        wrongKanjis: ["透明", "半分", "明かり"], // '透' 또는 '明' 겹침
+        wrongKanas: ["はんとうめい(pitch)", "とうめい", "はんめい"]
+    },
+    { 
+        kanji: "低価格", kana: "ていかかく", meaning: ["低価格"],
+        wrongKanjis: ["価格", "低下", "高価格"], // '価' 또는 '低' 겹침
+        wrongKanas: ["ていかかく(pitch)", "ていかく", "ていがく"]
+    },
+    { 
+        kanji: "日本流", kana: "にほんりゅう", meaning: ["日本式"],
+        wrongKanjis: ["流行", "日本", "交流"], // '流' 겹침
+        wrongKanas: ["にほんりゅう(pitch)", "にほんしき", "りゅうこう"]
+    },
+    { 
+        kanji: "準決勝", kana: "じゅんけっしょう", meaning: ["準決勝"],
+        wrongKanjis: ["決勝", "準備", "決定"], // '準' 또는 '決' 겹침
+        wrongKanas: ["じゅんけっしょう(pitch)", "じゅんしょう", "けっせん"]
+    },
+    { 
+        kanji: "再提出", kana: "さいていしゅつ", meaning: ["再提出"],
+        wrongKanjis: ["提出", "再生", "提案"], // '提' 또는 '出' 겹침
+        wrongKanas: ["さいていしゅつ(pitch)", "さいしゅつ", "さいあん"]
+    },
+    { 
+        kanji: "親子連れ", kana: "おやこづれ", meaning: ["親子連れ"],
+        wrongKanjis: ["子供連れ", "親戚", "連れる"], // '子' 또는 '連' 겹침
+        wrongKanas: ["おやこづれ(pitch)", "ふたおやづれ", "おやこいっしょ"]
+    },
+    { 
+        kanji: "薄暗い", kana: "うすぐらい", meaning: ["薄暗い"],
+        wrongKanjis: ["暗い", "薄い", "明るい"], // '暗' 또는 '薄' 겹침
+        wrongKanas: ["うすぐらい(pitch)", "うすくらい", "あくらい"]
+    },
+    { 
+        kanji: "音楽全般", kana: "おんがくぜんばん", meaning: ["音楽全般"],
+        wrongKanjis: ["全般", "音楽", "一般"], // '般' 또는 '音' 겹침
+        wrongKanas: ["おんがくぜんぱん", "おんがくはん", "ぜんおんがく"]
+    },
+    { 
+        kanji: "風邪気味", kana: "かぜぎみ", meaning: ["風邪気味"],
+        wrongKanjis: ["風邪", "興味", "意味"], // '風' 또는 '気' 겹침
+        wrongKanas: ["かぜぎみ(pitch)", "ふうじゃぎみ", "かぜきみ"]
+    },
+    { 
+        kanji: "最有力", kana: "さいゆうりょく", meaning: ["最有力"],
+        wrongKanjis: ["有力", "協力", "最初"], // '力' 또는 '最' 겹침
+        wrongKanas: ["さいゆうりょく(pitch)", "さいりょく", "ゆうりょく"]
+    },
+    { 
+        kanji: "食器類", kana: "しょっきるい", meaning: ["食器類"],
+        wrongKanjis: ["食事", "書類", "器"], // '器' 또는 '食' 겹침
+        wrongKanas: ["しょっきるい(pitch)", "しょくき", "しょるい"]
+    },
+    { 
+        kanji: "未経験", kana: "みけいけん", meaning: ["未経験"],
+        wrongKanjis: ["経験", "未来", "実験"], // '経' 또는 '験' 겹침
+        wrongKanas: ["みけいけん(pitch)", "みけん", "いけいけん"]
+    },
+    { 
+        kanji: "期限切れ", kana: "きげんぎれ", meaning: ["期限切れ"],
+        wrongKanjis: ["期限", "切れる", "制限"], // '限' 또는 '切' 겹침
+        wrongKanas: ["きげんぎれ(pitch)", "きげんぎり", "きれげん"]
+    }
+];
+        // ----------------------------------------------------
+        // 로직 시작
+        // ----------------------------------------------------
+
+        let currentIndex = 0;
+        let score = 0;
+        let currentStep = 'kanji'; // 'kanji' (뜻->한자) or 'reading' (한자->발음)
+        let quizList = [];
+        let incorrectList = [];
+        let isReviewMode = false;
+        let isProcessing = false;
+
+        // DOM 요소
+        const elements = {
+            questionText: document.getElementById('question-text'),
+            stepBadge: document.getElementById('step-badge'),
+            stepGuide: document.getElementById('step-guide'),
+            choicesContainer: document.getElementById('choices-container'),
+            feedback: document.getElementById('feedback'),
+            progressBar: document.getElementById('progress-bar'),
+            currentIndex: document.getElementById('current-index'),
+            totalCount: document.getElementById('total-count'),
+            quizContainer: document.getElementById('quiz-container'),
+            resultContainer: document.getElementById('result-container'),
+            finalScore: document.getElementById('final-score'),
+            reviewSection: document.getElementById('review-section'),
+            wrongCount: document.getElementById('wrong-count'),
+            headerBg: document.getElementById('header-bg'),
+            headerTitle: document.getElementById('header-title'),
+            headerDesc: document.getElementById('header-desc')
+        };
+
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+        // 🔥 [핵심] 겹치는 글자가 있는 오답 생성기
+        function getSmartDistractors(targetData, allData, type) {
+            let candidates = allData.filter(item => item.kanji !== targetData.kanji);
+            let filtered = [];
+
+            if (type === 'kanji') {
+                // 1순위: 한 글자라도 겹치는 단어 찾기
+                const targetChars = targetData.kanji.split('');
+                
+                filtered = candidates.filter(item => {
+                    // 글자 수가 비슷해야 함 (±1)
+                    if (Math.abs(item.kanji.length - targetData.kanji.length) > 1) return false;
+                    
+                    // 겹치는 글자가 있는지 확인
+                    return targetChars.some(char => item.kanji.includes(char));
+                });
+
+                // 2순위: 겹치는게 없으면 글자 수 같은 것 찾기
+                if (filtered.length < 3) {
+                    const moreCandidates = candidates.filter(item => item.kanji.length === targetData.kanji.length);
+                    filtered = [...filtered, ...moreCandidates];
+                }
+                
+            } else if (type === 'reading') {
+                // [발음] 글자 수 ±1 차이
+                const targetLen = targetData.kana.length;
+                filtered = candidates.filter(item => Math.abs(item.kana.length - targetLen) <= 1);
+            }
+
+            // 3순위: 그래도 부족하면 전체에서 랜덤
+            if (filtered.length < 3) {
+                filtered = candidates;
+            }
+
+            // 중복 제거 후 3개 추출
+            const uniqueFiltered = [...new Set(filtered)]; 
+            return shuffleArray(uniqueFiltered).slice(0, 3);
+        }
+
+        function initQuiz() {
+            quizList = shuffleArray([...vocabularyData]);
+            incorrectList = [];
+            isReviewMode = false;
+            score = 0;
+            currentIndex = 0;
+            updateHeaderUI();
+            startCycle();
+        }
+
+        function startReview() {
+            quizList = shuffleArray([...incorrectList]);
+            incorrectList = [];
+            isReviewMode = true;
+            score = 0;
+            currentIndex = 0;
+            
+            elements.resultContainer.classList.add('hidden');
+            elements.quizContainer.classList.remove('hidden');
+            updateHeaderUI();
+            startCycle();
+        }
+
+        function updateHeaderUI() {
+            if (isReviewMode) {
+                elements.headerBg.className = "bg-orange-500 p-5 text-white text-center transition-colors duration-500";
+                elements.headerTitle.innerText = "오답 복습 모드";
+                elements.headerDesc.innerText = "틀린 단어를 확실하게 외워봅시다!";
+            } else {
+                elements.headerBg.className = "bg-indigo-600 p-5 text-white text-center transition-colors duration-500";
+                elements.headerTitle.innerText = "JLPT N2 거꾸로 암기";
+                elements.headerDesc.innerText = "뜻을 보고 한자(유사 글자 주의) 맞추기";
+            }
+        }
+
+        function startCycle() {
+            elements.totalCount.innerText = quizList.length;
+            loadQuestion();
+        }
+
+        function loadQuestion() {
+            const currentData = quizList[currentIndex];
+            elements.currentIndex.innerText = currentIndex + 1;
+            
+            const progress = (currentIndex / quizList.length) * 100;
+            elements.progressBar.style.width = `${progress}%`;
+
+            elements.feedback.innerText = '';
+            
+            // Reverse 모드는 '한자 고르기'부터 시작
+            currentStep = 'kanji';
+            renderChoices();
+            isProcessing = false;
+        }
+
+        function renderChoices() {
+            const currentData = quizList[currentIndex];
+            elements.choicesContainer.innerHTML = ''; 
+
+            let correctAnswer = '';
+            let distractors = [];
+
+            if (currentStep === 'kanji') {
+                // [Step 1] 뜻 -> 한자
+                elements.stepBadge.innerText = "Step 1";
+                elements.stepBadge.className = "bg-indigo-100 text-indigo-700 text-xs font-bold px-3 py-1 rounded-full";
+                elements.stepGuide.innerText = "알맞은 한자를 고르세요";
+                
+                // 질문: 한국어 뜻
+                elements.questionText.innerText = currentData.meaning.join(', ');
+                elements.questionText.className = "text-4xl font-bold text-gray-800 mb-3 min-h-[3.5rem] break-keep leading-tight flex items-center justify-center";
+                
+                correctAnswer = currentData.kanji;
+
+                // 1. 미리 지정된 오답이 있으면 사용
+                if (currentData.wrongKanjis && currentData.wrongKanjis.length > 0) {
+                    distractors = shuffleArray(currentData.wrongKanjis).slice(0, 3);
+                } else {
+                    // 2. 없으면 스마트 알고리즘 (겹치는 글자 찾기) 사용
+                    const distractorItems = getSmartDistractors(currentData, vocabularyData, 'kanji');
+                    distractors = distractorItems.map(item => item.kanji);
+                }
+
+            } else {
+                // [Step 2] 한자 -> 발음
+                elements.stepBadge.innerText = "Step 2";
+                elements.stepBadge.className = "bg-emerald-100 text-emerald-700 text-xs font-bold px-3 py-1 rounded-full";
+                elements.stepGuide.innerText = "올바른 발음(요미가나)은?";
+
+                // 질문: 한자 (방금 맞춘 것)
+                elements.questionText.innerText = currentData.kanji;
+                elements.questionText.className = "text-6xl font-bold text-indigo-600 mb-3 min-h-[3.5rem] flex items-center justify-center";
+
+                correctAnswer = currentData.kana;
+
+                if (currentData.wrongKanas && currentData.wrongKanas.length > 0) {
+                    distractors = shuffleArray(currentData.wrongKanas).slice(0, 3);
+                } else {
+                    const distractorItems = getSmartDistractors(currentData, vocabularyData, 'reading');
+                    distractors = distractorItems.map(item => item.kana);
+                }
+            }
+
+            // 정답 + 오답 섞기
+            const options = shuffleArray([correctAnswer, ...distractors]);
+
+            // 버튼 생성
+            options.forEach(option => {
+                const btn = document.createElement('button');
+                btn.className = "choice-btn w-full bg-white border-2 border-gray-200 hover:border-indigo-500 hover:bg-indigo-50 text-gray-700 font-bold py-4 rounded-xl text-xl shadow-sm whitespace-normal break-keep h-full";
+                btn.innerText = option;
+                btn.onclick = () => checkAnswer(btn, option === correctAnswer, correctAnswer);
+                elements.choicesContainer.appendChild(btn);
+            });
+        }
+
+        function checkAnswer(btnElement, isCorrect, correctAnswerText) {
+            if (isProcessing) return;
+            isProcessing = true;
+
+            const currentData = quizList[currentIndex];
+
+            if (isCorrect) {
+                // 정답 처리
+                btnElement.className = "choice-btn w-full bg-indigo-500 border-2 border-indigo-600 text-white font-bold py-4 rounded-xl text-xl shadow-md"; 
+                
+                if (currentStep === 'kanji') {
+                    // 한자 맞춤 -> 발음으로 이동
+                    elements.feedback.className = "text-indigo-600";
+                    elements.feedback.innerText = "정답! ⭕ 발음도 맞춰보세요.";
+                    setTimeout(() => {
+                        currentStep = 'reading';
+                        renderChoices();
+                        isProcessing = false;
+                    }, 600); 
+                } else {
+                    // 발음까지 맞춤 -> 점수 획득 & 다음 문제
+                    score++;
+                    elements.feedback.className = "text-emerald-600";
+                    elements.feedback.innerText = "완벽합니다! ⭕";
+                    setTimeout(() => {
+                        nextQuestion();
+                    }, 600);
+                }
+
+            } else {
+                // 오답 처리
+                btnElement.className = "choice-btn w-full bg-red-500 border-2 border-red-600 text-white font-bold py-4 rounded-xl text-xl shadow-md"; 
+                addIncorrectWord(currentData);
+
+                // 정답 버튼 표시
+                const buttons = elements.choicesContainer.getElementsByTagName('button');
+                for (let btn of buttons) {
+                    if (btn.innerText === correctAnswerText) {
+                        btn.className = "choice-btn w-full bg-indigo-500 border-2 border-indigo-600 text-white font-bold py-4 rounded-xl text-xl shadow-md opacity-70";
+                    }
+                }
+
+                elements.feedback.className = "text-red-500";
+                
+                if (currentStep === 'kanji') {
+                    elements.feedback.innerText = `오답! ❌ 정답은 [${currentData.kanji}] 입니다.`;
+                } else {
+                    elements.feedback.innerText = `오답! ❌ 정답은 [${currentData.kana}] 입니다.`;
+                }
+
+                setTimeout(() => {
+                    if (currentStep === 'kanji') {
+                        // 한자 틀려도 발음 퀴즈 기회 줌 (학습 효과)
+                        currentStep = 'reading';
+                        renderChoices();
+                        isProcessing = false;
+                    } else {
+                        nextQuestion();
+                    }
+                }, 2000); // 오답 확인 시간 넉넉히
+            }
+        }
+
+        function addIncorrectWord(wordObj) {
+            if (!incorrectList.includes(wordObj)) {
+                incorrectList.push(wordObj);
+            }
+        }
+
+        function nextQuestion() {
+            currentIndex++;
+            if (currentIndex < quizList.length) {
+                loadQuestion();
+            } else {
+                showResult();
+            }
+        }
+
+        function showResult() {
+            elements.quizContainer.classList.add('hidden');
+            elements.resultContainer.classList.remove('hidden');
+            elements.finalScore.innerText = score + " / " + quizList.length;
+            elements.progressBar.style.width = '100%';
+
+            if (incorrectList.length > 0) {
+                elements.reviewSection.classList.remove('hidden');
+                elements.wrongCount.innerText = incorrectList.length;
+            } else {
+                elements.reviewSection.classList.add('hidden');
+                if(isReviewMode) {
+                    elements.finalScore.innerText += " (복습 완료!)";
+                }
+            }
+        }
+
+        // 초기 실행
+        if (typeof vocabularyData !== 'undefined' && vocabularyData.length > 0) {
+            initQuiz();
+        } else {
+            alert("데이터가 없습니다.");
+        }
+    </script>
 </body>
 </html>
+```
