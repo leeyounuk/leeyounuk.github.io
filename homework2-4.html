@@ -72,331 +72,472 @@
     <script>
         // 🔥 배치 1 (4~8p) 데이터 + AI가 생성한 '한 글자가 겹치는' 고난도 오답 포함
 // --- 9페이지 ---
-        const vocabularyData = [
-     { 
-        kanji: "湿っぽい", kana: "しめっぽい", meaning: ["눅눅하다", "습기 차다"],
-        wrongKanjis: ["汚い", "辛い", "暑い"], // 'い' 형용사 매칭 (원형 아님)
-        wrongKanas: ["ぬれっぽい", "じめっぽい", "いそがしい"] 
+      
+
+const vocabularyData = [
+    { 
+        kanji: "拡充", kana: "かくじゅう", meaning: ["확충"],
+        wrongKanjis: ["拡大", "拡販", "拡幅"], 
+        wrongKanas: ["かくじゅ", "こうじゅう", "かくちゅう"]
     },
     { 
-        kanji: "鮮やかな", kana: "あざやかな", meaning: ["선명한"],
-        wrongKanjis: ["爽やかな", "和やかな", "穏やかな"], // 'やかな' 일치
-        wrongKanas: ["ささやかな", "しなやかな", "こまやかな"]
+        kanji: "損害", kana: "そんがい", meaning: ["손해"],
+        wrongKanjis: ["損失", "被害", "障害"], 
+        wrongKanas: ["そんかい", "そんない", "ぞんがい"]
     },
     { 
-        kanji: "接続", kana: "せつぞく", meaning: ["접속"],
-        wrongKanjis: ["持続", "連続", "接近"], // '続' 또는 '接' 겹침
-        wrongKanas: ["せっそく", "ぜつぞく", "せつしょく"]
+        kanji: "積む", kana: "つむ", meaning: ["쌓다"],
+        wrongKanjis: ["組む", "読む", "込む"], // '~む' 일치
+        wrongKanas: ["こむ", "うむ", "すむ"]
     },
     { 
-        kanji: "援助", kana: "えんじょ", meaning: ["원조"],
-        wrongKanjis: ["応援", "救助", "支援"], // '援' 또는 '助' 겹침
-        wrongKanas: ["えんじょう", "あんじょ", "えんしょ"]
+        kanji: "行事", kana: "ぎょうじ", meaning: ["행사"],
+        wrongKanjis: ["工事", "無事", "人事"], 
+        wrongKanas: ["こうじ", "ぎょうし", "ぎょじ"]
     },
     { 
-        kanji: "逆らう", kana: "さからう", meaning: ["거스르다", "거역하다"],
-        wrongKanjis: ["疑う", "失う", "戦う"], // 'う' 일치
-        wrongKanas: ["ぎゃくらう", "かわらう", "とららう"]
+        kanji: "模範", kana: "もはん", meaning: ["모범"],
+        wrongKanjis: ["規範", "模型", "範囲"], 
+        wrongKanas: ["もばん", "ぼはん", "もけん"]
     },
     { 
-        kanji: "破れる", kana: "やぶれる", meaning: ["찢어지다", "파손되다"],
-        wrongKanjis: ["放れる", "改れる", "攻れる"], // 'れる' 일치
-        wrongKanas: ["たおれる", "あばれる", "こわれる"]
+        kanji: "現象", kana: "げんしょう", meaning: ["현상"],
+        wrongKanjis: ["現状", "対象", "印象"], 
+        wrongKanas: ["げんしょ", "けんしょう", "げんぞう"]
     },
     { 
-        kanji: "批判", kana: "ひはん", meaning: ["비판"],
-        wrongKanjis: ["評判", "判断", "批評"], // '判' 또는 '評' 겹침
-        wrongKanas: ["ひばん", "びはん", "ひはん(pitch)"]
+        kanji: "逃亡", kana: "とうぼう", meaning: ["도망"],
+        wrongKanjis: ["死亡", "逃走", "希望"], 
+        wrongKanas: ["とぼう", "どうぼう", "とうもう"]
     },
     { 
-        kanji: "面倒な", kana: "めんどうな", meaning: ["귀찮은", "성가신"],
-        wrongKanjis: ["正面な", "顔面な", "外面な"], // '面な' 일치
-        wrongKanas: ["めんとうな", "めんどな", "みどうな"]
+        kanji: "詳しい", kana: "くわしい", meaning: ["자세하다", "상세하다"],
+        wrongKanjis: ["美しい", "悲しい", "易しい"], // 'しい' 일치
+        wrongKanas: ["けわしい", "めずらしい", "さびしい"]
     },
     { 
-        kanji: "簡潔な", kana: "かんけつな", meaning: ["간결한"],
-        wrongKanjis: ["清潔な", "簡便な", "簡素な"], // '簡' 또는 '潔' 겹침
-        wrongKanas: ["かんげつな", "けんけつな", "かんきつな"]
+        kanji: "大幅に", kana: "おおはばに", meaning: ["대폭적으로"],
+        wrongKanjis: ["小幅に", "全幅に", "真幅に"], // '幅に' 일치
+        wrongKanas: ["だいはばに", "おおふくに", "たいふくに"]
     },
     { 
-        kanji: "招く", kana: "まねく", meaning: ["부르다", "초대하다"],
-        wrongKanjis: ["引く", "聞く", "解く"], // 'く' 일치
-        wrongKanas: ["おのく", "ひびく", "なつく"]
+        kanji: "極端な", kana: "きょくたんな", meaning: ["극단적인"],
+        wrongKanjis: ["先端な", "異端な", "途端な"], // '端な' 일치
+        wrongKanas: ["きょくだんな", "ごくたんな", "きょくたな"]
     },
     { 
-        kanji: "参照", kana: "さんしょう", meaning: ["참조"],
-        wrongKanjis: ["参観", "照明", "対照"], // '参' 또는 '照' 겹침
-        wrongKanas: ["さんしょ", "ざんしょう", "さしょう"]
+        kanji: "悔しい", kana: "くやしい", meaning: ["분하다", "억울하다"],
+        wrongKanjis: ["怪しい", "珍しい", "等しい"], // 'しい' 일치
+        wrongKanas: ["あやしい", "くわしい", "かなしい"]
     },
     { 
-        kanji: "保証", kana: "ほしょう", meaning: ["보증"],
-        wrongKanjis: ["証明", "保護", "証拠"], // '証' 또는 '保' 겹침
-        wrongKanas: ["ほうしょう", "ほしょ", "ぼしょう"]
+        kanji: "戻す", kana: "もどす", meaning: ["되돌리다"],
+        wrongKanjis: ["渡す", "外す", "回す"], // 'す' 일치
+        wrongKanas: ["まわす", "わたす", "なおす"]
     },
     { 
-        kanji: "焦げる", kana: "こげる", meaning: ["눋다", "타다"],
-        wrongKanjis: ["熱げる", "黒げる", "集める"], // 'げる' 일치
-        wrongKanas: ["こげる(pitch)", "ねげる", "あせる"]
+        kanji: "幼稚な", kana: "ようちな", meaning: ["유치한"],
+        wrongKanjis: ["稚拙な", "無知な", "幼少な"], // '稚' 또는 'な' 일치
+        wrongKanas: ["よちな", "ようじな", "ゆちな"]
     },
     { 
-        kanji: "催し", kana: "もよおし", meaning: ["행사", "모임"],
-        wrongKanjis: ["予知し", "予感し", "気配し"], // 'し' 일치
-        wrongKanas: ["もよほし", "およおし", "ともし"]
+        kanji: "憎い", kana: "にくい", meaning: ["밉다"],
+        wrongKanjis: ["低い", "厚い", "遠い"], // 'い' 일치
+        wrongKanas: ["わるい", "みにくい", "あつい"]
     },
     { 
-        kanji: "症状", kana: "しょうじょう", meaning: ["증상"],
-        wrongKanjis: ["事情", "感情", "状態"], // '情' 또는 '状' 겹침
-        wrongKanas: ["しょうぞう", "じょうしょう", "そうじょう"]
+        kanji: "貴重な", kana: "きちょうな", meaning: ["귀중한"],
+        wrongKanjis: ["慎重な", "丁重な", "厳重な"], // '重な' 일치
+        wrongKanas: ["きじゅうな", "きちょな", "ぎちょうな"]
     },
     { 
-        kanji: "劣る", kana: "おとる", meaning: ["열등하다", "뒤떨어지다"],
-        wrongKanjis: ["寄る", "募る", "勝る"], // 'る' 일치
+        kanji: "競う", kana: "きそう", meaning: ["겨루다", "경쟁하다"],
+        wrongKanjis: ["争う", "違う", "会う"], // 'う' 일치
+        wrongKanas: ["まかう", "さそう", "うたう"]
+    },
+    { 
+        kanji: "継続", kana: "けいぞく", meaning: ["계속"],
+        wrongKanjis: ["連続", "持続", "接続"], // 2자 일치
+        wrongKanas: ["けいそく", "かいぞく", "けぞく"]
+    },
+    { 
+        kanji: "怪しい", kana: "あやしい", meaning: ["수상하다", "괴이하다"],
+        wrongKanjis: ["悔しい", "悲しい", "優しい"], // 'しい' 일치
+        wrongKanas: ["くわしい", "くるしい", "さびしい"]
+    },
+    { 
+        kanji: "批評", kana: "ひひょう", meaning: ["비평"],
+        wrongKanjis: ["批判", "評価", "好評"], // 2자 일치
+        wrongKanas: ["ひひょ", "びひょう", "ひょうか"]
+    },
+    { 
+        kanji: "圧勝", kana: "あっしょう", meaning: ["압승"],
+        wrongKanjis: ["優勝", "勝利", "圧力"], // 2자 일치
+        wrongKanas: ["あつしょう", "あっしょ", "あしょう"]
+    },
+    { 
+        kanji: "容姿", kana: "ようし", meaning: ["용모", "외모"],
+        wrongKanjis: ["姿勢", "内容", "美容"], // 2자 일치
+        wrongKanas: ["ようじ", "よし", "ようす"]
+    },
+    { 
+        kanji: "除く", kana: "のぞく", meaning: ["제외하다", "제거하다"],
+        wrongKanjis: ["続く", "届く", "引く"], // 'く' 일치
+        wrongKanas: ["よける", "つづく", "きづく"]
+    },
+    { 
+        kanji: "傷む", kana: "いたむ", meaning: ["상하다", "손상되다"],
+        wrongKanjis: ["読む", "込む", "組む"], // 'む' 일치
+        wrongKanas: ["かむ", "うむ", "やむ"]
+    },
+    { 
+        kanji: "貿易", kana: "ぼうえき", meaning: ["무역"],
+        wrongKanjis: ["容易", "交易", "安易"], // 2자 일치
+        wrongKanas: ["ぼえき", "ほうえき", "もえき"]
+    },
+    { 
+        kanji: "省略", kana: "しょうりゃく", meaning: ["생략"],
+        wrongKanjis: ["戦略", "攻略", "侵略"], // 2자 일치
+        wrongKanas: ["せいりゃく", "しょうらく", "しょりゃく"]
+    },
+    { 
+        kanji: "拒否", kana: "きょひ", meaning: ["거부"],
+        wrongKanjis: ["否定", "否決", "合否"], // 2자 일치
+        wrongKanas: ["きょヒ", "ごひ", "きょき"]
+    },
+    { 
+        kanji: "納める", kana: "おさめる", meaning: ["납입하다", "납부하다"],
+        wrongKanjis: ["決める", "始める", "認める"], // 'める' 일치
+        wrongKanas: ["きめる", "そめる", "やめる"]
+    },
+    { 
+        kanji: "伴う", kana: "ともなう", meaning: ["따르다", "동반하다"],
+        wrongKanjis: ["行う", "失う", "会う"], // 'う' 일치
+        wrongKanas: ["あつかう", "うしなう", "やしなう"]
+    },
+    { 
+        kanji: "劣る", kana: "おとる", meaning: ["뒤떨어지다", "열등하다"],
+        wrongKanjis: ["取る", "売る", "送る"], // 'る' 일치
         wrongKanas: ["おどる", "おこる", "のこる"]
     },
     { 
-        kanji: "拾う", kana: "ひろう", meaning: ["줍다"],
-        wrongKanjis: ["縫う", "買う", "狂う"], // 'う' 일치
-        wrongKanas: ["ねらう", "もらう", "ふかう"]
+        kanji: "願望", kana: "がんぼう", meaning: ["소망", "바람"],
+        wrongKanjis: ["希望", "失望", "志望"], // 2자 일치
+        wrongKanas: ["げんぼう", "がんもう", "かんぼう"]
     },
     { 
-        kanji: "距離", kana: "きょり", meaning: ["거리"],
-        wrongKanjis: ["記憶", "離陸", "離別"], // '離'와 뜻 유사
-        wrongKanas: ["きょい", "きょし", "ぎょり"]
+        kanji: "含める", kana: "ふくめる", meaning: ["포함하다", "포함시키다"],
+        wrongKanjis: ["止める", "集める", "決める"], // 'める' 일치
+        wrongKanas: ["ふくらめる", "ためる", "きめる"]
     },
     { 
-        kanji: "混乱", kana: "こんらん", meaning: ["혼란"],
-        wrongKanjis: ["混雑", "乱暴", "混合"], // '混' 또는 '乱' 겹침
-        wrongKanas: ["こらん", "こんろん", "ごんらん"]
+        kanji: "囲む", kana: "かこむ", meaning: ["둘러싸다", "에워싸다"],
+        wrongKanjis: ["読む", "頼む", "休む"], // 'む' 일치
+        wrongKanas: ["たのむ", "いどむ", "あゆむ"]
     },
     { 
-        kanji: "驚く", kana: "おどろく", meaning: ["놀라다"],
-        wrongKanjis: ["動く", "動かす", "働く"], // 'く' 일치
-        wrongKanas: ["おどろかす", "いたわる", "わらう"]
+        kanji: "油断", kana: "ゆだん", meaning: ["방심"],
+        wrongKanjis: ["切断", "横断", "石油"], // 2자 일치
+        wrongKanas: ["ゆたん", "よだん", "うだん"]
     },
     { 
-        kanji: "硬貨", kana: "こうか", meaning: ["동전", "주화"],
-        wrongKanjis: ["硬い", "貨物", "金貨"], // '硬' 또는 '貨' 겹침
-        wrongKanas: ["ごうか", "こうが", "かこう"]
+        kanji: "幼い", kana: "おさない", meaning: ["어리다"],
+        wrongKanjis: ["甘い", "青い", "古い"], // 'い' 일치
+        wrongKanas: ["くわしい", "きたない", "あぶない"]
     },
     { 
-        kanji: "快く", kana: "こころよく", meaning: ["흔쾌히"],
-        wrongKanjis: ["早く", "悪く", "優しく"], // 'く' 일치
-        wrongKanas: ["こころわるく", "こころきく", "こころづよく"]
+        kanji: "握る", kana: "にぎる", meaning: ["쥐다", "잡다"],
+        wrongKanjis: ["知る", "見る", "有る"], // 'る' 일치
+        wrongKanas: ["かぎる", "まじる", "いじる"]
     },
     { 
-        kanji: "凍る", kana: "こおる", meaning: ["얼다"],
-        wrongKanjis: ["燃る", "寄る", "取る"], // 'る' 일치
-        wrongKanas: ["こおらす", "とおる", "かおる"]
+        kanji: "密閉", kana: "みっぺい", meaning: ["밀폐"],
+        wrongKanjis: ["秘密", "親密", "閉鎖"], // 2자 일치
+        wrongKanas: ["みっべい", "みつへい", "みっぴ"]
     },
     { 
-        kanji: "製造", kana: "せいぞう", meaning: ["제조"],
-        wrongKanjis: ["構造", "改造", "制動"], // '造' 또는 '制' 겹침
-        wrongKanas: ["せいそ", "せいぞ", "ぜいぞう"]
-    },
-    { 
-        kanji: "討論", kana: "とうろん", meaning: ["토론"],
-        wrongKanjis: ["議論", "結論", "理論"], // '論' 겹침
-        wrongKanas: ["とろん", "どうろん", "とうろう"]
-    },
-    { 
-        kanji: "順調な", kana: "じゅんちょうな", meaning: ["순조로운"],
-        wrongKanjis: ["順序な", "順位な", "調和な"], // '順' 또는 '調' 겹침
-        wrongKanas: ["じゅんじょうな", "じゅうちょうな", "じょうじゅんな"]
-    },
-    { 
-        kanji: "救う", kana: "すくう", meaning: ["구조하다"],
-        wrongKanjis: ["救助", "助ける", "救済"], // '救' 또는 '助' 겹침
-        wrongKanas: ["すかう", "すこう", "つくう"]
-    },
-    { 
-        kanji: "講師", kana: "こうし", meaning: ["강사"],
-        wrongKanjis: ["講義", "教員", "技術士"], // '講' 겹침
-        wrongKanas: ["こうじ", "きょうし", "ごうし"]
-    },
-    { 
-        kanji: "争う", kana: "あらそう", meaning: ["다투다"],
-        wrongKanjis: ["思う", "買う", "会う"], // 'う' 일치
-        wrongKanas: ["いさかう", "うたがう", "たたかう"]
-    },
-    { 
-        kanji: "好調な", kana: "こうちょうな", meaning: ["호조인", "순조로운"],
-        wrongKanjis: ["好意な", "順調な", "調和な"], // '調' 또는 '好' 겹침
-        wrongKanas: ["ごうちょうな", "こうじょうな", "こうどうな"]
-    },
-    { 
-        kanji: "永久", kana: "えいきゅう", meaning: ["영구", "영원"],
-        wrongKanjis: ["永遠", "持久", "久遠"], // '久' 또는 '永' 겹침
-        wrongKanas: ["えいきゅ", "えいく", "えきゅう"]
-    },
-    { 
-        kanji: "腹", kana: "はら", meaning: ["배"],
-        wrongKanjis: ["胸", "背", "腰"],
-        wrongKanas: ["ふく", "ばら", "はる"]
-    },
-    { 
-        kanji: "在籍", kana: "ざいせき", meaning: ["재적"],
-        wrongKanjis: ["存在", "席上", "在宅"], // '在' 또는 '席' 겹침
-        wrongKanas: ["ざいしょく", "さいせき", "ざいしゃく"]
-    },
-    { 
-        kanji: "指摘", kana: "してき", meaning: ["지적"],
-        wrongKanjis: ["指導", "採点", "地積"], // '指' 또는 '積' 겹침
-        wrongKanas: ["しちゃく", "してい", "じてき"]
-    },
-    { 
-        kanji: "従う", kana: "したがう", meaning: ["따르다", "복종하다"],
-        wrongKanjis: ["疑う", "失う", "戦う"], // 'う' 일치
-        wrongKanas: ["したがえる", "したかう", "さしたがう"]
-    },
-    { 
-        kanji: "恵まれる", kana: "めぐまれる", meaning: ["혜택 받다", "풍부하다"],
-        wrongKanjis: ["許される", "認められる", "負われる"], // 'れる' 일치
-        wrongKanas: ["めぐます", "めぐす", "めくまれる"]
-    },
-    { 
-        kanji: "領収書", kana: "りょうしゅうしょ", meaning: ["영수증"],
-        wrongKanjis: ["領事", "収入", "証書"], // '領' 또는 '収' 또는 '証' 겹침
-        wrongKanas: ["りゅうしゅうしょ", "りょうじゅしょ", "りょうしゅつしょ"]
+        kanji: "絞る", kana: "しぼる", meaning: ["짜다", "범위를 좁히다"],
+        wrongKanjis: ["取る", "守る", "売る"], // 'る' 일치
+        wrongKanas: ["しばる", "しまる", "さぼる"]
     },
 
-    // --- 10페이지 ---
+    // --- 6페이지 ---
     { 
-        kanji: "荒い", kana: "あらい", meaning: ["거칠다"],
-        wrongKanjis: ["辛い", "遠い", "甘い"], // 'い' 일치
-        wrongKanas: ["おそい", "かたい", "すくない"]
+        kanji: "垂直", kana: "すいちょく", meaning: ["수직"],
+        wrongKanjis: ["直線", "水平", "正直"], // 2자 일치
+        wrongKanas: ["すいちょ", "ずいちょく", "すいじき"]
     },
     { 
-        kanji: "見逃す", kana: "みのがす", meaning: ["놓치다"],
-        wrongKanjis: ["見張る", "見送る", "見出す"], // '見' 겹침
-        wrongKanas: ["みおとす", "みのがす(pitch)", "みまわす"]
+        kanji: "恥", kana: "はじ", meaning: ["부끄러움", "창피"],
+        wrongKanjis: ["耳", "心", "舌"], // 1자 일치
+        wrongKanas: ["はし", "あじ", "ひじ"]
     },
     { 
-        kanji: "豊かな", kana: "ゆたかな", meaning: ["풍부한", "부유한"],
-        wrongKanjis: ["豊作な", "裕福な", "豊かな(同形)"], // '豊' 겹침
-        wrongKanas: ["ひろやかな", "ゆたかさな", "ゆかたな"]
+        kanji: "乱れる", kana: "みだれる", meaning: ["흐트러지다", "어지러워지다"],
+        wrongKanjis: ["晴れる", "慣れる", "倒れる"], // 'れる' 일치
+        wrongKanas: ["はれる", "わかれる", "たおれる"]
     },
     { 
-        kanji: "養う", kana: "やしなう", meaning: ["기르다", "부양하다"],
-        wrongKanjis: ["疑う", "失う", "戦う"], // 'う' 일치
-        wrongKanas: ["おぎなう", "うしなう", "たずさわる"]
+        kanji: "柔軟な", kana: "じゅうなんな", meaning: ["유연한"],
+        wrongKanjis: ["軟弱な", "柔和な", "優秀な"], // 'な' 일치
+        wrongKanas: ["しゅうなんな", "じゅなんな", "じゅうだんな"]
+    },
+    { 
+        kanji: "等しい", kana: "ひとしい", meaning: ["같다", "동등하다"],
+        wrongKanjis: ["楽しい", "欲しい", "苦しい"], // 'しい' 일치
+        wrongKanas: ["いとしい", "はげしい", "くわしい"]
+    },
+    { 
+        kanji: "圧倒的", kana: "あっとうてき", meaning: ["압도적"],
+        wrongKanjis: ["比較的", "絶対的", "意図的"], // '的' 일치
+        wrongKanas: ["あとうてき", "あっとてき", "あつとうてき"]
+    },
+    { 
+        kanji: "強火", kana: "つよび", meaning: ["센불"],
+        wrongKanjis: ["弱火", "中火", "花火"], // 2자 일치
+        wrongKanas: ["きょうか", "つよひ", "ごうか"]
+    },
+    { 
+        kanji: "軽傷", kana: "けいしょう", meaning: ["경상", "가벼운 부상"],
+        wrongKanjis: ["重傷", "負傷", "軽快"], // 2자 일치
+        wrongKanas: ["けいしょ", "かいしょう", "けいぞう"]
+    },
+    { 
+        kanji: "抱える", kana: "かかえる", meaning: ["안다", "껴안다"],
+        wrongKanjis: ["教える", "迎える", "考える"], // 'える' 일치
+        wrongKanas: ["こごえる", "かぞえる", "むかえる"]
+    },
+    { 
+        kanji: "負担", kana: "ふたん", meaning: ["부담"],
+        wrongKanjis: ["担当", "担任", "自負"], // 2자 일치
+        wrongKanas: ["ふだん", "ぶたん", "ふた"]
+    },
+    { 
+        kanji: "求人", kana: "きゅうじん", meaning: ["구인"],
+        wrongKanjis: ["要求", "請求", "人間"], // 2자 일치
+        wrongKanas: ["きゅうにん", "くじん", "ぐじん"]
+    },
+    { 
+        kanji: "映る", kana: "うつる", meaning: ["비치다"],
+        wrongKanjis: ["売る", "来る", "帰る"], // 'る' 일치
+        wrongKanas: ["うつす", "まさる", "わたる"]
+    },
+    { 
+        kanji: "怖い", kana: "こわい", meaning: ["무섭다"],
+        wrongKanjis: ["早い", "安い", "多い"], // 'い' 일치
+        wrongKanas: ["かゆい", "くらい", "わるい"]
+    },
+    { 
+        kanji: "下旬", kana: "げじゅん", meaning: ["하순"],
+        wrongKanjis: ["上旬", "中旬", "初旬"], // 2자 일치
+        wrongKanas: ["げしゅん", "かじゅん", "しもじゅん"]
+    },
+    { 
+        kanji: "総額", kana: "そうがく", meaning: ["총액"],
+        wrongKanjis: ["金額", "半額", "多額"], // 2자 일치
+        wrongKanas: ["そうかく", "ぞうがく", "そがく"]
+    },
+    { 
+        kanji: "冷蔵庫", kana: "れいぞうこ", meaning: ["냉장고"],
+        wrongKanjis: ["冷凍庫", "金庫", "貯蔵庫"], // 3자 일치
+        wrongKanas: ["れいぞこ", "れぞうこ", "れいそうこ"]
+    },
+    { 
+        kanji: "湿る", kana: "しめる", meaning: ["습기 차다", "축축하다"],
+        wrongKanjis: ["知る", "着る", "来る"], // 'る' 일치
+        wrongKanas: ["しまる", "とめる", "きめる"]
+    },
+    { 
+        kanji: "険しい", kana: "けわしい", meaning: ["험하다"],
+        wrongKanjis: ["正しい", "厳しい", "激しい"], // 'しい' 일치
+        wrongKanas: ["くわしい", "あやしい", "はげしい"]
+    },
+    { 
+        kanji: "倒す", kana: "たおす", meaning: ["쓰러뜨리다"],
+        wrongKanjis: ["話す", "貸す", "押す"], // 'す' 일치
+        wrongKanas: ["たおれる", "なおす", "こわす"]
+    },
+    { 
+        kanji: "抽選", kana: "ちゅうせん", meaning: ["추첨"],
+        wrongKanjis: ["選挙", "選手", "選択"], // 2자 일치
+        wrongKanas: ["ちゅせん", "ちゅうせん(pitch?)", "ちゅうせつ"]
+    },
+    { 
+        kanji: "比較的", kana: "ひかくてき", meaning: ["비교적"],
+        wrongKanjis: ["絶対的", "具体的", "一般的"], // '的' 일치
+        wrongKanas: ["ひかくでき", "ひがくてき", "ちかくてき"]
+    },
+    { 
+        kanji: "離れる", kana: "はなれる", meaning: ["떨어지다", "멀어지다"],
+        wrongKanjis: ["忘れる", "別れる", "疲れる"], // 'れる' 일치
+        wrongKanas: ["わかれる", "はれる", "なれる"]
+    },
+    { 
+        kanji: "下降", kana: "かこう", meaning: ["하강"],
+        wrongKanjis: ["上昇", "降水", "以降"], // 2자 일치
+        wrongKanas: ["げこう", "かごう", "かこ"]
+    },
+    { 
+        kanji: "企画", kana: "きかく", meaning: ["기획"],
+        wrongKanjis: ["計画", "企業", "画数"], // 2자 일치
+        wrongKanas: ["きがく", "ぎかく", "きっかく"]
+    },
+    { 
+        kanji: "再度", kana: "さいど", meaning: ["두 번", "재차"],
+        wrongKanjis: ["二度", "今度", "温度"], // 2자 일치
+        wrongKanas: ["さど", "ざいど", "さいた"]
+    },
+    { 
+        kanji: "著しい", kana: "いちじるしい", meaning: ["현저하다", "두드러지다"],
+        wrongKanjis: ["新しい", "忙しい", "珍しい"], // 'しい' 일치
+        wrongKanas: ["いそがしい", "めずらしい", "くるしい"]
+    },
+    { 
+        kanji: "和やかな", kana: "なごやかな", meaning: ["부드러운", "온화한"],
+        wrongKanjis: ["爽やかな", "鮮やかな", "穏やかな"], // 'やかな' 일치
+        wrongKanas: ["にぎやか", "さわやか", "しなやか"]
+    },
+    { 
+        kanji: "声援", kana: "せいえん", meaning: ["성원"],
+        wrongKanjis: ["応援", "支援", "大声"], // 2자 일치
+        wrongKanas: ["せいえ", "じょうえん", "せいかん"]
+    },
+    { 
+        kanji: "処理", kana: "しょり", meaning: ["처리"],
+        wrongKanjis: ["処分", "対処", "管理"], // 2자 일치
+        wrongKanas: ["しょうり", "そり", "しょち"]
+    },
+    { 
+        kanji: "傾く", kana: "かたむく", meaning: ["기울다"],
+        wrongKanjis: ["書く", "歩く", "置く"], // 'く' 일치
+        wrongKanas: ["かたづく", "うつむく", "かたまる"]
+    },
+    { 
+        kanji: "憎む", kana: "にくむ", meaning: ["미워하다", "증오하다"],
+        wrongKanjis: ["飲む", "住む", "編む"], // 'む' 일치
+        wrongKanas: ["なやむ", "いどむ", "すすむ"]
+    },
+    { 
+        kanji: "偶然", kana: "ぐうぜん", meaning: ["우연히"],
+        wrongKanjis: ["突然", "必然", "自然"], // 2자 일치
+        wrongKanas: ["ぐぜん", "くうぜん", "ぐうせん"]
+    },
+    { 
+        kanji: "刺激", kana: "しげき", meaning: ["자극"],
+        wrongKanjis: ["過激", "名刺", "急激"], // 2자 일치
+        wrongKanas: ["じげき", "しけき", "せいき"]
+    },
+    { 
+        kanji: "情景", kana: "じょうけい", meaning: ["정경"],
+        wrongKanjis: ["景色", "風景", "情報"], // 2자 일치
+        wrongKanas: ["じょけい", "しょうけい", "じょうげ"]
+    },
+    { 
+        kanji: "乏しい", kana: "とぼしい", meaning: ["부족하다", "모자라다"],
+        wrongKanjis: ["貧しい", "正しい", "寂しい"], // 'しい' 일치
+        wrongKanas: ["まぶしい", "ひとしい", "さびしい"]
+    },
+
+    // --- 7페이지 ---
+    { 
+        kanji: "介護", kana: "かいご", meaning: ["개호", "간병"],
+        wrongKanjis: ["看護", "弁護", "保護"], // 2자 일치
+        wrongKanas: ["がいご", "かいこ", "けいご"]
+    },
+    { 
+        kanji: "善良な", kana: "ぜんりょうな", meaning: ["선량한"],
+        wrongKanjis: ["良好な", "優秀な", "親切な"], // 'な' 일치
+        wrongKanas: ["せんりょうな", "ぜんよしな", "よいな"]
+    },
+    { 
+        kanji: "焦る", kana: "あせる", meaning: ["초조해하다", "안달하다"],
+        wrongKanjis: ["走る", "乗る", "切る"], // 'る' 일치
+        wrongKanas: ["あさる", "まぜる", "のせる"]
+    },
+    { 
+        kanji: "賛否", kana: "さんぴ", meaning: ["찬부", "찬반"],
+        wrongKanjis: ["賛成", "拒否", "否定"], // 2자 일치
+        wrongKanas: ["さんひ", "ざんぴ", "さび"]
+    },
+    { 
+        kanji: "記憶", kana: "きおく", meaning: ["기억"],
+        wrongKanjis: ["記録", "記念", "暗記"], // 2자 일치
+        wrongKanas: ["きよく", "ぎおく", "きお"]
+    },
+    { 
+        kanji: "平等", kana: "びょうどう", meaning: ["평등"],
+        wrongKanjis: ["同等", "平均", "平和"], // 2자 일치
+        wrongKanas: ["へいとう", "ひょうどう", "びょどう"]
+    },
+    { 
+        kanji: "務める", kana: "つとめる", meaning: ["맡다", "노력하다"],
+        wrongKanjis: ["勤める", "努める", "止める"], // 'める' 일치
+        wrongKanas: ["つとまる", "もとめる", "まとめる"]
+    },
+    { 
+        kanji: "素材", kana: "そざい", meaning: ["소재"],
+        wrongKanjis: ["材料", "人材", "木材"], // 2자 일치
+        wrongKanas: ["そさい", "ぞざい", "そざ"]
+    },
+    { 
+        kanji: "偉い", kana: "えらい", meaning: ["훌륭하다", "위대하다"],
+        wrongKanjis: ["高い", "長い", "悪い"], // 'い' 일치
+        wrongKanas: ["つらい", "くらい", "あらい"]
+    },
+    { 
+        kanji: "詳細", kana: "しょうさい", meaning: ["상세"],
+        wrongKanjis: ["詳報", "細部", "大小"], // 2자 일치
+        wrongKanas: ["しょさい", "じょうさい", "しょうざい"]
+    },
+    { 
+        kanji: "途端に", kana: "とたんに", meaning: ["갑자기", "하자마자"],
+        wrongKanjis: ["普通に", "極端に", "絶対に"], // 'に' 일치
+        wrongKanas: ["どたんに", "とだんに", "ずたんに"]
+    },
+    { 
+        kanji: "分析", kana: "ぶんせき", meaning: ["분석"],
+        wrongKanjis: ["分解", "分布", "解析"], // 2자 일치
+        wrongKanas: ["ぶんせ", "ふんせき", "ぶせき"]
+    },
+    { 
+        kanji: "絡まる", kana: "からまる", meaning: ["얽히다"],
+        wrongKanjis: ["集まる", "止まる", "始まる"], // 'まる' 일치
+        wrongKanas: ["かたまる", "つかまる", "あつまる"]
+    },
+    { 
+        kanji: "農薬", kana: "のうやく", meaning: ["농약"],
+        wrongKanjis: ["農業", "薬局", "薬品"], // 2자 일치
+        wrongKanas: ["のやく", "のうよく", "のうくすり"]
     },
     { 
         kanji: "警備", kana: "けいび", meaning: ["경비"],
-        wrongKanjis: ["警察", "装備", "準備"], // '警' 또는 '備' 겹침
-        wrongKanas: ["けいひ", "げいび", "かび"]
+        wrongKanjis: ["警察", "準備", "守備"], // 2자 일치
+        wrongKanas: ["げいび", "けいひ", "かいび"]
     },
     { 
-        kanji: "省く", kana: "はぶく", meaning: ["생략하다"],
-        wrongKanjis: ["略す", "減らす", "除く"], // 'く' 일치
-        wrongKanas: ["はぶれる", "やぶく", "おもく"]
+        kanji: "鮮やかな", kana: "あざやかな", meaning: ["선명한"],
+        wrongKanjis: ["爽やかな", "和やかな", "賑やかな"], // 'やかな' 일치
+        wrongKanas: ["ささやかな", "しなやかな", "こまやかな"]
     },
     { 
-        kanji: "迎える", kana: "むかえる", meaning: ["맞이하다"],
-        wrongKanjis: ["変える", "超える", "増える"], // 'える' 일치
-        wrongKanas: ["むかえる(pitch)", "むかえ", "まかえる"]
+        kanji: "優秀な", kana: "ゆうしゅうな", meaning: ["우수한"],
+        wrongKanjis: ["優勝な", "秀才な", "優先な"], // 'な' 일치
+        wrongKanas: ["ゆしゅうな", "ゆうじゅうな", "よしゅうな"]
     },
     { 
-        kanji: "拡張", kana: "かくちょう", meaning: ["확장"],
-        wrongKanjis: ["拡大", "拡張(同形)", "緊張"], // '拡' 또는 '張' 겹침
-        wrongKanas: ["かくきょう", "かちょう", "かくだい"]
+        kanji: "外れる", kana: "はずれる", meaning: ["빠지다", "빗나가다"],
+        wrongKanjis: ["別れる", "忘れる", "入れる"], // 'れる' 일치
+        wrongKanas: ["わすれる", "はなれる", "あずける"]
     },
     { 
-        kanji: "帰省", kana: "きせい", meaning: ["귀성"],
-        wrongKanjis: ["反省", "帰宅", "帰国"], // '帰' 또는 '省' 겹침
-        wrongKanas: ["きせい(pitch)", "きそ", "かいせい"]
+        kanji: "迷う", kana: "まよう", meaning: ["헤매다", "망설이다"],
+        wrongKanjis: ["思う", "買う", "会う"], // 'う' 일치
+        wrongKanas: ["かよう", "さまよう", "うたがう"]
     },
     { 
-        kanji: "縮める", kana: "ちぢめる", meaning: ["줄이다"],
-        wrongKanjis: ["詰める", "認める", "努める"], // 'める' 일치
-        wrongKanas: ["ちぢまる", "ちぢめる(pitch)", "つめる"]
-    },
-    { 
-        kanji: "実践", kana: "じっせん", meaning: ["실천"],
-        wrongKanjis: ["実施", "実現", "実行"], // '実' 또는 '行' 겹침
-        wrongKanas: ["じっせん(pitch)", "しつせん", "じせん"]
-    },
-    { 
-        kanji: "異色", kana: "いしょく", meaning: ["이색"],
-        wrongKanjis: ["異臭", "色", "特色"], // '異' 또는 '色' 겹침
-        wrongKanas: ["いそく", "いしき", "いしょ"]
-    },
-    { 
-        kanji: "系統", kana: "けいとう", meaning: ["계통"],
-        wrongKanjis: ["継承", "伝統", "線路"], // '系' 또는 '統' 겹침
-        wrongKanas: ["けいとう(pitch)", "けいと", "けいず"]
-    },
-    { 
-        kanji: "束ねる", kana: "たばねる", meaning: ["묶다"],
-        wrongKanjis: ["認める", "努める", "続ける"], // 'める' 일치
-        wrongKanas: ["つかむる", "たばまる", "たがめる"]
-    },
-    { 
-        kanji: "精算", kana: "せいさん", meaning: ["정산"],
-        wrongKanjis: ["清算", "計算", "生産"], // '算' 겹침
-        wrongKanas: ["せいそん", "せいざん", "せいせん"]
-    },
-    { 
-        kanji: "趣味", kana: "しゅみ", meaning: ["취미"],
-        wrongKanjis: ["興味", "美味", "無味"], // '味' 겹침
-        wrongKanas: ["しゅい", "しゅもく", "しゅうみ"]
-    },
-    { 
-        kanji: "返品", kana: "へんぴん", meaning: ["반품"],
-        wrongKanjis: ["返済", "売品", "新品"], // '品' 또는 '返' 겹침
-        wrongKanas: ["はんぴん", "へんぶつ", "ひんぴん"]
-    },
-    { 
-        kanji: "乱暴", kana: "らんぼう", meaning: ["난폭"],
-        wrongKanjis: ["暴動", "混乱", "乱れる"], // '乱' 또는 '暴' 겹침
-        wrongKanas: ["ろんぼう", "らんぽう", "らんぼ"]
-    },
-    { 
-        kanji: "弱点", kana: "じゃくてん", meaning: ["약점"],
-        wrongKanjis: ["弱さ", "欠点", "焦点"], // '点' 또는 '弱' 겹침
-        wrongKanas: ["じゃくでん", "よわてん", "じゃくてん(pitch)"]
-    },
-    { 
-        kanji: "濃い", kana: "こい", meaning: ["짙다", "진하다"],
-        wrongKanjis: ["薄い", "細い", "重い"], // 'い' 일치
-        wrongKanas: ["おもい", "うすい", "つよい"]
-    },
-    { 
-        kanji: "混じる", kana: "まじる", meaning: ["섞이다"],
-        wrongKanjis: ["交じる", "交ぜる", "入る"], // 'る' 일치
-        wrongKanas: ["まぜる", "まざる", "こんじる"]
-    },
-    { 
-        kanji: "任せる", kana: "まかせる", meaning: ["맡기다"],
-        wrongKanjis: ["決める", "止める", "集める"], // 'る' 일치
-        wrongKanas: ["まかされる", "まかせる(pitch)", "まかせ"]
-    },
-    { 
-        kanji: "勧誘", kana: "かんゆう", meaning: ["권유"]
-    },
-    { 
-        kanji: "損", kana: "そん", meaning: ["손해"],
-        wrongKanjis: ["得", "利", "損失"], // '損' 포함
-        wrongKanas: ["こん", "せん", "じん"]
-    },
-    { 
-        kanji: "順調", kana: "じゅんちょう", meaning: ["순조로움"],
-        wrongKanjis: ["順番", "調子", "順序"], // '順' 또는 '調' 겹침
-        wrongKanas: ["じゅんじょう", "じゅうちょう", "じょうじゅん"]
-    },
-    { 
-        kanji: "演技", kana: "えんぎ", meaning: ["연기"],
-        wrongKanjis: ["技術", "演説", "演技(同形)"], // '演' 겹침
-        wrongKanas: ["えんぎ(pitch)", "えんじ", "えんき"]
-    },
-    { 
-        kanji: "積もる", kana: "つもる", meaning: ["쌓이다"],
-        wrongKanjis: ["積む", "積雪", "積荷"], // 'る' 일치
-        wrongKanas: ["つもらす", "つまる", "すわる"]
-    },
-    { 
-        kanji: "違反", kana: "いはん", meaning: ["위반"],
-        wrongKanjis: ["違法", "反則", "反抗"], // '違' 또는 '反' 겹침
-        wrongKanas: ["いばん", "いはん(pitch)", "いけん"]
+        kanji: "世間", kana: "せけん", meaning: ["세간", "세상"],
+        wrongKanjis: ["世界", "人間", "時間"], // 2자 일치
+        wrongKanas: ["せげん", "よま", "せかん"]
     },
     { 
         kanji: "勇ましい", kana: "いさましい", meaning: ["용감하다", "활발하다"],
@@ -404,299 +545,211 @@
         wrongKanas: ["うらやましい", "さびしい", "やかましい"]
     },
     { 
-        kanji: "陽気な", kana: "ようきな", meaning: ["明랑한", "밝은"],
-        wrongKanjis: ["陰気な", "気分な", "天気な"], // '気な' 일치
-        wrongKanas: ["ようきさな", "よきな", "おんきな"]
+        kanji: "運賃", kana: "うんちん", meaning: ["운임"],
+        wrongKanjis: ["家賃", "運転", "賃金"], // 2자 일치
+        wrongKanas: ["うんじん", "うんち", "うんにん"]
     },
     { 
-        kanji: "登る", kana: "のぼる", meaning: ["오르다"],
-        wrongKanjis: ["上る", "下る", "上る(同形)"], // 'る' 일치
-        wrongKanas: ["のぼせる", "のぼりる", "のぼらす"]
+        kanji: "背骨", kana: "せぼね", meaning: ["등뼈", "척추"],
+        wrongKanjis: ["背中", "骨折", "人骨"], // 2자 일치
+        wrongKanas: ["せほね", "はいこつ", "せこつ"]
     },
     { 
-        kanji: "垂直", kana: "すいちょく", meaning: ["수직"]
-    },
-
-    // --- 11페이지 ---
-    { 
-        kanji: "住居", kana: "じゅうきょ", meaning: ["주거"],
-        wrongKanjis: ["居住", "住所", "居間"], // '住' 또는 '居' 겹침
-        wrongKanas: ["じゅうい", "じゅうしょ", "じゅうきょ(pitch)"]
+        kanji: "実践", kana: "じっせん", meaning: ["실천"],
+        wrongKanjis: ["実際", "実施", "実行"], // 2자 일치
+        wrongKanas: ["じせん", "じっさい", "しっせん"]
     },
     { 
-        kanji: "短編", kana: "たんぺん", meaning: ["단편"],
-        wrongKanjis: ["長編", "短所", "編集"], // '短' 또는 '編' 겹침
-        wrongKanas: ["ちょうへん", "たんぺい", "たんへん(pitch)"]
+        kanji: "衣装", kana: "いしょう", meaning: ["의상"],
+        wrongKanjis: ["服装", "衣服", "装備"], // 2자 일치
+        wrongKanas: ["いしょ", "いそう", "いじょう"]
     },
     { 
-        kanji: "散る", kana: "ちる", meaning: ["떨어지다", "흩어지다"],
-        wrongKanjis: ["散らかす", "散歩", "飛ぶ"], // 'る' 일치
-        wrongKanas: ["ちらす", "ちる(pitch)", "はれる"]
+        kanji: "握手", kana: "あくしゅ", meaning: ["악수"],
+        wrongKanjis: ["歌手", "拍手", "選手"], // 2자 일치
+        wrongKanas: ["あしゅ", "にぎりて", "あくし"]
     },
     { 
-        kanji: "典型的な", kana: "てんけいてきな", meaning: ["전형적인"],
-        wrongKanjis: ["形式的な", "模範的な", "標準的な"], // '的' 일치
-        wrongKanas: ["でんけいてきな", "てんかいてきな", "けいしきてきな"]
+        kanji: "礼儀", kana: "れいぎ", meaning: ["예의"],
+        wrongKanjis: ["行儀", "儀式", "敬礼"], // 2자 일치
+        wrongKanas: ["れいき", "らいぎ", "れいよし"]
     },
     { 
-        kanji: "欲", kana: "よく", meaning: ["욕심"],
-        wrongKanjis: ["欲望", "食欲", "貪欲"], // '欲' 겹침
-        wrongKanas: ["よっく", "よく(pitch)", "ごく"]
+        kanji: "腕", kana: "うで", meaning: ["팔", "솜씨"],
+        wrongKanjis: ["足", "手", "指"], // 1자 일치
+        wrongKanas: ["むね", "あし", "かた"]
     },
     { 
-        kanji: "柔らかい", kana: "やわらかい", meaning: ["부드럽다"],
-        wrongKanjis: ["温かい", "甘い", "低い"], // 'い' 일치
-        wrongKanas: ["やわらかさ", "やわら", "あたたかい"]
-    },
-    { 
-        kanji: "疲労", kana: "ひろう", meaning: ["피로"],
-        wrongKanjis: ["苦労", "疲れる", "労働"], // '労' 또는 '疲' 겹침
-        wrongKanas: ["ひろ(pitch)", "ひろう(同形)", "きろう"]
-    },
-    { 
-        kanji: "俳優", kana: "はいゆう", meaning: ["배우"],
-        wrongKanjis: ["女優", "優秀", "排他"], // '優' 겹침
-        wrongKanas: ["はいゆう(pitch)", "はいゆ", "はいふく"]
-    },
-    { 
-        kanji: "避難", kana: "ひなん", meaning: ["피난"],
-        wrongKanjis: ["非難", "避ける", "困難"], // '避' 또는 '難' 겹침
-        wrongKanas: ["ひなん(pitch)", "ひなんさ", "ひばん"]
-    },
-    { 
-        kanji: "診断", kana: "しんだん", meaning: ["진단"],
-        wrongKanjis: ["判断", "断定", "診察"], // '断' 또는 '診' 겹침
-        wrongKanas: ["しんだん(pitch)", "しんかん", "じんだん"]
-    },
-    { 
-        kanji: "敬う", kana: "うやまう", meaning: ["존경하다"],
-        wrongKanjis: ["思う", "買う", "会う"], // 'う' 일치
-        wrongKanas: ["うやまえる", "うやまい", "うやまる"]
-    },
-    { 
-        kanji: "受講", kana: "じゅこう", meaning: ["수강"],
-        wrongKanjis: ["受験", "受領", "講義"], // '受' 또는 '講' 겹침
-        wrongKanas: ["じゅこう(pitch)", "じゅんこう", "しゅこう"]
-    },
-    { 
-        kanji: "布", kana: "ぬの", meaning: ["천", "직물"],
-        wrongKanjis: ["糸", "紙", "木"],
-        wrongKanas: ["ふ", "ねの", "のの"]
-    },
-    { 
-        kanji: "捨てる", kana: "すてる", meaning: ["버리다"],
-        wrongKanjis: ["建てる", "伝える", "燃やす"], // 'る' 일치
-        wrongKanas: ["すてた", "すてる(pitch)", "すてない"]
-    },
-    { 
-        kanji: "機嫌", kana: "きげん", meaning: ["기분"],
-        wrongKanjis: ["機会", "不機嫌", "期限"], // '機' 또는 '嫌' 겹침
-        wrongKanas: ["きかん", "きけん(pitch)", "ごきげん"]
-    },
-    { 
-        kanji: "損失", kana: "そんしつ", meaning: ["손실"],
-        wrongKanjis: ["損害", "失う", "失敗"], // '損' 또는 '失' 겹침
-        wrongKanas: ["そんしつ(pitch)", "そんし", "そんがく"]
-    },
-    { 
-        kanji: "研修", kana: "けんしゅう", meaning: ["연수"],
-        wrongKanjis: ["研究", "進修", "編集"], // '修' 또는 '研' 겹침
-        wrongKanas: ["けんしゅう(pitch)", "きんしゅう", "けんせい"]
-    },
-    { 
-        kanji: "諸問題", kana: "しょもんだい", meaning: ["여러 문제"],
-        wrongKanjis: ["問題", "話題", "課題"], // '問題' 겹침
-        wrongKanas: ["しょもん", "しょもんだい(pitch)", "しょだい"]
-    },
-    { 
-        kanji: "商店街", kana: "しょうてんがい", meaning: ["상점가"],
-        wrongKanjis: ["商店", "街道", "市場"], // '店' 또는 '街' 겹침
-        wrongKanas: ["しょうがい", "しょうてんがい(pitch)", "じょうてんがい"]
-    },
-    { 
-        kanji: "耐える", kana: "たえる", meaning: ["견디다"],
-        wrongKanjis: ["燃える", "越える", "増える"], // 'える' 일치
-        wrongKanas: ["たえれる", "たえさせる", "たえる(pitch)"]
-    },
-    { 
-        kanji: "再放送", kana: "さいほうそう", meaning: ["재방송"],
-        wrongKanjis: ["再開", "再提出", "放送"], // '再' 또는 '放' 겹침
-        wrongKanas: ["さいほそ", "さいそう", "さいほうそう(pitch)"]
-    },
-    { 
-        kanji: "投票", kana: "とうひょう", meaning: ["투표"],
-        wrongKanjis: ["投げる", "標語", "投入"], // '投' 또는 '標' 겹침
-        wrongKanas: ["とうひょう(pitch)", "どうひょう", "とうほう"]
-    },
-    { 
-        kanji: "抱える", kana: "かかえる", meaning: ["감싸 쥐다", "안다"]
-    },
-    { 
-        kanji: "志望", kana: "しぼう", meaning: ["지망"],
-        wrongKanjis: ["希望", "失望", "意志"], // '望' 겹침
-        wrongKanas: ["しぼう(pitch)", "きぼう", "いし"]
-    },
-    { 
-        kanji: "副社長", kana: "ふくしゃちょう", meaning: ["부사장"],
-        wrongKanjis: ["社長", "部長", "副業"], // '副' 또는 '社' 겹침
-        wrongKanas: ["ふくじちょう", "ふくしゃちょう(pitch)", "ふくちょう"]
-    },
-    { 
-        kanji: "高収入", kana: "こうしゅうにゅう", meaning: ["고수입"],
-        wrongKanjis: ["収入", "高額", "高水準"], // '高' 또는 '入' 겹침
-        wrongKanas: ["こうしゅにゅう", "こうじゅにゅう", "こうしゅうにゅう(pitch)"]
-    },
-    { 
-        kanji: "予約制", kana: "よやくせい", meaning: ["예약제"],
-        wrongKanjis: ["予約", "制度", "体制"], // '約' 또는 '制' 겹침
-        wrongKanas: ["よやくせい(pitch)", "よやくせいど", "やくせい"]
+        kanji: "開催", kana: "かいさい", meaning: ["개최"],
+        wrongKanjis: ["開始", "開会", "催促"], // 2자 일치
+        wrongKanas: ["かいざい", "がいさい", "かいせつ"]
     },
 
-    // --- 12페이지 ---
+    // --- 8페이지 ---
     { 
-        kanji: "就職率", kana: "しゅうしょくりつ", meaning: ["취직률"],
-        wrongKanjis: ["就職", "確率", "能率"], // '率' 또는 '職' 겹침
-        wrongKanas: ["しゅうしょくりつ(pitch)", "しゅうしょくり", "しゅうしりつ"]
+        kanji: "出世", kana: "しゅっせ", meaning: ["출세"],
+        wrongKanjis: ["世界", "出発", "世代"], // 2자 일치
+        wrongKanas: ["しゅせ", "しゅっせい", "しゅつよ"]
     },
     { 
-        kanji: "集中力", kana: "しゅうちゅうりょく", meaning: ["집중력"],
-        wrongKanjis: ["集中", "能力", "協力"], // '力' 또는 '中' 겹침
-        wrongKanas: ["しゅうちゅうりょく(pitch)", "じゅうちゅうりょく", "しゅうしりょく"]
+        kanji: "訪れる", kana: "おとずれる", meaning: ["방문하다", "찾아오다"],
+        wrongKanjis: ["忘れる", "遅れる", "流れる"], // 'れる' 일치
+        wrongKanas: ["たずねる", "おとろえる", "あらわれる"]
     },
     { 
-        kanji: "旧制度", kana: "きゅうせいど", meaning: ["구제도"],
-        wrongKanjis: ["制度", "新制度", "旧式"], // '制' 또는 '旧' 겹침
-        wrongKanas: ["きゅうせいど(pitch)", "ぐせいど", "きゅうじょ"]
+        kanji: "頼り", kana: "たより", meaning: ["연고", "의지"],
+        wrongKanjis: ["祈り", "座り", "帰り"], // 'り' 일치
+        wrongKanas: ["たやり", "だより", "たおり"]
     },
     { 
-        kanji: "医学界", kana: "いがくかい", meaning: ["의학계"],
-        wrongKanjis: ["世界", "医学", "学会"], // '学' 또는 '界' 겹침
-        wrongKanas: ["いがくかい(pitch)", "いかくかい", "いじゅつかい"]
+        kanji: "伝統", kana: "でんとう", meaning: ["전통"],
+        wrongKanjis: ["伝説", "統一", "伝言"], // 2자 일치
+        wrongKanas: ["てんとう", "でんどう", "でんど"]
     },
     { 
-        kanji: "文学賞", kana: "ぶんがくしょう", meaning: ["문학상"],
-        wrongKanjis: ["賞金", "文学", "学習"], // '文' 또는 '賞' 겹침
-        wrongKanas: ["ぶんがくしょう(pitch)", "ぶんがくそう", "もんがくしょう"]
+        kanji: "暮らす", kana: "くらす", meaning: ["살다", "생활하다"],
+        wrongKanjis: ["殺す", "貸す", "探す"], // 'す' 일치
+        wrongKanas: ["くるす", "くらます", "てらす"]
     },
     { 
-        kanji: "準優勝", kana: "じゅんゆうしょう", meaning: ["준우승"],
-        wrongKanjis: ["優勝", "準備", "基準"], // '準' 또는 '優' 겹침
-        wrongKanas: ["じゅんゆうしょう(pitch)", "じゅんしょう", "じゅんい"]
+        kanji: "象徴", kana: "しょうちょう", meaning: ["상징"],
+        wrongKanjis: ["特徴", "対象", "印象"], // 2자 일치
+        wrongKanas: ["ぞうちょう", "しょちょ", "しょうちょ"]
     },
     { 
-        kanji: "悪条件", kana: "あくじょうけん", meaning: ["악조건"],
-        wrongKanjis: ["条件", "悪化", "事件"], // '件' 또는 '悪' 겹침
-        wrongKanas: ["あくじょうけん(pitch)", "わるじょうけん", "あくけん"]
+        kanji: "与える", kana: "あたえる", meaning: ["주다"],
+        wrongKanjis: ["教える", "答える", "変える"], // 'える' 일치
+        wrongKanas: ["かなえる", "つたえる", "こたえる"]
     },
     { 
-        kanji: "現段階", kana: "げんだんかい", meaning: ["현 단계"],
-        wrongKanjis: ["階段", "現在", "階級"], // '現' 또는 '段' 겹침
-        wrongKanas: ["げんだんかい(pitch)", "げんかん", "けんだんかい"]
+        kanji: "激しい", kana: "はげしい", meaning: ["심하다", "격렬하다"],
+        wrongKanjis: ["楽しい", "苦しい", "涼しい"], // 'しい' 일치
+        wrongKanas: ["けわしい", "あやしい", "くわしい"]
     },
     { 
-        kanji: "非公式", kana: "ひこうしき", meaning: ["비공식"],
-        wrongKanjis: ["公式", "非常", "形式"], // '非' 또는 '式' 겹침
-        wrongKanas: ["ひこうしき(pitch)", "ふこうしき", "ひきょうしき"]
+        kanji: "管理", kana: "かんり", meaning: ["관리"],
+        wrongKanjis: ["無理", "監督", "修理"], // 2자 일치
+        wrongKanas: ["かんび", "けんり", "かんい"]
     },
     { 
-        kanji: "一日おき", kana: "いちにちおき", meaning: ["하루 걸러"],
-        wrongKanjis: ["一日", "二日", "一月"], // '一' 또는 '日' 겹침
-        wrongKanas: ["いちにちおき(pitch)", "いちにちごと", "いちじつおき"]
+        kanji: "登録", kana: "とうろく", meaning: ["등록"],
+        wrongKanjis: ["記録", "録音", "録画"], // 2자 일치
+        wrongKanas: ["とろく", "どうろく", "とうろ"]
     },
     { 
-        kanji: "総売上", kana: "そううりあげ", meaning: ["총매출"],
-        wrongKanjis: ["売上", "総合", "販売"], // '売' 또는 '上' 겹침
-        wrongKanas: ["そううりあげ(pitch)", "そうりあげ", "ぜんうりあげ"]
+        kanji: "福祉", kana: "ふくし", meaning: ["복지"],
+        wrongKanjis: ["幸福", "社会", "利益"], // 2자 일치
+        wrongKanas: ["ふくじ", "ふくち", "ふし"]
     },
     { 
-        kanji: "真夜中", kana: "まよなか", meaning: ["한밤중"],
-        wrongKanjis: ["夜中", "真実", "昼間"], // '夜' 또는 '中' 겹침
-        wrongKanas: ["まよなか(pitch)", "しんやなか", "まひるなか"]
+        kanji: "誘う", kana: "さそう", meaning: ["권유하다", "유도하다"],
+        wrongKanjis: ["会う", "違う", "言う"], // 'う' 일치
+        wrongKanas: ["ゆう", "さよう", "さとう"]
     },
     { 
-        kanji: "仮採用", kana: "かりさいよう", meaning: ["임시 채용"],
-        wrongKanjis: ["採用", "仮定", "使用"], // '採' 또는 '用' 겹침
-        wrongKanas: ["かりさいよう(pitch)", "かさいよう", "かそうよう"]
+        kanji: "討論", kana: "とうろん", meaning: ["토론"],
+        wrongKanjis: ["議論", "結論", "理論"], // 2자 일치
+        wrongKanas: ["とろん", "どうろん", "とうろう"]
     },
     { 
-        kanji: "投票率", kana: "とうひょうりつ", meaning: ["투표율"],
-        wrongKanjis: ["投票", "確率", "能率"], // '率' 또는 '投' 겹침
-        wrongKanas: ["とうひょうりつ(pitch)", "とうりつ", "ひょうとうりつ"]
+        kanji: "変更", kana: "へんこう", meaning: ["변경"],
+        wrongKanjis: ["変化", "更新", "更迭"], // 2자 일치
+        wrongKanas: ["へんこ", "べんこう", "へんきょ"]
     },
     { 
-        kanji: "国際色", kana: "こくさいしょく", meaning: ["国際色"],
-        wrongKanjis: ["国際", "色彩", "景色"], // '色' 또는 '際' 겹침
-        wrongKanas: ["こくさいしょく(pitch)", "がいこくしょく", "こくさいろ"]
+        kanji: "属する", kana: "ぞくする", meaning: ["속하다"],
+        wrongKanjis: ["愛する", "対する", "反する"], // 'する' 일치
+        wrongKanas: ["しょくする", "ぞっする", "そくする"]
     },
     { 
-        kanji: "諸外国", kana: "しょがいこく", meaning: ["諸外国", "여러 나라"],
-        wrongKanjis: ["外国", "諸々", "国外"], // '国' 또는 '外' 겹침
-        wrongKanas: ["しょがいこく(pitch)", "しょこく", "がいこくじん"]
+        kanji: "導く", kana: "みちびく", meaning: ["이끌다", "지도하다"],
+        wrongKanjis: ["歩く", "書く", "働く"], // 'く' 일치
+        wrongKanas: ["とどく", "きずく", "つづく"]
     },
     { 
-        kanji: "半透明", kana: "はんとうめい", meaning: ["半透明"],
-        wrongKanjis: ["透明", "半分", "明かり"], // '透' 또는 '明' 겹침
-        wrongKanas: ["はんとうめい(pitch)", "とうめい", "はんめい"]
+        kanji: "扱う", kana: "あつかう", meaning: ["다루다", "취급하다"],
+        wrongKanjis: ["会う", "買う", "使う"], // 'う' 일치
+        wrongKanas: ["うしなう", "むかう", "さらう"]
     },
     { 
-        kanji: "低価格", kana: "ていかかく", meaning: ["低価格"],
-        wrongKanjis: ["価格", "低下", "高価格"], // '価' 또는 '低' 겹침
-        wrongKanas: ["ていかかく(pitch)", "ていかく", "ていがく"]
+        kanji: "収穫", kana: "しゅうかく", meaning: ["수확"],
+        wrongKanjis: ["収入", "収集", "獲得"], // 2자 일치
+        wrongKanas: ["しゅかく", "しゅうがく", "じゅうかく"]
     },
     { 
-        kanji: "日本流", kana: "にほんりゅう", meaning: ["日本式"],
-        wrongKanjis: ["流行", "日本", "交流"], // '流' 겹침
-        wrongKanas: ["にほんりゅう(pitch)", "にほんしき", "りゅうこう"]
+        kanji: "積極的な", kana: "せっきょくてきな", meaning: ["적극적인"],
+        wrongKanjis: ["消極的な", "具体的な", "活動的な"], // '的な' 일치
+        wrongKanas: ["せきょくてきな", "せっきょてきな", "しっきょくてきな"]
     },
     { 
-        kanji: "準決勝", kana: "じゅんけっしょう", meaning: ["準決勝"],
-        wrongKanjis: ["決勝", "準備", "決定"], // '準' 또는 '決' 겹침
-        wrongKanas: ["じゅんけっしょう(pitch)", "じゅんしょう", "けっせん"]
+        kanji: "勢い", kana: "いきおい", meaning: ["기세"],
+        wrongKanjis: ["姿勢", "大勢", "勢力"], // 2자 일치
+        wrongKanas: ["いきよい", "いこい", "きおい"]
     },
     { 
-        kanji: "再提出", kana: "さいていしゅつ", meaning: ["再提出"],
-        wrongKanjis: ["提出", "再生", "提案"], // '提' 또는 '出' 겹침
-        wrongKanas: ["さいていしゅつ(pitch)", "さいしゅつ", "さいあん"]
+        kanji: "抵抗", kana: "ていこう", meaning: ["저항"],
+        wrongKanjis: ["対抗", "反抗", "抵触"], // 2자 일치
+        wrongKanas: ["てこう", "たいこう", "ていこ"]
     },
     { 
-        kanji: "親子連れ", kana: "おやこづれ", meaning: ["親子連れ"],
-        wrongKanjis: ["子供連れ", "親戚", "連れる"], // '子' 또는 '連' 겹침
-        wrongKanas: ["おやこづれ(pitch)", "ふたおやづれ", "おやこいっしょ"]
+        kanji: "組織", kana: "そしき", meaning: ["조직"],
+        wrongKanjis: ["組合", "組立", "織物"], // 2자 일치
+        wrongKanas: ["しょしき", "そしぎ", "そじき"]
     },
     { 
-        kanji: "薄暗い", kana: "うすぐらい", meaning: ["薄暗い"],
-        wrongKanjis: ["暗い", "薄い", "明るい"], // '暗' 또는 '薄' 겹침
-        wrongKanas: ["うすぐらい(pitch)", "うすくらい", "あくらい"]
+        kanji: "肩", kana: "かた", meaning: ["어깨"],
+        wrongKanjis: ["背", "首", "腰"], // 1자 일치
+        wrongKanas: ["ひじ", "こし", "ひざ"]
     },
     { 
-        kanji: "音楽全般", kana: "おんがくぜんばん", meaning: ["音楽全般"],
-        wrongKanjis: ["全般", "音楽", "一般"], // '般' 또는 '音' 겹침
-        wrongKanas: ["おんがくぜんぱん", "おんがくはん", "ぜんおんがく"]
+        kanji: "至るところ", kana: "いたるところ", meaning: ["도처", "모든 장소"],
+        wrongKanjis: ["有るところ", "見るところ", "来るところ"], // 5자 일치
+        wrongKanas: ["いまるところ", "きたるところ", "あたるところ"]
     },
     { 
-        kanji: "風邪気味", kana: "かぜぎみ", meaning: ["風邪気味"],
-        wrongKanjis: ["風邪", "興味", "意味"], // '風' 또는 '気' 겹침
-        wrongKanas: ["かぜぎみ(pitch)", "ふうじゃぎみ", "かぜきみ"]
+        kanji: "削る", kana: "けずる", meaning: ["깎다", "삭감하다"],
+        wrongKanjis: ["切る", "走る", "知る"], // 'る' 일치
+        wrongKanas: ["さぐる", "かざる", "まさる"]
     },
     { 
-        kanji: "最有力", kana: "さいゆうりょく", meaning: ["最有力"],
-        wrongKanjis: ["有力", "協力", "最初"], // '力' 또는 '最' 겹침
-        wrongKanas: ["さいゆうりょく(pitch)", "さいりょく", "ゆうりょく"]
+        kanji: "真剣な", kana: "しんけんな", meaning: ["진지한"],
+        wrongKanjis: ["危険な", "健全な", "真実な"], // 'な' 일치
+        wrongKanas: ["しんげんな", "じっけんな", "しけんな"]
     },
     { 
-        kanji: "食器類", kana: "しょっきるい", meaning: ["食器類"],
-        wrongKanjis: ["食事", "書類", "器"], // '器' 또는 '食' 겹침
-        wrongKanas: ["しょっきるい(pitch)", "しょくき", "しょるい"]
+        kanji: "講義", kana: "こうぎ", meaning: ["강의"],
+        wrongKanjis: ["講演", "会議", "講師"], // 2자 일치
+        wrongKanas: ["こぎ", "こうき", "ごうぎ"]
     },
     { 
-        kanji: "未経験", kana: "みけいけん", meaning: ["未経験"],
-        wrongKanjis: ["経験", "未来", "実験"], // '経' 또는 '験' 겹침
-        wrongKanas: ["みけいけん(pitch)", "みけん", "いけいけん"]
+        kanji: "努める", kana: "つとめる", meaning: ["노력하다", "힘쓰다"],
+        wrongKanjis: ["勤める", "務める", "止める"], // 'める' 일치
+        wrongKanas: ["つとまる", "もとめる", "まとめる"]
     },
     { 
-        kanji: "期限切れ", kana: "きげんぎれ", meaning: ["期限切れ"],
-        wrongKanjis: ["期限", "切れる", "制限"], // '限' 또는 '切' 겹침
-        wrongKanas: ["きげんぎれ(pitch)", "きげんぎり", "きれげん"]
+        kanji: "寄付", kana: "きふ", meaning: ["기부"],
+        wrongKanjis: ["寄贈", "交付", "受付"], // 2자 일치
+        wrongKanas: ["ぎふ", "きぷ", "きぶ"]
+    },
+    { 
+        kanji: "果たす", kana: "はたす", meaning: ["완수하다", "달성하다"],
+        wrongKanjis: ["満たす", "待たす", "持たす"], // 'たす' 일치
+        wrongKanas: ["みたす", "またす", "もたす"]
+    },
+    { 
+        kanji: "即座に", kana: "そくざに", meaning: ["즉석에서", "그 자리에서"],
+        wrongKanjis: ["即日に", "座席に", "直前に"], // 'に' 일치
+        wrongKanas: ["そくさに", "しょくざに", "そくじに"]
+    },
+    { 
+        kanji: "招待", kana: "しょうたい", meaning: ["초대"],
+        wrongKanjis: ["接待", "招集", "待機"], // 2자 일치
+        wrongKanas: ["しょたい", "しょうだい", "そたい"]
+    },
+    { 
+        kanji: "責める", kana: "せめる", meaning: ["책망하다", "나무라다"],
+        wrongKanjis: ["決める", "止める", "認める"], // 'める' 일치
+        wrongKanas: ["さめる", "せまる", "そめる"]
     }
 ];
         // ----------------------------------------------------
