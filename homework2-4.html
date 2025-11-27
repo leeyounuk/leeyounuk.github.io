@@ -77,6 +77,7 @@
 const vocabularyData = [
   // --- 9페이지 ---
    // --- 9페이지 ---
+  // --- 9페이지 ---
     { 
         kanji: "湿っぽい", kana: "しめっぽい", meaning: ["눅눅하다", "습기 차다"],
         wrongKanjis: ["甘っぽい", "苦っぽい", "辛っぽい"], // 'っぽい' 일치 (4자)
@@ -89,12 +90,12 @@ const vocabularyData = [
     },
     { 
         kanji: "接続", kana: "せつぞく", meaning: ["접속"],
-        wrongKanjis: ["持続", "連続", "接近"], // 2자 일치
+        wrongKanjis: ["継続", "指導", "判断"], // '続' 또는 '接' 없는 2자 단어
         wrongKanas: ["せっそく", "ぜつぞく", "せつしょく"] // 4자 일치 (pitch 제외)
     },
     { 
         kanji: "援助", kana: "えんじょ", meaning: ["원조", "도움"],
-        wrongKanjis: ["応援", "救助", "支援"], // 2자 일치
+        wrongKanjis: ["継続", "指導", "判断"], // '援' 또는 '助' 없는 2자 단어
         wrongKanas: ["えんじょう", "あんじょ", "えんしょ"] // 3자 일치 (pitch 제외)
     },
     { 
@@ -103,13 +104,8 @@ const vocabularyData = [
         wrongKanas: ["ぎゃくらう", "かわらう", "とららう"] // 4자 일치 (pitch 제외)
     },
     { 
-        kanji: "破れる", kana: "やぶれる", meaning: ["찢어지다", "파손되다"],
-        wrongKanjis: ["放れる", "改れる", "攻れる"], // 'れる' 일치 (4자)
-        wrongKanas: ["たおれる", "あばれる", "こわれる"] // 4자 일치 (pitch 제외)
-    },
-    { 
         kanji: "批判", kana: "ひはん", meaning: ["비판"],
-        wrongKanjis: ["評判", "判断", "批評"], // 2자 일치
+        wrongKanjis: ["判断", "評価", "論議"], // '判' 또는 '評' 없는 2자 단어
         wrongKanas: ["ひばん", "びはん", "しはん"] // 3자 일치 (pitch 제외)
     },
     { 
@@ -129,12 +125,12 @@ const vocabularyData = [
     },
     { 
         kanji: "参照", kana: "さんしょう", meaning: ["참조"],
-        wrongKanjis: ["参観", "照明", "対照"], // 2자 일치
+        wrongKanjis: ["指導", "検討", "判断"], // 2자 일치
         wrongKanas: ["さんしょ", "ざんしょう", "さしょう"] // 4자 일치 (pitch 제외)
     },
     { 
         kanji: "保証", kana: "ほしょう", meaning: ["보증"],
-        wrongKanjis: ["証明", "保護", "証拠"], // 2자 일치
+        wrongKanjis: ["継続", "指導", "評価"], // 2자 일치
         wrongKanas: ["ほうしょう", "ほしょ", "ぼしょう"] // 3자 일치 (pitch 제외)
     },
     { 
@@ -145,7 +141,7 @@ const vocabularyData = [
     { 
         kanji: "催し", kana: "もよおし", meaning: ["행사", "모임"],
         wrongKanjis: ["予知し", "予感し", "気配し"], // 'し' 일치 (4자)
-        wrongKanas: ["もよそい", "およおし", "そよおし"] // 4자 일치 (pitch 제외)
+        wrongKanas: ["もよほし", "およおし", "ともし"] // 4자 일치 (pitch 제외)
     },
     { 
         kanji: "症状", kana: "しょうじょう", meaning: ["증상"],
@@ -271,7 +267,7 @@ const vocabularyData = [
     },
     { 
         kanji: "見逃す", kana: "みのがす", meaning: ["놓치다"],
-        wrongKanjis: ["見張る", "見送る", "見出す"], // 'る' 일치 (4자)
+        wrongKanjis: ["見張る", "見送る", "見出す"], // 'す' 일치 (4자)
         wrongKanas: ["みおとす", "みまわす", "みむす"] // 4자 일치 (pitch 제외)
     },
     { 
@@ -489,7 +485,7 @@ const vocabularyData = [
     { 
         kanji: "捨てる", kana: "すてる", meaning: ["버리다"],
         wrongKanjis: ["建てる", "伝える", "燃やす"], // 'る' 일치 (3자)
-        wrongKanas: ["すてた", "すてない", "すてるさ"] // 3자 일치 (pitch 제외)
+        wrongKanas: ["すてた", "すてるさ", "すてま"] // 3자 일치 (pitch 제외)
     },
     { 
         kanji: "機嫌", kana: "きげん", meaning: ["기분"],
@@ -586,7 +582,7 @@ const vocabularyData = [
     { 
         kanji: "準優勝", kana: "じゅんゆうしょう", meaning: ["준우승"],
         wrongKanjis: ["優勝", "準備", "基準"], // 3자 일치
-        wrongKanas: ["じゅんしょう", "じゅんい", "じゅんゆう"] // 6자 일치 (pitch 제외)
+        wrongKanas: ["じゅんしょう", "けっせん", "じゅんゆう"] // 6자 일치 (pitch 제외)
     },
     { 
         kanji: "悪条件", kana: "あくじょうけん", meaning: ["악조건"],
