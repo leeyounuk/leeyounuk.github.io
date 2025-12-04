@@ -1,75 +1,648 @@
-<?php
-class Calendar {
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>일단합격 JLPT N2 단어장 (복습 모드 포함)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700&family=Noto+Sans+JP:wght@400;700&display=swap');
+        body { font-family: 'Noto Sans KR', 'Noto Sans JP', sans-serif; }
+        .fade-in { animation: fadeIn 0.3s ease-in-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen flex items-center justify-center p-4">
 
-    private $active_year, $active_month, $active_day;
-    private $events = [];
+    <div class="bg-white rounded-xl shadow-lg w-full max-w-md overflow-hidden">
+        <div id="header-bg" class="bg-emerald-600 p-4 text-white text-center transition-colors duration-500">
+            <h1 id="header-title" class="text-xl font-bold">JLPT N2 단어장</h1>
+            <p id="header-desc" class="text-sm opacity-80">순서는 랜덤, 오답 시 정답 공개</p>
+        </div>
 
-    public function __construct($date = null) {
-        $this->active_year = $date != null ? date('Y', strtotime($date)) : date('Y');
-        $this->active_month = $date != null ? date('m', strtotime($date)) : date('m');
-        $this->active_day = $date != null ? date('d', strtotime($date)) : date('d');
-    }
+        <div class="bg-gray-200 h-2 w-full">
+            <div id="progress-bar" class="bg-emerald-400 h-2 transition-all duration-300" style="width: 0%"></div>
+        </div>
 
-    public function add_event($txt, $date, $days = 1, $color = '') {
-        $color = $color ? ' ' . $color : $color;
-        $this->events[] = [$txt, $date, $days, $color];
-    }
+        <div id="quiz-container" class="p-8 text-center fade-in">
+            <div class="mb-6">
+                <span class="text-sm text-gray-500 mb-1 block">문제 <span id="current-index">1</span> / <span id="total-count">10</span></span>
+                <h2 id="question-word" class="text-5xl font-bold text-gray-800 mb-2"></h2>
+                <p id="status-msg" class="text-gray-500 font-medium h-8 text-sm"></p>
+            </div>
 
-    public function __toString() {
-        $num_days = date('t', strtotime($this->active_day . '-' . $this->active_month . '-' . $this->active_year));
-        $num_days_last_month = date('j', strtotime('last day of previous month', strtotime($this->active_day . '-' . $this->active_month . '-' . $this->active_year)));
-        $days = [0 => 'Sun', 1 => 'Mon', 2 => 'Tue', 3 => 'Wed', 4 => 'Thu', 5 => 'Fri', 6 => 'Sat'];
-        $first_day_of_week = array_search(date('D', strtotime($this->active_year . '-' . $this->active_month . '-1')), $days);
-        $html = '<div class="calendar">';
-        $html .= '<div class="header">';
-        $html .= '<div class="month-year">';
-        $html .= date('F Y', strtotime($this->active_year . '-' . $this->active_month . '-' . $this->active_day));
-        $html .= '</div>';
-        $html .= '</div>';
-        $html .= '<div class="days">';
-        foreach ($days as $day) {
-            $html .= '
-                <div class="day_name">
-                    ' . $day . '
+            <div class="space-y-4">
+                <div class="relative">
+                    <label id="input-label" class="block text-left text-sm font-bold text-gray-700 mb-1">뜻을 입력하세요 (한국어)</label>
+                    <input type="text" id="user-input" 
+                        class="w-full px-4 py-3 rounded-lg border-2 border-gray-300 focus:border-emerald-500 focus:outline-none transition-colors text-lg text-center"
+                        placeholder="정답 입력" autocomplete="off">
                 </div>
-            ';
-        }
-        for ($i = $first_day_of_week; $i > 0; $i--) {
-            $html .= '
-                <div class="day_num ignore">
-                    ' . ($num_days_last_month-$i+1) . '
-                </div>
-            ';
-        }
-        for ($i = 1; $i <= $num_days; $i++) {
-            $selected = '';
-            if ($i == $this->active_day) {
-                $selected = ' selected';
+
+                <button id="submit-btn" onclick="checkAnswer()" 
+                    class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 rounded-lg transition-transform active:scale-95 shadow-md">
+                    확인
+                </button>
+                
+                <div id="feedback" class="h-10 text-sm font-bold flex items-center justify-center whitespace-pre-line"></div>
+            </div>
+        </div>
+
+        <div id="result-container" class="hidden p-8 text-center fade-in">
+            <h2 class="text-3xl font-bold text-gray-800 mb-2">퀴즈 완료! 🎉</h2>
+            <p class="text-lg mb-6 text-gray-600">
+                총 <span id="final-score" class="font-bold text-emerald-600 text-2xl"></span>점을 획득했습니다.
+            </p>
+            
+            <div id="review-section" class="hidden mb-6 bg-red-50 p-4 rounded-lg border border-red-200">
+                <p class="text-red-600 font-bold mb-2">틀린 단어가 <span id="wrong-count">0</span>개 있습니다.</p>
+                <button onclick="startReview()" class="w-full bg-red-500 hover:bg-red-600 text-white font-bold py-2 rounded-lg shadow transition-colors">
+                    틀린 단어만 복습하기 🔄
+                </button>
+            </div>
+
+            <button onclick="location.reload()" class="w-full bg-gray-600 hover:bg-gray-700 text-white font-bold py-3 rounded-lg shadow transition-colors">
+                처음부터 다시 하기 (전체 리셋)
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // 원본 데이터
+const vocabularyData= [
+    // --- 16페이지 (Kanji/Vocabulary) ---
+    [cite_start]{ kanji: "成長", kana: "せいちょう", meaning: ["성장"] }[cite: 1020],
+    [cite_start]{ kanji: "導入", kana: "どうにゅう", meaning: ["도입"] }[cite: 1022],
+    [cite_start]{ kanji: "ごろごろ", kana: "ごろごろ", meaning: ["데굴데굴", "뒹굴뒹굴"] }[cite: 1024],
+    [cite_start]{ kanji: "訂正", kana: "ていせい", meaning: ["정정"] }[cite: 1025],
+    [cite_start]{ kanji: "適度な", kana: "てきどな", meaning: ["적당한", "알맞은"] }[cite: 1027],
+    [cite_start]{ kanji: "やかましい", kana: "やかましい", meaning: ["시끄럽다"] }[cite: 1028],
+    [cite_start]{ kanji: "呼び止める", kana: "よびとめる", meaning: ["불러 세우다"] }[cite: 1033],
+    [cite_start]{ kanji: "中継", kana: "ちゅうけい", meaning: ["중계"] }[cite: 1034],
+    [cite_start]{ kanji: "目指す", kana: "めざす", meaning: ["지향하다", "목표로 하다"] }[cite: 1035],
+    [cite_start]{ kanji: "パンク", kana: "パンク", meaning: ["펑크"] }[cite: 1036],
+    [cite_start]{ kanji: "解散", kana: "かいさん", meaning: ["해산"] }[cite: 1041],
+    [cite_start]{ kanji: "贅沢な", kana: "ぜいたくな", meaning: ["사치스러운"] }[cite: 1042],
+    [cite_start]{ kanji: "スムーズに", kana: "スムーズに", meaning: ["부드럽게"] }[cite: 1043],
+    [cite_start]{ kanji: "見当がつく", kana: "けんとうがつく", meaning: ["짐작이 가다"] }[cite: 1045],
+    [cite_start]{ kanji: "一気に", kana: "いっきに", meaning: ["단숨에", "단번에"] }[cite: 1047],
+    [cite_start]{ kanji: "あらかじめ", kana: "あらかじめ", meaning: ["미리"] }[cite: 1048],
+    [cite_start]{ kanji: "蓄える", kana: "たくわえる", meaning: ["저축하다", "비축하다"] }[cite: 1050],
+    [cite_start]{ kanji: "体格", kana: "たいかく", meaning: ["체격"] }[cite: 1054],
+    [cite_start]{ kanji: "つらい", kana: "つらい", meaning: ["괴롭다", "힘들다"] }[cite: 1055],
+    [cite_start]{ kanji: "リラックスする", kana: "リラックスする", meaning: ["긴장을 풀다"] }[cite: 1056],
+    [cite_start]{ kanji: "すっきり", kana: "すっきり", meaning: ["산뜻하게", "후련하게"] }[cite: 1059],
+    [cite_start]{ kanji: "意欲", kana: "いよく", meaning: ["의욕"] }[cite: 1062],
+    [cite_start]{ kanji: "比例", kana: "ひれい", meaning: ["비례"] }[cite: 1064],
+    [cite_start]{ kanji: "差し支える", kana: "さしつかえる", meaning: ["지장이 있다"] }[cite: 1065],
+    [cite_start]{ kanji: "うとうと", kana: "うとうと", meaning: ["꾸벅꾸벅(조는 모양)"] }[cite: 1066],
+    [cite_start]{ kanji: "専念", kana: "せんねん", meaning: ["전념"] }[cite: 1070],
+    [cite_start]{ kanji: "つまずく", kana: "つまずく", meaning: ["걸려 넘어지다", "좌절하다"] }[cite: 1071],
+    [cite_start]{ kanji: "格好", kana: "かっこう", meaning: ["모습", "모양"] }[cite: 1074],
+    [cite_start]{ kanji: "あいにく", kana: "あいにく", meaning: ["공교롭게도"] }[cite: 1075],
+    [cite_start]{ kanji: "特色", kana: "とくしょく", meaning: ["특색"] }[cite: 1078],
+    [cite_start]{ kanji: "予測", kana: "よそく", meaning: ["예측"] }[cite: 1080],
+    [cite_start]{ kanji: "びっしょり", kana: "びっしょり", meaning: ["흠뻑(완전히 젖은 모양)"] }[cite: 1081],
+    [cite_start]{ kanji: "濁る", kana: "にごる", meaning: ["흐려지다", "탁해지다"] }[cite: 1083],
+    [cite_start]{ kanji: "腹を立てる", kana: "はらをたてる", meaning: ["화를 내다"] }[cite: 1089],
+    [cite_start]{ kanji: "思いきって", kana: "おもいきって", meaning: ["과감하게"] }[cite: 1091],
+    [cite_start]{ kanji: "輝かしい", kana: "かがや", meaning: ["빛나다", "눈부시다"] }[cite: 1094],
+    [cite_start]{ kanji: "完了", kana: "かんりょう", meaning: ["완료"] }[cite: 1096],
+    [cite_start]{ kanji: "面する", kana: "めんする", meaning: ["면하다", "마주 대하다"] }[cite: 1098],
+
+    // --- 17페이지 (Vocabulary/Adverb/Contextual) ---
+    [cite_start]{ kanji: "バランス", kana: "バランス", meaning: ["밸런스", "균형"] }[cite: 1100],
+    [cite_start]{ kanji: "頼もしい", kana: "たのもしい", meaning: ["믿음직하다"] }[cite: 1100],
+    [cite_start]{ kanji: "鋭い", kana: "するどい", meaning: ["날카롭다", "예리하다"] }[cite: 1100],
+    [cite_start]{ kanji: "割り込む", kana: "わりこむ", meaning: ["끼어들다"] }[cite: 1100],
+    [cite_start]{ kanji: "たっぷり", kana: "たっぷり", meaning: ["듬뿍"] }[cite: 1100],
+    [cite_start]{ kanji: "豊富な", kana: "ほうふな", meaning: ["풍부한"] }[cite: 1100],
+    [cite_start]{ kanji: "デザイン", kana: "デザイン", meaning: ["디자인"] }[cite: 1100],
+    [cite_start]{ kanji: "穏やかな", kana: "おだやかな", meaning: ["온화한"] }[cite: 1100],
+    [cite_start]{ kanji: "相違", kana: "そうい", meaning: ["다름", "틀림"] }[cite: 1100],
+    [cite_start]{ kanji: "確保", kana: "かくほ", meaning: ["확보"] }[cite: 1100],
+    [cite_start]{ kanji: "柔軟な", kana: "じゅうなんな", meaning: ["유연한"] }[cite: 1100],
+    [cite_start]{ kanji: "アピール", kana: "アピール", meaning: ["어필", "호소"] }[cite: 1100],
+    [cite_start]{ kanji: "時間を潰す", kana: "じかんをつぶす", meaning: ["시간을 때우다", "시간을 보내다"] }[cite: 1100],
+    [cite_start]{ kanji: "悔やむ", kana: "くやむ", meaning: ["분하게 여기다", "후회"] }[cite: 1100],
+    [cite_start]{ kanji: "安易な", kana: "あんいな", meaning: ["안이한"] }[cite: 1100],
+    [cite_start]{ kanji: "契機", kana: "けいき", meaning: ["계기"] }[cite: 1100],
+    [cite_start]{ kanji: "提供", kana: "ていきょう", meaning: ["제공"] }[cite: 1100],
+    [cite_start]{ kanji: "ひそひそ", kana: "ひそひそ", meaning: ["소근소근"] }[cite: 1100],
+    [cite_start]{ kanji: "苦情", kana: "くじょう", meaning: ["불평", "클레임"] }[cite: 1100],
+    [cite_start]{ kanji: "収穫", kana: "しゅうかく", meaning: ["수확"] }[cite: 1100],
+    [cite_start]{ kanji: "ぐったり", kana: "ぐったり", meaning: ["매우 지친 모습"] }[cite: 1100],
+    [cite_start]{ kanji: "ショック", kana: "ショック", meaning: ["쇼크", "충격"] }[cite: 1100],
+    [cite_start]{ kanji: "普及", kana: "ふきゅう", meaning: ["보급"] }[cite: 1100],
+    [cite_start]{ kanji: "じゃま", kana: "じゃま", meaning: ["방해"] }[cite: 1100],
+    [cite_start]{ kanji: "名所", kana: "めいしょ", meaning: ["명소"] }[cite: 1100],
+    [cite_start]{ kanji: "ぎりぎり", kana: "ぎりぎり", meaning: ["아슬아슬"] }[cite: 1100],
+    [cite_start]{ kanji: "有利な", kana: "ゆうりな", meaning: ["유리한"] }[cite: 1100],
+    [cite_start]{ kanji: "打ち消す", kana: "うちけす", meaning: ["부정하다"] }[cite: 1100],
+    [cite_start]{ kanji: "引き止める", kana: "ひきとめる", meaning: ["만류하다", "제지하다"] }[cite: 1100],
+    [cite_start]{ kanji: "なだらかな", kana: "なだらかな", meaning: ["완만한"] }[cite: 1100],
+    [cite_start]{ kanji: "そそっかしい", kana: "そそっかしい", meaning: ["경솔하다"] }[cite: 1100],
+    [cite_start]{ kanji: "発揮", kana: "はっき", meaning: ["발휘"] }[cite: 1100],
+    [cite_start]{ kanji: "リーダー", kana: "リーダー", meaning: ["리더", "지도자"] }[cite: 1100],
+    [cite_start]{ kanji: "活発な", kana: "かっぱつな", meaning: ["활발한"] }[cite: 1100],
+    [cite_start]{ kanji: "アレンジ", kana: "アレンジ", meaning: ["어레인지", "각색"] }[cite: 1100],
+    [cite_start]{ kanji: "独特", kana: "どくとく", meaning: ["독특"] }[cite: 1100],
+    [cite_start]{ kanji: "欠かす", kana: "かかす", meaning: ["빠뜨리다"] }[cite: 1100],
+
+    // --- 18페이지 (Kanji/Vocabulary/Adverb) ---
+    [cite_start]{ kanji: "でたらめに", kana: "でたらめに", meaning: ["아무렇게나"] }[cite: 1105],
+    [cite_start]{ kanji: "あこがれ", kana: "あこがれ", meaning: ["동경", "그리움"] }[cite: 1106],
+    [cite_start]{ kanji: "達する", kana: "たっする", meaning: ["도달하다", "이르다"] }[cite: 1109],
+    [cite_start]{ kanji: "転勤", kana: "てんきん", meaning: ["전근"] }[cite: 1111],
+    [cite_start]{ kanji: "着々と", kana: "ちゃくちゃくと", meaning: ["착착 순조롭게"] }[cite: 1114],
+    [cite_start]{ kanji: "栽培", kana: "さいばい", meaning: ["재배"] }[cite: 1115],
+    [cite_start]{ kanji: "スペース", kana: "スペース", meaning: ["스페이스", "공간"] }[cite: 1116],
+    [cite_start]{ kanji: "点検", kana: "てんけん", meaning: ["점검"] }[cite: 1118],
+    [cite_start]{ kanji: "にっこり", kana: "にっこり", meaning: ["생긋", "방긋"] }[cite: 1120],
+    [cite_start]{ kanji: "続出", kana: "ぞくしゅつ", meaning: ["속출"] }[cite: 1122],
+    [cite_start]{ kanji: "うなずく", kana: "うなずく", meaning: ["수긍하다", "(고개를)끄덕이다"] }[cite: 1123, 1124],
+    [cite_start]{ kanji: "ごちゃごちゃ", kana: "ごちゃごちゃ", meaning: ["어수선하게", "너저분하게"] }[cite: 1135],
+    [cite_start]{ kanji: "飛び散る", kana: "とびちる", meaning: ["사방에 흩날리다"] }[cite: 1130],
+    [cite_start]{ kanji: "地元", kana: "じもと", meaning: ["고장", "현지"] }[cite: 1134],
+    [cite_start]{ kanji: "評価", kana: "ひょうか", meaning: ["평가"] }[cite: 1137],
+    [cite_start]{ kanji: "尊重", kana: "そんちょう", meaning: ["존중"] }[cite: 1139],
+    [cite_start]{ kanji: "ターゲット", kana: "ターゲット", meaning: ["타겟", "핵심 고객층"] }[cite: 1140],
+    [cite_start]{ kanji: "敏感", kana: "びんかん", meaning: ["민감"] }[cite: 1142],
+    [cite_start]{ kanji: "プレッシャー", kana: "プレッシャー", meaning: ["프레셔", "압력"] }[cite: 1144],
+    [cite_start]{ kanji: "不安定", kana: "ふあんてい", meaning: ["불안정"] }[cite: 1146],
+    [cite_start]{ kanji: "曖昧な", kana: "あいまいな", meaning: ["애매한"] }[cite: 1147],
+    [cite_start]{ kanji: "衰える", kana: "おとろえる", meaning: ["쇠퇴하다"] }[cite: 1148],
+    [cite_start]{ kanji: "独特", kana: "どくとく", meaning: ["독특"] }[cite: 1149],
+    [cite_start]{ kanji: "争う", kana: "あらそう", meaning: ["다투다"] }[cite: 1153],
+    [cite_start]{ kanji: "気配", kana: "けはい", meaning: ["기미", "분위기"] }[cite: 1155],
+    [cite_start]{ kanji: "いいかげんな", kana: "いいかげんな", meaning: ["무책임한"] }[cite: 1156],
+    [cite_start]{ kanji: "上昇", kana: "じょうしょう", meaning: ["상승"] }[cite: 1159],
+    [cite_start]{ kanji: "油断", kana: "ゆだん", meaning: ["방심"] }[cite: 1161],
+    [cite_start]{ kanji: "タイミング", kana: "タイミング", meaning: ["타이밍", "적절한 순간"] }[cite: 1162],
+    [cite_start]{ kanji: "分担", kana: "ぶんたん", meaning: ["분담"] }[cite: 1165],
+    [cite_start]{ kanji: "気軽な", kana: "きがるな", meaning: ["부담 없는"] }[cite: 1174],
+    [cite_start]{ kanji: "ふさわしい", kana: "ふさわしい", meaning: ["어울리다"] }[cite: 1168],
+    [cite_start]{ kanji: "面倒な", kana: "めんどうな", meaning: ["귀찮은", "성가신"] }[cite: 1170],
+    [cite_start]{ kanji: "本物", kana: "ほんもの", meaning: ["진짜", "실물"] }[cite: 1172],
+    [cite_start]{ kanji: "添付", kana: "てんぷ", meaning: ["첨부"] }[cite: 1176],
+    [cite_start]{ kanji: "じろじろ", kana: "じろじろ", meaning: ["빤히", "뚫어지게"] }[cite: 1177],
+
+    // --- 19페이지 (Kanji/Vocabulary/Adverb) ---
+    [cite_start]{ kanji: "限界", kana: "げんかい", meaning: ["한계"] }[cite: 1179],
+    [cite_start]{ kanji: "稀な", kana: "まれな", meaning: ["드문", "희귀한"] }[cite: 1180],
+    [cite_start]{ kanji: "固める", kana: "かためる", meaning: ["굳히다"] }[cite: 1183],
+    [cite_start]{ kanji: "ぎりぎり", kana: "ぎりぎり", meaning: ["아슬아슬"] }[cite: 1184],
+    [cite_start]{ kanji: "解約", kana: "かいやく", meaning: ["해약"] }[cite: 1186],
+    [cite_start]{ kanji: "ニーズ", kana: "ニーズ", meaning: ["니즈", "요구"] }[cite: 1188],
+    [cite_start]{ kanji: "開設", kana: "かいせつ", meaning: ["개설"] }[cite: 1190],
+    [cite_start]{ kanji: "格好", kana: "かっこう", meaning: ["모습", "볼품"] }[cite: 1194],
+    [cite_start]{ kanji: "雇う", kana: "やとう", meaning: ["고용하다"] }[cite: 1196],
+    [cite_start]{ kanji: "思いきる", kana: "おもいきる", meaning: ["결심하다"] }[cite: 1198],
+    [cite_start]{ kanji: "交渉", kana: "こうしょう", meaning: ["교섭"] }[cite: 1201],
+    [cite_start]{ kanji: "クリア", kana: "クリア", meaning: ["클리어", "해결"] }[cite: 1202],
+    [cite_start]{ kanji: "苦情", kana: "くじょう", meaning: ["불평", "클레임"] }[cite: 1204],
+    [cite_start]{ kanji: "ぎっしり", kana: "ぎっしり", meaning: ["가득"] }[cite: 1205],
+    [cite_start]{ kanji: "抱く", kana: "いだく", meaning: ["품다"] }[cite: 1206],
+    [cite_start]{ kanji: "誤解", kana: "ごかい", meaning: ["오해"] }[cite: 1208],
+    [cite_start]{ kanji: "好調な", kana: "こうちょうな", meaning: ["호조인", "순조로운"] }[cite: 1210],
+    [cite_start]{ kanji: "頼もしい", kana: "たのもしい", meaning: ["믿음직하다"] }[cite: 1212],
+    [cite_start]{ kanji: "節約", kana: "せつやく", meaning: ["절약"] }[cite: 1214],
+    [cite_start]{ kanji: "飛びつく", kana: "とびつく", meaning: ["달려들다"] }[cite: 1216],
+    [cite_start]{ kanji: "求人", kana: "きゅうじん", meaning: ["구인"] }[cite: 1218],
+    [cite_start]{ kanji: "こそこそ", kana: "こそこそ", meaning: ["살금살금", "소곤소곤"] }[cite: 1219],
+    [cite_start]{ kanji: "話題", kana: "わだい", meaning: ["화제"] }[cite: 1222],
+    [cite_start]{ kanji: "劣る", kana: "おとる", meaning: ["뒤떨어지다", "열등하다"] }[cite: 1224],
+    [cite_start]{ kanji: "劇的に", kana: "げきてきに", meaning: ["극적으로"] }[cite: 1228],
+    [cite_start]{ kanji: "接続", kana: "せつぞく", meaning: ["접속"] }[cite: 1230],
+    [cite_start]{ kanji: "後悔", kana: "こうかい", meaning: ["후회"] }[cite: 1231],
+    [cite_start]{ kanji: "リハーサル", kana: "リハーサル", meaning: ["리허설", "예행 연습"] }[cite: 1232],
+    [cite_start]{ kanji: "締め切る", kana: "しめきる", meaning: ["마감하다"] }[cite: 1237],
+    [cite_start]{ kanji: "ぞろぞろ", kana: "ぞろぞろ", meaning: ["졸졸"] }[cite: 1238],
+    [cite_start]{ kanji: "特定", kana: "とくてい", meaning: ["특정"] }[cite: 1236],
+    [cite_start]{ kanji: "違反", kana: "いはん", meaning: ["위반"] }[cite: 1242],
+    [cite_start]{ kanji: "かさかさ", kana: "かさかさ", meaning: ["바삭바삭", "꺼칠꺼칠"] }[cite: 1243],
+    [cite_start]{ kanji: "擬る", kana: "まねる", meaning: ["흉내내다", "모방하다"] }[cite: 1244],
+    [cite_start]{ kanji: "設備", kana: "せつび", meaning: ["설비"] }[cite: 1248],
+    [cite_start]{ kanji: "進出", kana: "しんしゅつ", meaning: ["진출"] }[cite: 1250],
+    [cite_start]{ kanji: "盛り上がる", kana: "もりあがる", meaning: ["고조되다"] }[cite: 1251],
+    [cite_start]{ kanji: "もてなす", kana: "もてなす", meaning: ["대접하다"] }[cite: 1252],
+
+    // --- 20페이지 (Kanji/Vocabulary/Adverb/Synonym) ---
+    [cite_start]{ kanji: "通過", kana: "つうか", meaning: ["통과"] }[cite: 1258],
+    [cite_start]{ kanji: "譲る", kana: "ゆずる", meaning: ["양도하다"] }[cite: 1259],
+    [cite_start]{ kanji: "インパクト", kana: "インパクト", meaning: ["임팩트", "충격"] }[cite: 1261],
+    [cite_start]{ kanji: "報道", kana: "ほうどう", meaning: ["보도"] }[cite: 1264],
+    [cite_start]{ kanji: "多大な", kana: "ただいな", meaning: ["매우 큰"] }[cite: 1266],
+    [cite_start]{ kanji: "売る", kana: "うる", meaning: ["팔다"] }[cite: 1268],
+    [cite_start]{ kanji: "雑談", kana: "ざつだん", meaning: ["잡담"] }[cite: 1270],
+    [cite_start]{ kanji: "おしゃべり", kana: "おしゃべり", meaning: ["잡담", "수다"] }[cite: 1271],
+    [cite_start]{ kanji: "溶け込む", kana: "とけこむ", meaning: ["녹아들다"] }[cite: 1275],
+    [cite_start]{ kanji: "そそっかしい", kana: "そそっかしい", meaning: ["경솔하다", "조심성이 없다"] }[cite: 1278],
+    [cite_start]{ kanji: "完了", kana: "かんりょう", meaning: ["완료"] }[cite: 1280],
+    [cite_start]{ kanji: "賢い", kana: "かしこい", meaning: ["똑똑하다"] }[cite: 1281],
+    [cite_start]{ kanji: "頭がいい", kana: "あたまがいい", meaning: ["머리가 좋다"] }[cite: 1284],
+    [cite_start]{ kanji: "大げさ", kana: "おおげさ", meaning: ["과장"] }[cite: 1286],
+    [cite_start]{ kanji: "オーバー", kana: "オーバー", meaning: ["오버"] }[cite: 1287],
+    [cite_start]{ kanji: "衰える", kana: "おとろえる", meaning: ["쇠퇴하다"] }[cite: 1290],
+    [cite_start]{ kanji: "勝手な", kana: "かってな", meaning: ["제멋대로인"] }[cite: 1289],
+    [cite_start]{ kanji: "省略", kana: "しょうりゃく", meaning: ["생략"] }[cite: 1293],
+    [cite_start]{ kanji: "思い込む", kana: "おもいこむ", meaning: ["마음먹다", "믿다"] }[cite: 1296],
+    [cite_start]{ kanji: "口調", kana: "くちょう", meaning: ["어조", "말투"] }[cite: 1298],
+    [cite_start]{ kanji: "役目", kana: "やくめ", meaning: ["임무"] }[cite: 1300],
+    [cite_start]{ kanji: "ずうずうしい", kana: "ずうずうしい", meaning: ["뻔뻔스럽다"] }[cite: 1301],
+    [cite_start]{ kanji: "とりあえず", kana: "とりあえず", meaning: ["우선", "일단"] }[cite: 1303],
+    [cite_start]{ kanji: "わがままな", kana: "わがままな", meaning: ["제멋대로인"] }[cite: 1304],
+    [cite_start]{ kanji: "たびたび", kana: "たびたび", meaning: ["종종"] }[cite: 1305],
+    [cite_start]{ kanji: "何度も", kana: "なんども", meaning: ["몇 번이고"] }[cite: 1307],
+    [cite_start]{ kanji: "ぶかぶかだ", kana: "ぶかぶかだ", meaning: ["헐렁헐렁하다(옷, 신발이 큰 모양)"] }[cite: 1310],
+    [cite_start]{ kanji: "とても大きい", kana: "とてもおおきい", meaning: ["매우 크다"] }[cite: 1312],
+    [cite_start]{ kanji: "見解", kana: "けんかい", meaning: ["견해"] }[cite: 1314],
+    [cite_start]{ kanji: "考え方", kana: "かんがえかた", meaning: ["생각", "사고방식"] }[cite: 1316],
+    [cite_start]{ kanji: "レンタルする", kana: "レンタルする", meaning: ["대여하다"] }[cite: 1317],
+    [cite_start]{ kanji: "一応", kana: "いちおう", meaning: ["우선", "일단"] }[cite: 1321],
+    [cite_start]{ kanji: "借りる", kana: "かりる", meaning: ["빌리다"] }[cite: 1322],
+
+    // --- 21페이지 (Synonyms/Antonyms) ---
+    [cite_start]{ kanji: "ブーム", kana: "ブーム", meaning: ["붐"] }[cite: 1325],
+    [cite_start]{ kanji: "いきなり", kana: "いきなり", meaning: ["갑자기"] }[cite: 1326],
+    [cite_start]{ kanji: "流行", kana: "りゅうこう", meaning: ["유행"] }[cite: 1330],
+    [cite_start]{ kanji: "突然", kana: "とつぜん", meaning: ["갑자기"] }[cite: 1332],
+    [cite_start]{ kanji: "慎重に", kana: "しんちょうに", meaning: ["신중하게"] }[cite: 1338],
+    [cite_start]{ kanji: "注意して", kana: "ちゅういして", meaning: ["주의하여"] }[cite: 1340],
+    [cite_start]{ kanji: "縮む", kana: "ちぢむ", meaning: ["줄어들다", "축소되다"] }[cite: 1342],
+    [cite_start]{ kanji: "小さくなる", kana: "ちいさくなる", meaning: ["작아지다"] }[cite: 1344],
+    [cite_start]{ kanji: "ほぼ", kana: "ほぼ", meaning: ["거의"] }[cite: 1346],
+    [cite_start]{ kanji: "直ちに", kana: "ただちに", meaning: ["즉시"] }[cite: 1347],
+    [cite_start]{ kanji: "すぐに", kana: "すぐに", meaning: ["바로"] }[cite: 1348],
+    [cite_start]{ kanji: "だいたい", kana: "だいたい", meaning: ["대체로"] }[cite: 1352],
+    [cite_start]{ kanji: "回復する", kana: "かいふくする", meaning: ["회복하다"] }[cite: 1358],
+    [cite_start]{ kanji: "良くなる", kana: "よくなる", meaning: ["좋아지다"] }[cite: 1359],
+    [cite_start]{ kanji: "くたくたになる", kana: "くたくたになる", meaning: ["기진맥진하다", "녹초가 되다"] }[cite: 1361],
+    [cite_start]{ kanji: "疲れる", kana: "つかれる", meaning: ["지치다", "피곤하다"] }[cite: 1363],
+    [cite_start]{ kanji: "奇妙な", kana: "きみょうな", meaning: ["기묘한"] }[cite: 1366],
+    [cite_start]{ kanji: "変な", kana: "へんな", meaning: ["이상한"] }[cite: 1368],
+    [cite_start]{ kanji: "仕上げる", kana: "しあげる", meaning: ["마무리하다", "완성하다"] }[cite: 1370],
+    [cite_start]{ kanji: "完成させる", kana: "かんせいさせる", meaning: ["완성시키다"] }[cite: 1372],
+    [cite_start]{ kanji: "日中", kana: "にっちゅう", meaning: ["대낮", "한낮"] }[cite: 1374],
+    [cite_start]{ kanji: "昼間", kana: "ひるま", meaning: ["대낮", "한낮"] }[cite: 1376],
+    [cite_start]{ kanji: "湿る", kana: "しめる", meaning: ["습기 차다"] }[cite: 1378],
+    [cite_start]{ kanji: "乾かない", kana: "かわかない", meaning: ["마르지 않다"] }[cite: 1380],
+    [cite_start]{ kanji: "僅かな", kana: "わずかな", meaning: ["얼마 안 되는"] }[cite: 1385],
+    [cite_start]{ kanji: "少し", kana: "すこし", meaning: ["조금"] }[cite: 1387],
+    [cite_start]{ kanji: "優秀な", kana: "ゆうしゅうな", meaning: ["우수한"] }[cite: 1389],
+    [cite_start]{ kanji: "頭がいい", kana: "あたまがいい", meaning: ["머리가 좋다"] }[cite: 1390],
+    [cite_start]{ kanji: "追加する", kana: "ついかする", meaning: ["추가하다"] }[cite: 1392],
+    [cite_start]{ kanji: "足す", kana: "たす", meaning: ["더하다"] }[cite: 1394],
+    [cite_start]{ kanji: "相当", kana: "そうとう", meaning: ["상당히"] }[cite: 1396],
+    [cite_start]{ kanji: "かなり", kana: "かなり", meaning: ["꽤", "상당히"] }[cite: 1397],
+    [cite_start]{ kanji: "じっとする", kana: "じっとする", meaning: ["가만히 있다"] }[cite: 1399],
+    [cite_start]{ kanji: "俯く", kana: "うつむく", meaning: ["고개를 숙이다"] }[cite: 1400],
+    [cite_start]{ kanji: "動かない", kana: "うごかない", meaning: ["움직이지 않는다"] }[cite: 1403],
+    [cite_start]{ kanji: "誤る", kana: "あやまる", meaning: ["틀리다", "실수하다"] }[cite: 1409],
+    [cite_start]{ kanji: "下を向く", kana: "したをむく", meaning: ["아래를 보다"] }[cite: 1410],
+
+    // --- 22페이지 (Synonyms/Antonyms) ---
+    [cite_start]{ kanji: "正しくない", kana: "ただしくない", meaning: ["옳지 않다", "맞지 않다"] }[cite: 1415],
+    [cite_start]{ kanji: "必死な", kana: "ひっしな", meaning: ["필사적인", "열심인"] }[cite: 1417],
+    [cite_start]{ kanji: "一生懸命な", kana: "いっしょうけんめいな", meaning: ["열심인"] }[cite: 1420],
+    [cite_start]{ kanji: "かさかさする", kana: "かさかさする", meaning: ["거칠거칠하다", "마르다"] }[cite: 1419],
+    [cite_start]{ kanji: "乾燥する", kana: "かんそうする", meaning: ["건조하다"] }[cite: 1423],
+    [cite_start]{ kanji: "山の麓", kana: "やまのふもと", meaning: ["산기슭"] }[cite: 1424],
+    [cite_start]{ kanji: "済ます", kana: "すます", meaning: ["마치다", "끝내다"] }[cite: 1427],
+    [cite_start]{ kanji: "終える", kana: "おえる", meaning: ["마치다", "끝내다"] }[cite: 1430],
+    [cite_start]{ kanji: "曖昧な", kana: "あいまいな", meaning: ["애매한"] }[cite: 1431],
+    [cite_start]{ kanji: "はっきりしない", kana: "はっきりしない", meaning: ["확실하지 않은"] }[cite: 1432],
+    [cite_start]{ kanji: "山の下のほう", kana: "やまのしたのほう", meaning: ["산 아래쪽"] }[cite: 1433],
+    [cite_start]{ kanji: "サイズをそろえる", kana: "サイズをそろえる", meaning: ["사이즈를 같게 하다"] }[cite: 1435],
+    [cite_start]{ kanji: "サイズを同じにする", kana: "サイズをおなじにする", meaning: ["사이즈를 똑같게 하다"] }[cite: 1438],
+    [cite_start]{ kanji: "思いがけない", kana: "おもいがけない", meaning: ["뜻밖이다"] }[cite: 1440],
+    [cite_start]{ kanji: "意外だ", kana: "いがいだ", meaning: ["의외다"] }[cite: 1451],
+    [cite_start]{ kanji: "買い占める", kana: "かいしめる", meaning: ["매점하다", "사 모으다"] }[cite: 1447],
+    [cite_start]{ kanji: "全部買う", kana: "ぜんぶかう", meaning: ["모두 사다"] }[cite: 1456],
+    [cite_start]{ kanji: "間際", kana: "まぎわ", meaning: ["직전"] }[cite: 1449],
+    [cite_start]{ kanji: "直前", kana: "ちょくぜん", meaning: ["직전"] }[cite: 1450],
+    [cite_start]{ kanji: "自ら", kana: "みずから", meaning: ["스스로"] }[cite: 1453],
+    [cite_start]{ kanji: "自分で", kana: "じぶんで", meaning: ["스스로", "자신이"] }[cite: 1459],
+    [cite_start]{ kanji: "そろう", kana: "そろう", meaning: ["갖추어지다", "모이다"] }[cite: 1465],
+    [cite_start]{ kanji: "集まる", kana: "あつまる", meaning: ["모이다"] }[cite: 1467],
+    [cite_start]{ kanji: "だいたい", kana: "だいたい", meaning: ["대체로"] }[cite: 1468],
+    [cite_start]{ kanji: "およそ", kana: "およそ", meaning: ["대략"] }[cite: 1469],
+    [cite_start]{ kanji: "たちまち", kana: "たちまち", meaning: ["금세", "순식간에"] }[cite: 1470],
+    [cite_start]{ kanji: "計画", kana: "けいかく", meaning: ["계획"] }[cite: 1475],
+    [cite_start]{ kanji: "プラン", kana: "プラン", meaning: ["플랜"] }[cite: 1476],
+    [cite_start]{ kanji: "相変わらず", kana: "あいかわらず", meaning: ["여전히"] }[cite: 1478],
+    [cite_start]{ kanji: "勘定する", kana: "かんじょうする", meaning: ["지불하다"] }[cite: 1480],
+    [cite_start]{ kanji: "お金を払う", kana: "おかねをはらう", meaning: ["돈을 지불하다"] }[cite: 1482],
+    [cite_start]{ kanji: "異なる", kana: "ことなる", meaning: ["다르다"] }[cite: 1484],
+    [cite_start]{ kanji: "違う", kana: "ちがう", meaning: ["다르다"] }[cite: 1486],
+    [cite_start]{ kanji: "たまたま", kana: "たまたま", meaning: ["우연히"] }[cite: 1488],
+    [cite_start]{ kanji: "依然として", kana: "いぜんとして", meaning: ["여전히"] }[cite: 1490],
+
+    // --- 23페이지 (Synonyms/Antonyms) ---
+    [cite_start]{ kanji: "偶然", kana: "ぐうぜん", meaning: ["우연히"] }[cite: 1492],
+    [cite_start]{ kanji: "少し", kana: "すこし", meaning: ["조금"] }[cite: 1492],
+    [cite_start]{ kanji: "明らかな", kana: "あきらかな", meaning: ["분명한"] }[cite: 1492],
+    [cite_start]{ kanji: "テンポ", kana: "テンポ", meaning: ["템포", "속도"] }[cite: 1492],
+    [cite_start]{ kanji: "はっきりした", kana: "はっきりした", meaning: ["분명한", "확실한"] }[cite: 1492],
+    [cite_start]{ kanji: "速さ", kana: "はやさ", meaning: ["속도"] }[cite: 1492],
+    [cite_start]{ kanji: "用心", kana: "ようじん", meaning: ["조심"] }[cite: 1492],
+    [cite_start]{ kanji: "妙な", kana: "みょうな", meaning: ["묘한"] }[cite: 1492],
+    [cite_start]{ kanji: "注意", kana: "ちゅうい", meaning: ["주의"] }[cite: 1492],
+    [cite_start]{ kanji: "変な", kana: "へんな", meaning: ["이상한"] }[cite: 1492],
+    [cite_start]{ kanji: "騒々しい", kana: "そうぞうしい", meaning: ["시끄럽다", "소란스럽다"] }[cite: 1492],
+    [cite_start]{ kanji: "ささやく", kana: "ささやく", meaning: ["속삭이다"] }[cite: 1492],
+    [cite_start]{ kanji: "うるさい", kana: "うるさい", meaning: ["시끄럽다"] }[cite: 1492],
+    [cite_start]{ kanji: "小声で話す", kana: "こごえではなす", meaning: ["작은 목소리로 말하다"] }[cite: 1492],
+    [cite_start]{ kanji: "所有する", kana: "しょゆうする", meaning: ["소유하다"] }[cite: 1492],
+    [cite_start]{ kanji: "かつて", kana: "かつて", meaning: ["일찍이", "예전부터"] }[cite: 1492],
+    [cite_start]{ kanji: "持つ", kana: "もつ", meaning: ["들다", "소유하다"] }[cite: 1492],
+    [cite_start]{ kanji: "以前", kana: "いぜん", meaning: ["이전", "예전"] }[cite: 1492],
+    [cite_start]{ kanji: "おそらく", kana: "おそらく", meaning: ["아마"] }[cite: 1492],
+    [cite_start]{ kanji: "たびたび", kana: "たびたび", meaning: ["자주"] }[cite: 1492],
+    [cite_start]{ kanji: "多分", kana: "たぶん", meaning: ["아마"] }[cite: 1492],
+    [cite_start]{ kanji: "何度も", kana: "なんども", meaning: ["몇 번이나"] }[cite: 1492],
+    [cite_start]{ kanji: "収納する", kana: "しゅうのうする", meaning: ["수납하다"] }[cite: 1492],
+    [cite_start]{ kanji: "注目する", kana: "ちゅうもくする", meaning: ["주목하다"] }[cite: 1492],
+    [cite_start]{ kanji: "しまう", kana: "しまう", meaning: ["치우다", "간수하다"] }[cite: 1492],
+    [cite_start]{ kanji: "関心を持つ", kana: "かんしんをもつ", meaning: ["관심을 갖다"] }[cite: 1492],
+    [cite_start]{ kanji: "小柄だ", kana: "こがらだ", meaning: ["몸집이 작다"] }[cite: 1492],
+    [cite_start]{ kanji: "じかに", kana: "じかに", meaning: ["직접"] }[cite: 1492],
+    [cite_start]{ kanji: "体が小さい", kana: "からだがちいさい", meaning: ["몸집이 작다"] }[cite: 1492],
+    [cite_start]{ kanji: "直接", kana: "ちょくせつ", meaning: ["직접"] }[cite: 1492],
+    [cite_start]{ kanji: "無口だ", kana: "むくちだ", meaning: ["과묵하다"] }[cite: 1492],
+    [cite_start]{ kanji: "衝突する", kana: "しょうとつする", meaning: ["충돌하다"] }[cite: 1492],
+    [cite_start]{ kanji: "あまり話さない", kana: "あまりはなさない", meaning: ["그다지 말하지 않는다"] }[cite: 1492],
+    [cite_start]{ kanji: "ぶつかる", kana: "ぶつかる", meaning: ["충돌하다"] }[cite: 1492],
+    [cite_start]{ kanji: "卑怯な", kana: "ひきょうな", meaning: ["비겁한"] }[cite: 1492],
+    [cite_start]{ kanji: "やや", kana: "やや", meaning: ["다소", "조금"] }[cite: 1492],
+    [cite_start]{ kanji: "ずるい", kana: "ずるい", meaning: ["교활하다", "약다"] }[cite: 1492],
+
+    // --- 24페이지 (Synonyms/Antonyms) ---
+    [cite_start]{ kanji: "愉快だ", kana: "ゆかいだ", meaning: ["유쾌하다"] }[cite: 1498],
+    [cite_start]{ kanji: "ずっと前に", kana: "ずっとまえに", meaning: ["훨씬 전에"] }[cite: 1499],
+    [cite_start]{ kanji: "面白い", kana: "おもしろい", meaning: ["재미있다"] }[cite: 1501],
+    [cite_start]{ kanji: "やむをえない", kana: "やむをえない", meaning: ["어쩔 수 없다", "부득이하다"] }[cite: 1503],
+    [cite_start]{ kanji: "しかたない", kana: "しかたない", meaning: ["어쩔 수 없다"] }[cite: 1504],
+    [cite_start]{ kanji: "譲る", kana: "ゆずる", meaning: ["양보하다"] }[cite: 1505],
+    [cite_start]{ kanji: "あげる", kana: "あげる", meaning: ["주다"] }[cite: 1506],
+    [cite_start]{ kanji: "記憶する", kana: "きおくする", meaning: ["기억하다"] }[cite: 1508],
+    [cite_start]{ kanji: "覚える", kana: "おぼえる", meaning: ["외우다"] }[cite: 1511],
+    [cite_start]{ kanji: "息抜きする", kana: "いきぬきする", meaning: ["한숨 돌리다", "쉬다"] }[cite: 1515],
+    [cite_start]{ kanji: "不平", kana: "ふへい", meaning: ["불평"] }[cite: 1514],
+    [cite_start]{ kanji: "休む", kana: "やすむ", meaning: ["쉬다"] }[cite: 1517],
+    [cite_start]{ kanji: "ついている", kana: "ついている", meaning: ["운이 좋다"] }[cite: 1518],
+    [cite_start]{ kanji: "運がいい", kana: "うんがいい", meaning: ["운이 좋다"] }[cite: 1520],
+    [cite_start]{ kanji: "いつも", kana: "いつも", meaning: ["항상"] }[cite: 1521],
+    [cite_start]{ kanji: "文句", kana: "もんく", meaning: ["불평", "불만"] }[cite: 1524],
+    [cite_start]{ kanji: "むかつく", kana: "むかつく", meaning: ["화가 나다", "역겹다"] }[cite: 1525],
+    [cite_start]{ kanji: "怒る", kana: "おこる", meaning: ["화가 나다"] }[cite: 1527],
+    [cite_start]{ kanji: "常に", kana: "つねに", meaning: ["항상"] }[cite: 1528],
+    [cite_start]{ kanji: "稀な", kana: "まれな", meaning: ["드문"] }[cite: 1529],
+    [cite_start]{ kanji: "ほとんどない", kana: "ほとんどない", meaning: ["거의 없는"] }[cite: 1531],
+    [cite_start]{ kanji: "過剰だ", kana: "かじょうだ", meaning: ["과잉이다"] }[cite: 1533],
+    [cite_start]{ kanji: "当てる", kana: "あてる", meaning: ["맞히다", "부딪다"] }[cite: 1535],
+    [cite_start]{ kanji: "多すぎる", kana: "おおすぎる", meaning: ["너무 많다"] }[cite: 1537],
+    [cite_start]{ kanji: "あやまり", kana: "あやまり", meaning: ["실수"] }[cite: 1539],
+    [cite_start]{ kanji: "間違っているところ", kana: "まちがっているところ", meaning: ["잘못되어 있는 부분"] }[cite: 1544],
+    [cite_start]{ kanji: "臆病だ", kana: "おくびょうだ", meaning: ["겁이 많다"] }[cite: 1546],
+    [cite_start]{ kanji: "なんでも怖がる", kana: "なんでもこわがる", meaning: ["무엇이든 무서워하다"] }[cite: 1549],
+    [cite_start]{ kanji: "とっくに", kana: "とっくに", meaning: ["진작에"] }[cite: 1550],
+    [cite_start]{ kanji: "ぶつける", kana: "ぶつける", meaning: ["부딪다"] }[cite: 1551],
+    [cite_start]{ kanji: "哀れな", kana: "あわれな", meaning: ["불쌍한"] }[cite: 1552],
+    [cite_start]{ kanji: "かわいそうな", kana: "かわいそうな", meaning: ["불쌍한"] }[cite: 1553],
+    [cite_start]{ kanji: "当分", kana: "とうぶん", meaning: ["당분간", "잠시"] }[cite: 1555],
+    [cite_start]{ kanji: "しばらく", kana: "しばらく", meaning: ["당분간", "잠시"] }[cite: 1556],
+    [cite_start]{ kanji: "一転する", kana: "いってんする", meaning: ["완전히 바뀌다"] } [cite: 1559]
+];
+
+        let currentIndex = 0;
+        let score = 0;
+        let currentStep = 'meaning'; // 'meaning' (뜻) or 'reading' (발음)
+        let quizList = [];           // 현재 진행 중인 퀴즈 리스트
+        let incorrectList = [];      // 틀린 단어 저장 리스트
+        let isReviewMode = false;    // 복습 모드 여부
+        let isProcessing = false;    // 정답 처리 중 중복 입력 방지
+
+        // DOM 요소
+        const elements = {
+            questionWord: document.getElementById('question-word'),
+            inputLabel: document.getElementById('input-label'),
+            userInput: document.getElementById('user-input'),
+            statusMsg: document.getElementById('status-msg'),
+            feedback: document.getElementById('feedback'),
+            progressBar: document.getElementById('progress-bar'),
+            currentIndex: document.getElementById('current-index'),
+            totalCount: document.getElementById('total-count'),
+            quizContainer: document.getElementById('quiz-container'),
+            resultContainer: document.getElementById('result-container'),
+            finalScore: document.getElementById('final-score'),
+            reviewSection: document.getElementById('review-section'),
+            wrongCount: document.getElementById('wrong-count'),
+            headerBg: document.getElementById('header-bg'),
+            headerTitle: document.getElementById('header-title'),
+            headerDesc: document.getElementById('header-desc'),
+            submitBtn: document.getElementById('submit-btn')
+        };
+
+        // 배열 섞기 (Fisher-Yates)
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
             }
-            $html .= '<div class="day_num' . $selected . '">';
-            $html .= '<span>' . $i . '</span>';
-            foreach ($this->events as $event) {
-                for ($d = 0; $d <= ($event[2]-1); $d++) {
-                    if (date('y-m-d', strtotime($this->active_year . '-' . $this->active_month . '-' . $i . ' -' . $d . ' day')) == date('y-m-d', strtotime($event[1]))) {
-                        $html .= '<div class="event' . $event[3] . '">';
-                        $html .= $event[0];
-                        $html .= '</div>';
-                    }
+            return array;
+        }
+
+        // 초기화 및 전체 시작
+        function initQuiz() {
+            quizList = shuffleArray([...vocabularyData]);
+            incorrectList = [];
+            isReviewMode = false;
+            score = 0;
+            currentIndex = 0;
+            
+            updateHeaderUI();
+            startCycle();
+        }
+
+        // 복습 모드 시작
+        function startReview() {
+            quizList = shuffleArray([...incorrectList]);
+            incorrectList = []; // 복습 중 또 틀린 것만 남기기 위해 초기화 (선택 사항, 여기선 재도전으로 간주)
+            // 만약 복습 때 맞추면 리스트에서 빠지게 하려면 위를 유지, 
+            // 복습 때도 틀리면 다음 복습에 남기려면 로직 필요.
+            // 여기서는 '이번 복습 라운드'를 위한 초기화.
+            
+            isReviewMode = true;
+            score = 0;
+            currentIndex = 0;
+            
+            // UI 변경
+            elements.resultContainer.classList.add('hidden');
+            elements.quizContainer.classList.remove('hidden');
+            
+            updateHeaderUI();
+            startCycle();
+        }
+
+        function updateHeaderUI() {
+            if (isReviewMode) {
+                elements.headerBg.className = "bg-orange-500 p-4 text-white text-center transition-colors duration-500";
+                elements.headerTitle.innerText = "오답 복습 모드";
+                elements.headerDesc.innerText = "틀린 단어를 확실하게 외워봅시다!";
+            } else {
+                elements.headerBg.className = "bg-emerald-600 p-4 text-white text-center transition-colors duration-500";
+                elements.headerTitle.innerText = "JLPT N2 단어장";
+                elements.headerDesc.innerText = "순서는 랜덤, 오답 시 정답 공개";
+            }
+        }
+
+        function startCycle() {
+            elements.totalCount.innerText = quizList.length;
+            loadQuestion();
+
+            // 엔터키 이벤트 리스너 (중복 방지)
+            elements.userInput.onkeypress = function(event) {
+                if (event.key === "Enter" && !isProcessing) {
+                    checkAnswer();
+                }
+            };
+        }
+
+        function loadQuestion() {
+            const currentData = quizList[currentIndex];
+            elements.currentIndex.innerText = currentIndex + 1;
+            
+            // 프로그래스 바
+            const progress = (currentIndex / quizList.length) * 100;
+            elements.progressBar.style.width = `${progress}%`;
+
+            // 문제 세팅
+            elements.questionWord.innerText = currentData.kanji;
+            elements.userInput.value = '';
+            elements.userInput.disabled = false;
+            elements.userInput.focus();
+            elements.feedback.innerText = '';
+            
+            // 1단계: 뜻 맞추기
+            currentStep = 'meaning';
+            elements.inputLabel.innerText = "Step 1. 뜻을 입력하세요 (한국어)";
+            elements.statusMsg.innerText = "";
+            elements.userInput.placeholder = "뜻 입력";
+            
+            isProcessing = false;
+        }
+
+        function checkAnswer() {
+            if (isProcessing) return;
+            
+            const currentData = quizList[currentIndex];
+            const userVal = elements.userInput.value.trim();
+
+            if (!userVal) return;
+
+            isProcessing = true; // 처리 중 플래그 설정
+
+            if (currentStep === 'meaning') {
+                // 뜻 확인
+                const isCorrect = currentData.meaning.some(m => userVal.includes(m) || m.includes(userVal));
+                
+                if (isCorrect) {
+                    // 정답
+                    elements.feedback.className = "h-10 text-sm font-bold text-blue-600 flex items-center justify-center";
+                    elements.feedback.innerText = "정답! ⭕ 발음 퀴즈로 넘어갑니다.";
+                    
+                    setTimeout(() => {
+                        proceedToReading(currentData);
+                    }, 800);
+                } else {
+                    // 오답
+                    addIncorrectWord(currentData);
+                    elements.feedback.className = "h-10 text-sm font-bold text-red-500 flex items-center justify-center";
+                    elements.feedback.innerText = `오답! ❌ 정답은 [${currentData.meaning.join(', ')}] 입니다.`;
+                    
+                    // 오답 확인 시간 (2초)
+                    setTimeout(() => {
+                        proceedToReading(currentData);
+                    }, 2000);
+                }
+
+            } else if (currentStep === 'reading') {
+                // 발음 확인
+                if (userVal === currentData.kana) {
+                    // 정답
+                    score++;
+                    elements.feedback.className = "h-10 text-sm font-bold text-emerald-600 flex items-center justify-center";
+                    elements.feedback.innerText = "완벽합니다! ⭕ 다음 문제로...";
+                    
+                    setTimeout(() => {
+                        nextQuestion();
+                    }, 1000);
+                } else {
+                    // 오답
+                    addIncorrectWord(currentData);
+                    elements.feedback.className = "h-10 text-sm font-bold text-red-500 flex items-center justify-center";
+                    elements.feedback.innerText = `오답! ❌ 정답은 [${currentData.kana}] 입니다.`;
+                    
+                    setTimeout(() => {
+                        nextQuestion();
+                    }, 2000);
                 }
             }
-            $html .= '</div>';
         }
-        for ($i = 1; $i <= (42-$num_days-max($first_day_of_week, 0)); $i++) {
-            $html .= '
-                <div class="day_num ignore">
-                    ' . $i . '
-                </div>
-            ';
-        }
-        $html .= '</div>';
-        $html .= '</div>';
-        return $html;
-    }
 
-}
-?>
+        // 뜻 단계 -> 발음 단계 전환
+        function proceedToReading(data) {
+            currentStep = 'reading';
+            elements.inputLabel.innerText = `Step 2. '${data.kanji}'의 발음을 입력하세요 (히라가나)`;
+            
+            // 뜻 힌트 보여주기
+            elements.statusMsg.innerText = `뜻: ${data.meaning.join(', ')}`;
+            
+            elements.userInput.value = '';
+            elements.userInput.placeholder = "히라가나 입력";
+            elements.feedback.innerText = '';
+            elements.userInput.focus();
+            isProcessing = false;
+        }
+
+        // 오답 리스트 추가 (중복 방지)
+        function addIncorrectWord(wordObj) {
+            if (!incorrectList.includes(wordObj)) {
+                incorrectList.push(wordObj);
+            }
+        }
+
+        function nextQuestion() {
+            currentIndex++;
+            if (currentIndex < quizList.length) {
+                loadQuestion();
+            } else {
+                showResult();
+            }
+        }
+
+        function showResult() {
+            elements.quizContainer.classList.add('hidden');
+            elements.resultContainer.classList.remove('hidden');
+            elements.finalScore.innerText = score + " / " + quizList.length;
+            elements.progressBar.style.width = '100%';
+
+            // 복습 섹션 처리
+            if (incorrectList.length > 0) {
+                elements.reviewSection.classList.remove('hidden');
+                elements.wrongCount.innerText = incorrectList.length;
+            } else {
+                elements.reviewSection.classList.add('hidden');
+                // 만약 복습 모드에서 다 맞췄다면 축하 메시지 강화 가능
+                if(isReviewMode) {
+                    elements.finalScore.innerText += " (복습 완료!)";
+                }
+            }
+        }
+
+        // 최초 실행
+        initQuiz();
+    </script>
+</body>
+</html>
