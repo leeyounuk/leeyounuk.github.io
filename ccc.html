@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>일단합격 JLPT N2 (고난도 거꾸로 암기)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700&family=Noto+Sans+JP:wght@400;700&display=swap');
+        body { font-family: 'Noto Sans KR', 'Noto Sans JP', sans-serif; }
+        .fade-in { animation: fadeIn 0.3s ease-in-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .choice-btn { transition: all 0.2s; }
+        .choice-btn:active { transform: scale(0.98); }
+    </style>
+</head>
+<body class="bg-slate-100 min-h-screen flex items-center justify-center p-4">
+
+    <div class="bg-white rounded-xl shadow-xl w-full max-w-md overflow-hidden border-t-4 border-indigo-600">
+        <div id="header-bg" class="bg-indigo-600 p-5 text-white text-center transition-colors duration-500">
+            <h1 id="header-title" class="text-2xl font-bold">JLPT N2 거꾸로 암기</h1>
+            <p id="header-desc" class="text-sm opacity-80 mt-1">뜻을 보고 한자(유사 글자 주의) 맞추기</p>
+        </div>
+
+        <div class="bg-gray-200 h-2 w-full">
+            <div id="progress-bar" class="bg-indigo-400 h-2 transition-all duration-300" style="width: 0%"></div>
+        </div>
+
+        <div id="quiz-container" class="p-6 text-center fade-in">
+            <div class="mb-8">
+                <span class="text-xs font-bold text-gray-400 tracking-widest mb-2 block uppercase">Question <span id="current-index">1</span> / <span id="total-count">10</span></span>
+                
+                <h2 id="question-text" class="text-4xl font-bold text-gray-800 mb-3 min-h-[3.5rem] break-keep leading-tight flex items-center justify-center"></h2>
+                
+                <div class="flex justify-center items-center gap-2">
+                    <span id="step-badge" class="bg-indigo-100 text-indigo-700 text-xs font-bold px-3 py-1 rounded-full">Step 1</span>
+                    <p id="step-guide" class="text-gray-500 text-sm font-medium"></p>
+                </div>
+            </div>
+
+            <div id="choices-container" class="grid grid-cols-2 gap-3 mb-4">
+                </div>
+
+            <div id="feedback" class="h-12 text-sm font-bold flex items-center justify-center whitespace-pre-line"></div>
+        </div>
+
+        <div id="result-container" class="hidden p-8 text-center fade-in">
+            <div class="mb-6">
+                <div class="inline-block p-4 rounded-full bg-indigo-50 mb-4">
+                    <span class="text-4xl">🏆</span>
+                </div>
+                <h2 class="text-3xl font-bold text-gray-800 mb-2">학습 완료!</h2>
+                <p class="text-gray-600">수고하셨습니다.</p>
+            </div>
+            
+            <p class="text-lg mb-8 text-gray-700 bg-gray-50 py-4 rounded-lg border border-gray-100">
+                최종 점수: <span id="final-score" class="font-bold text-indigo-600 text-3xl align-middle ml-2"></span>
+            </p>
+            
+            <div id="review-section" class="hidden mb-4">
+                <button onclick="startReview()" class="w-full bg-orange-500 hover:bg-orange-600 text-white font-bold py-3 rounded-xl shadow-lg shadow-orange-200 transition-all transform hover:-translate-y-1 flex items-center justify-center gap-2">
+                    <span>🔄</span> 틀린 단어 (<span id="wrong-count">0</span>개) 복습하기
+                </button>
+            </div>
+
+            <button onclick="location.reload()" class="w-full bg-gray-800 hover:bg-gray-900 text-white font-bold py-3 rounded-xl shadow-lg transition-all transform hover:-translate-y-1">
+                처음부터 다시 하기
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // 🔥 배치 1 (4~8p) 데이터 + AI가 생성한 '한 글자가 겹치는' 고난도 오답 포함
+// 기존 배열(vocabularyData)에 아래 내용을 이어 붙여서 사용하세요.
+const vocabularyDataWithOkurigana = [
+  // Page 25
+  {
+    kanji: "割り込む",
+    kana: "わりこむ",
+    meaning: "끼어들다",
+    wrongKanjis: ["割込む", "破り込む", "折込む"],
+    wrongKanas: ["おりこむ", "わりごむ", "わりこみ"]
+  },
+  {
+    kanji: "悔やむ",
+    kana: "くやむ",
+    meaning: "후회하다, 분하게 여기다",
+    wrongKanjis: ["悔む", "海やむ", "侮やむ"],
+    wrongKanas: ["あやむ", "なやむ", "うやむ"]
+  },
+  {
+    kanji: "打ち消す",
+    kana: "うちけす",
+    meaning: "부정하다, 취소하다",
+    wrongKanjis: ["打消す", "内消す", "移し消す"],
+    wrongKanas: ["ぶちけす", "うちきす", "うつけす"]
+  },
+  {
+    kanji: "欠かす",
+    kana: "かかす",
+    meaning: "빠뜨리다",
+    wrongKanjis: ["欠す", "決かす", "缺かす"],
+    wrongKanas: ["けっかす", "かける", "かかずる"]
+  },
+  // Page 26
+  {
+    kanji: "包む",
+    kana: "つつむ",
+    meaning: "싸다, 포장하다",
+    wrongKanjis: ["抱む", "泡む", "胞む"],
+    wrongKanas: ["くるむ", "つむ", "ふくむ"]
+  },
+  {
+    kanji: "触る",
+    kana: "さわる",
+    meaning: "만지다",
+    wrongKanjis: ["触れる", "虫る", "解る"],
+    wrongKanas: ["ふれる", "まわる", "しげる"]
+  },
+  // Page 27
+  {
+    kanji: "仕上げる",
+    kana: "しあげる",
+    meaning: "마무리하다, 완성하다",
+    wrongKanjis: ["仕上る", "至上げる", "指上げる"],
+    wrongKanas: ["じあげる", "しとげる", "つけあげる"]
+  },
+  {
+    kanji: "油断",
+    kana: "ゆだん",
+    meaning: "방심",
+    wrongKanjis: ["由断", "諭断", "輸断"],
+    wrongKanas: ["ゆたん", "ゆうだん", "よだん"]
+  },
+  // Page 28
+  {
+    kanji: "保つ",
+    kana: "たもつ",
+    meaning: "유지하다",
+    wrongKanjis: ["持つ", "呆つ", "補つ"],
+    wrongKanas: ["ほつ", "ほうつ", "まもつ"]
+  },
+  {
+    kanji: "外す",
+    kana: "はずす",
+    meaning: "떼어 내다, 벗다",
+    wrongKanjis: ["外る", "離す", "脱す"],
+    wrongKanas: ["ほずす", "そとす", "げすす"]
+  },
+  {
+    kanji: "乏しい",
+    kana: "とぼしい",
+    meaning: "부족하다",
+    wrongKanjis: ["貧しい", "芝しい", "貶しい"],
+    wrongKanas: ["まぶしい", "さびしい", "ひとしい"]
+  },
+  // Page 29
+  {
+    kanji: "畳む",
+    kana: "たたむ",
+    meaning: "접다, 개다",
+    wrongKanjis: ["畳ま", "骨む", "置む"],
+    wrongKanas: ["だだむ", "たたみ", "ととむ"]
+  },
+  {
+    kanji: "塞ぐ",
+    kana: "ふさぐ",
+    meaning: "막다, 가리다",
+    wrongKanjis: ["寒ぐ", "塞く", "基ぐ"],
+    wrongKanas: ["ほさぐ", "さわぐ", "ふせぐ"]
+  },
+  {
+    kanji: "縮む",
+    kana: "ちぢむ",
+    meaning: "줄어들다",
+    wrongKanjis: ["縮かむ", "績む", "宿む"],
+    wrongKanas: ["しじむ", "ちみむ", "すくむ"]
+  },
+  {
+    kanji: "快い",
+    kana: "こころよい",
+    meaning: "기분 좋다, 상쾌하다",
+    wrongKanjis: ["怪い", "懐い", "悔い"],
+    wrongKanas: ["はやい", "ここよい", "かよい"]
+  },
+  // Page 30
+  {
+    kanji: "覆う",
+    kana: "おおう",
+    meaning: "덮다, 씌우다",
+    wrongKanjis: ["復う", "履う", "腹う"],
+    wrongKanas: ["くつがえす", "ふくう", "おう"]
+  },
+  {
+    kanji: "破る",
+    kana: "やぶる",
+    meaning: "찢다, 깨다",
+    wrongKanjis: ["被る", "波る", "皮る"],
+    wrongKanas: ["はる", "かぶる", "しぼる"]
+  },
+  {
+    kanji: "尽きる",
+    kana: "つきる",
+    meaning: "다하다, 떨어지다",
+    wrongKanjis: ["尺きる", "費きる", "付きる"],
+    wrongKanas: ["できる", "ふきる", "づきる"]
+  },
+  // Page 31
+  {
+    kanji: "打ち明ける",
+    kana: "うちあける",
+    meaning: "털어놓다, 고백하다",
+    wrongKanjis: ["打明ける", "移ち明ける", "写ち明ける"],
+    wrongKanas: ["ぶちあける", "うちあげる", "うちかける"]
+  },
+  {
+    kanji: "漏れる",
+    kana: "もれる",
+    meaning: "새다, 누설되다",
+    wrongKanjis: ["濡れる", "滿れる", "構れる"],
+    wrongKanas: ["ぬれる", "はれる", "ふれる"]
+  },
+  {
+    kanji: "濁る",
+    kana: "にごる",
+    meaning: "흐려지다, 탁해지다",
+    wrongKanjis: ["獨る", "触る", "濡る"],
+    wrongKanas: ["まざる", "なごる", "ぬごる"]
+  },
+  // Page 32
+  {
+    kanji: "鋭い",
+    kana: "するどい",
+    meaning: "날카롭다, 예리하다",
+    wrongKanjis: ["悦い", "鈍い", "脱い"],
+    wrongKanas: ["にぶい", "きわどい", "さと"]
+  },
+  {
+    kanji: "薄める",
+    kana: "うすめる",
+    meaning: "묽게 하다, 연하게 하다",
+    wrongKanjis: ["浅める", "淡める", "泊める"],
+    wrongKanas: ["すすめる", "はくめる", "うずめる"]
+  }
+];
+
+        // ----------------------------------------------------
+        // 로직 시작
+        // ----------------------------------------------------
+
+        let currentIndex = 0;
+        let score = 0;
+        let currentStep = 'kanji'; // 'kanji' (뜻->한자) or 'reading' (한자->발음)
+        let quizList = [];
+        let incorrectList = [];
+        let isReviewMode = false;
+        let isProcessing = false;
+
+        // DOM 요소
+        const elements = {
+            questionText: document.getElementById('question-text'),
+            stepBadge: document.getElementById('step-badge'),
+            stepGuide: document.getElementById('step-guide'),
+            choicesContainer: document.getElementById('choices-container'),
+            feedback: document.getElementById('feedback'),
+            progressBar: document.getElementById('progress-bar'),
+            currentIndex: document.getElementById('current-index'),
+            totalCount: document.getElementById('total-count'),
+            quizContainer: document.getElementById('quiz-container'),
+            resultContainer: document.getElementById('result-container'),
+            finalScore: document.getElementById('final-score'),
+            reviewSection: document.getElementById('review-section'),
+            wrongCount: document.getElementById('wrong-count'),
+            headerBg: document.getElementById('header-bg'),
+            headerTitle: document.getElementById('header-title'),
+            headerDesc: document.getElementById('header-desc')
+        };
+
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+        // 🔥 [핵심] 겹치는 글자가 있는 오답 생성기
+        function getSmartDistractors(targetData, allData, type) {
+            let candidates = allData.filter(item => item.kanji !== targetData.kanji);
+            let filtered = [];
+
+            if (type === 'kanji') {
+                // 1순위: 한 글자라도 겹치는 단어 찾기
+                const targetChars = targetData.kanji.split('');
+                
+                filtered = candidates.filter(item => {
+                    // 글자 수가 비슷해야 함 (±1)
+                    if (Math.abs(item.kanji.length - targetData.kanji.length) > 1) return false;
+                    
+                    // 겹치는 글자가 있는지 확인
+                    return targetChars.some(char => item.kanji.includes(char));
+                });
+
+                // 2순위: 겹치는게 없으면 글자 수 같은 것 찾기
+                if (filtered.length < 3) {
+                    const moreCandidates = candidates.filter(item => item.kanji.length === targetData.kanji.length);
+                    filtered = [...filtered, ...moreCandidates];
+                }
+                
+            } else if (type === 'reading') {
+                // [발음] 글자 수 ±1 차이
+                const targetLen = targetData.kana.length;
+                filtered = candidates.filter(item => Math.abs(item.kana.length - targetLen) <= 1);
+            }
+
+            // 3순위: 그래도 부족하면 전체에서 랜덤
+            if (filtered.length < 3) {
+                filtered = candidates;
+            }
+
+            // 중복 제거 후 3개 추출
+            const uniqueFiltered = [...new Set(filtered)]; 
+            return shuffleArray(uniqueFiltered).slice(0, 3);
+        }
+
+        function initQuiz() {
+            quizList = shuffleArray([...vocabularyData]);
+            incorrectList = [];
+            isReviewMode = false;
+            score = 0;
+            currentIndex = 0;
+            updateHeaderUI();
+            startCycle();
+        }
+
+        function startReview() {
+            quizList = shuffleArray([...incorrectList]);
+            incorrectList = [];
+            isReviewMode = true;
+            score = 0;
+            currentIndex = 0;
+            
+            elements.resultContainer.classList.add('hidden');
+            elements.quizContainer.classList.remove('hidden');
+            updateHeaderUI();
+            startCycle();
+        }
+
+        function updateHeaderUI() {
+            if (isReviewMode) {
+                elements.headerBg.className = "bg-orange-500 p-5 text-white text-center transition-colors duration-500";
+                elements.headerTitle.innerText = "오답 복습 모드";
+                elements.headerDesc.innerText = "틀린 단어를 확실하게 외워봅시다!";
+            } else {
+                elements.headerBg.className = "bg-indigo-600 p-5 text-white text-center transition-colors duration-500";
+                elements.headerTitle.innerText = "JLPT N2 거꾸로 암기";
+                elements.headerDesc.innerText = "뜻을 보고 한자(유사 글자 주의) 맞추기";
+            }
+        }
+
+        function startCycle() {
+            elements.totalCount.innerText = quizList.length;
+            loadQuestion();
+        }
+
+        function loadQuestion() {
+            const currentData = quizList[currentIndex];
+            elements.currentIndex.innerText = currentIndex + 1;
+            
+            const progress = (currentIndex / quizList.length) * 100;
+            elements.progressBar.style.width = `${progress}%`;
+
+            elements.feedback.innerText = '';
+            
+            // Reverse 모드는 '한자 고르기'부터 시작
+            currentStep = 'kanji';
+            renderChoices();
+            isProcessing = false;
+        }
+
+        function renderChoices() {
+            const currentData = quizList[currentIndex];
+            elements.choicesContainer.innerHTML = ''; 
+
+            let correctAnswer = '';
+            let distractors = [];
+
+            if (currentStep === 'kanji') {
+                // [Step 1] 뜻 -> 한자
+                elements.stepBadge.innerText = "Step 1";
+                elements.stepBadge.className = "bg-indigo-100 text-indigo-700 text-xs font-bold px-3 py-1 rounded-full";
+                elements.stepGuide.innerText = "알맞은 한자를 고르세요";
+                
+                // 질문: 한국어 뜻
+                elements.questionText.innerText = currentData.meaning.join(', ');
+                elements.questionText.className = "text-4xl font-bold text-gray-800 mb-3 min-h-[3.5rem] break-keep leading-tight flex items-center justify-center";
+                
+                correctAnswer = currentData.kanji;
+
+                // 1. 미리 지정된 오답이 있으면 사용
+                if (currentData.wrongKanjis && currentData.wrongKanjis.length > 0) {
+                    distractors = shuffleArray(currentData.wrongKanjis).slice(0, 3);
+                } else {
+                    // 2. 없으면 스마트 알고리즘 (겹치는 글자 찾기) 사용
+                    const distractorItems = getSmartDistractors(currentData, vocabularyData, 'kanji');
+                    distractors = distractorItems.map(item => item.kanji);
+                }
+
+            } else {
+                // [Step 2] 한자 -> 발음
+                elements.stepBadge.innerText = "Step 2";
+                elements.stepBadge.className = "bg-emerald-100 text-emerald-700 text-xs font-bold px-3 py-1 rounded-full";
+                elements.stepGuide.innerText = "올바른 발음(요미가나)은?";
+
+                // 질문: 한자 (방금 맞춘 것)
+                elements.questionText.innerText = currentData.kanji;
+                elements.questionText.className = "text-6xl font-bold text-indigo-600 mb-3 min-h-[3.5rem] flex items-center justify-center";
+
+                correctAnswer = currentData.kana;
+
+                if (currentData.wrongKanas && currentData.wrongKanas.length > 0) {
+                    distractors = shuffleArray(currentData.wrongKanas).slice(0, 3);
+                } else {
+                    const distractorItems = getSmartDistractors(currentData, vocabularyData, 'reading');
+                    distractors = distractorItems.map(item => item.kana);
+                }
+            }
+
+            // 정답 + 오답 섞기
+            const options = shuffleArray([correctAnswer, ...distractors]);
+
+            // 버튼 생성
+            options.forEach(option => {
+                const btn = document.createElement('button');
+                btn.className = "choice-btn w-full bg-white border-2 border-gray-200 hover:border-indigo-500 hover:bg-indigo-50 text-gray-700 font-bold py-4 rounded-xl text-xl shadow-sm whitespace-normal break-keep h-full";
+                btn.innerText = option;
+                btn.onclick = () => checkAnswer(btn, option === correctAnswer, correctAnswer);
+                elements.choicesContainer.appendChild(btn);
+            });
+        }
+
+        function checkAnswer(btnElement, isCorrect, correctAnswerText) {
+            if (isProcessing) return;
+            isProcessing = true;
+
+            const currentData = quizList[currentIndex];
+
+            if (isCorrect) {
+                // 정답 처리
+                btnElement.className = "choice-btn w-full bg-indigo-500 border-2 border-indigo-600 text-white font-bold py-4 rounded-xl text-xl shadow-md"; 
+                
+                if (currentStep === 'kanji') {
+                    // 한자 맞춤 -> 발음으로 이동
+                    elements.feedback.className = "text-indigo-600";
+                    elements.feedback.innerText = "정답! ⭕ 발음도 맞춰보세요.";
+                    setTimeout(() => {
+                        currentStep = 'reading';
+                        renderChoices();
+                        isProcessing = false;
+                    }, 600); 
+                } else {
+                    // 발음까지 맞춤 -> 점수 획득 & 다음 문제
+                    score++;
+                    elements.feedback.className = "text-emerald-600";
+                    elements.feedback.innerText = "완벽합니다! ⭕";
+                    setTimeout(() => {
+                        nextQuestion();
+                    }, 600);
+                }
+
+            } else {
+                // 오답 처리
+                btnElement.className = "choice-btn w-full bg-red-500 border-2 border-red-600 text-white font-bold py-4 rounded-xl text-xl shadow-md"; 
+                addIncorrectWord(currentData);
+
+                // 정답 버튼 표시
+                const buttons = elements.choicesContainer.getElementsByTagName('button');
+                for (let btn of buttons) {
+                    if (btn.innerText === correctAnswerText) {
+                        btn.className = "choice-btn w-full bg-indigo-500 border-2 border-indigo-600 text-white font-bold py-4 rounded-xl text-xl shadow-md opacity-70";
+                    }
+                }
+
+                elements.feedback.className = "text-red-500";
+                
+                if (currentStep === 'kanji') {
+                    elements.feedback.innerText = `오답! ❌ 정답은 [${currentData.kanji}] 입니다.`;
+                } else {
+                    elements.feedback.innerText = `오답! ❌ 정답은 [${currentData.kana}] 입니다.`;
+                }
+
+                setTimeout(() => {
+                    if (currentStep === 'kanji') {
+                        // 한자 틀려도 발음 퀴즈 기회 줌 (학습 효과)
+                        currentStep = 'reading';
+                        renderChoices();
+                        isProcessing = false;
+                    } else {
+                        nextQuestion();
+                    }
+                }, 2000); // 오답 확인 시간 넉넉히
+            }
+        }
+
+        function addIncorrectWord(wordObj) {
+            if (!incorrectList.includes(wordObj)) {
+                incorrectList.push(wordObj);
+            }
+        }
+
+        function nextQuestion() {
+            currentIndex++;
+            if (currentIndex < quizList.length) {
+                loadQuestion();
+            } else {
+                showResult();
+            }
+        }
+
+        function showResult() {
+            elements.quizContainer.classList.add('hidden');
+            elements.resultContainer.classList.remove('hidden');
+            elements.finalScore.innerText = score + " / " + quizList.length;
+            elements.progressBar.style.width = '100%';
+
+            if (incorrectList.length > 0) {
+                elements.reviewSection.classList.remove('hidden');
+                elements.wrongCount.innerText = incorrectList.length;
+            } else {
+                elements.reviewSection.classList.add('hidden');
+                if(isReviewMode) {
+                    elements.finalScore.innerText += " (복습 완료!)";
+                }
+            }
+        }
+
+        // 초기 실행
+        if (typeof vocabularyData !== 'undefined' && vocabularyData.length > 0) {
+            initQuiz();
+        } else {
+            alert("데이터가 없습니다.");
+        }
+    </script>
+</body>
+</html>
+```
