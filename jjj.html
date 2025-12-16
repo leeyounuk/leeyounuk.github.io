@@ -3,47 +3,70 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>오노마토페 뜻 맞히기 퀴즈</title>
+    <title>오노마토페 뜻 보고 쓰기</title>
     <style>
-        body { font-family: 'Helvetica Neue', Arial, sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; background-color: #f0f2f5; }
-        .quiz-container { background: white; padding: 2rem; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); max-width: 600px; width: 100%; text-align: center; }
-        h1 { color: #333; font-size: 1.5rem; margin-bottom: 1.5rem; }
-        .question { font-size: 1.2rem; font-weight: bold; margin-bottom: 20px; color: #2c3e50; min-height: 60px; display: flex; align-items: center; justify-content: center; word-break: keep-all;}
-        .options { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-        button { padding: 15px; font-size: 1rem; border: 2px solid #e0e0e0; background: white; border-radius: 8px; cursor: pointer; transition: all 0.2s; color: #555; }
-        button:hover { background-color: #f8f9fa; border-color: #bdc3c7; }
-        button.correct { background-color: #d4edda; border-color: #c3e6cb; color: #155724; }
-        button.wrong { background-color: #f8d7da; border-color: #f5c6cb; color: #721c24; }
-        .next-btn { grid-column: span 2; background-color: #3498db; color: white; border: none; font-weight: bold; margin-top: 15px; display: none; }
-        .next-btn:hover { background-color: #2980b9; color: white; border: none; }
-        .score { margin-top: 15px; color: #7f8c8d; font-size: 0.9rem; }
+        body { font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Meiryo', sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; background-color: #f0f2f5; }
+        .quiz-container { background: white; padding: 2rem 3rem; border-radius: 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); max-width: 600px; width: 90%; text-align: center; }
+        h1 { color: #333; font-size: 1.8rem; margin-bottom: 1rem; }
+        .score-board { display: flex; justify-content: space-between; margin-bottom: 1.5rem; color: #7f8c8d; font-size: 0.95rem; }
+        .question-box { background: #eef2ff; padding: 1.5rem; border-radius: 12px; margin-bottom: 1.5rem; min-height: 80px; display: flex; flex-direction: column; justify-content: center; align-items: center; }
+        .question-label { font-size: 0.9rem; color: #5a67d8; margin-bottom: 0.5rem; font-weight: bold; }
+        .question-text { font-size: 1.3rem; font-weight: bold; line-height: 1.4; color: #2c3e50; word-break: keep-all; }
+        
+        /* 입력 필드 스타일 */
+        input[type="text"] { width: 100%; padding: 14px; font-size: 1.2rem; border: 2px solid #dee2e6; border-radius: 8px; margin-bottom: 1rem; outline: none; text-align: center; box-sizing: border-box; transition: border-color 0.3s; }
+        input[type="text"]:focus { border-color: #5a67d8; }
+        
+        /* 버튼 스타일 */
+        .btn-submit, .btn-next { width: 100%; padding: 14px; font-size: 1.1rem; border: none; border-radius: 8px; cursor: pointer; transition: 0.2s; font-weight: bold; }
+        .btn-submit { background: #5a67d8; color: white; }
+        .btn-submit:hover { background: #434190; }
+        .btn-next { background: #48bb78; color: white; margin-top: 1rem; display: none; }
+        .btn-next:hover { background: #38a169; }
+        .btn-review { background: #ed8936; color: white; }
+        .btn-review:hover { background: #dd6b20; }
+
+        /* 피드백 스타일 */
+        .feedback { margin: 1rem 0; font-size: 1.1rem; min-height: 1.5em; }
+        .correct { color: #27ae60; font-weight: bold; }
+        .wrong { color: #c0392b; font-weight: bold; }
+        .correct-answer-text { color: #e74c3c; font-weight: bold; }
     </style>
 </head>
 <body>
 
 <div class="quiz-container">
-    <h1>오노마토페 의미 퀴즈</h1>
-    <div class="score">진행 상황: <span id="current-count">0</span> / <span id="total-count">0</span></div>
-    <div class="question" id="question">문제를 불러오는 중...</div>
-    <div class="options" id="options"></div>
+    <h1>오노마토페 뜻 쓰기</h1>
+    <div class="score-board">
+        <span id="mode-indicator">모드: 기본 학습</span>
+        <span>진행: <span id="current-count">0</span> / <span id="total-count">0</span></span>
+    </div>
+
+    <div class="question-box">
+        <div class="question-label">의미 (Meaning)</div>
+        <div class="question-text" id="question">문제를 불러오는 중...</div>
+    </div>
+
+    <input type="text" id="answerInput" placeholder="히라가나/가타카나로 입력하세요" autocomplete="off">
+    <button class="btn-submit" id="submitBtn" onclick="checkAnswer()">정답 확인</button>
+    
+    <div class="feedback" id="feedback"></div>
+    <button class="btn-next" id="nextBtn" onclick="nextQuestion()">다음 문제 ➡</button>
 </div>
 
 <script>
-    // 사진 속 데이터베이스 (총 30개 항목)
+    // 제공해주신 데이터
     const rawData = [
-        // 통증/감기
         { q: "頭の中で大きな音がするような強い痛み", a: "ガンガン" },
         { q: "脈拍に合わせて繰り返す歯や傷の痛み", a: "ずきずき" },
         { q: "お腹や胃を細い針で刺されたような痛み", a: "きりきり" },
         { q: "辛さや日焼け、すり傷などの皮膚の痛み", a: "ひりひり" },
         { q: "胃が気持ち悪く、吐きそうな感じ", a: "むかむか" },
-        { q: "軽いせきが、何回も続けて出る音", a: "こんこん" }, // 수정됨
-        { q: "強く何回もせきをするときの音", a: "ごほごほ" }, // 수정됨
+        { q: "軽いせきが、何回も続けて出る音", a: "こんこん" },
+        { q: "強く何回もせきをするときの音", a: "ごほごほ" },
         { q: "大きなくしゃみをするときの音", a: "はくしょん" },
-        { q: "体の内側から急に冷たくなる感じ", a: "ぞくぞく" }, // 수정됨
-        { q: "寒さや怖さで、体が細かく震える様子", a: "ぶるぶる" }, // 수정됨
-        
-        // 감정
+        { q: "体の内側から急に冷たくなる感じ", a: "ぞくぞく" },
+        { q: "寒さや怖さで、体が細かく震える様子", a: "ぶるぶる" },
         { q: "危なっかしくて、見ていられない様子", a: "はらはら" },
         { q: "何かが気になって落ち着かない様子", a: "そわそわ" },
         { q: "自信がなくて、不安そうな様子", a: "おどおど" },
@@ -54,8 +77,6 @@
         { q: "同じことが続き、嫌に感じている様子", a: "うんざり" },
         { q: "急に気がついて、驚いている様子", a: "はっと" },
         { q: "何かの理由で気分がすっきりしない様子", a: "もやもや" },
-
-        // 움직임
         { q: "速くしっかり、軽やかに歩く様子", a: "すたすた" },
         { q: "足音が大きく、重く歩く様子", a: "どたどた" },
         { q: "元気がなく、ゆっくり歩く様子", a: "とぼとぼ" },
@@ -69,85 +90,122 @@
     ];
 
     let quizList = [];
+    let wrongAnswers = [];
     let currentIdx = 0;
+    let isReviewMode = false;
 
-    // 배열 섞기 (Fisher-Yates)
     function shuffleArray(array) {
-        for (let i = array.length - 1; i > 0; i--) {
-            const j = Math.floor(Math.random() * (i + 1));
-            [array[i], array[j]] = [array[j], array[i]];
-        }
-        return array;
+        return array.sort(() => Math.random() - 0.5);
     }
 
     function initQuiz() {
         quizList = shuffleArray([...rawData]);
+        wrongAnswers = [];
         currentIdx = 0;
-        document.getElementById('total-count').innerText = quizList.length;
+        isReviewMode = false;
+        document.getElementById('mode-indicator').innerText = "모드: 기본 학습";
+        resetUI();
         loadQuestion();
     }
 
     function loadQuestion() {
-        if (currentIdx >= quizList.length) {
-            if(confirm("모든 문제를 다 풀었습니다! 다시 하시겠습니까?")) {
-                initQuiz();
-            }
-            return;
-        }
-
         const item = quizList[currentIdx];
         document.getElementById('question').innerText = item.q;
         document.getElementById('current-count').innerText = currentIdx + 1;
-
-        // 오답 생성 (현재 정답을 제외한 전체 리스트에서 3개 랜덤 추출)
-        const distractors = rawData.filter(d => d.a !== item.a);
-        const randomDistractors = shuffleArray(distractors).slice(0, 3);
-        
-        // 선택지 구성 (정답 + 오답) 후 섞기
-        const options = shuffleArray([item, ...randomDistractors]);
-
-        const optionsContainer = document.getElementById('options');
-        optionsContainer.innerHTML = '';
-
-        options.forEach(opt => {
-            const btn = document.createElement('button');
-            btn.innerText = opt.a;
-            btn.onclick = () => checkAnswer(btn, opt.a, item.a);
-            optionsContainer.appendChild(btn);
-        });
+        document.getElementById('total-count').innerText = quizList.length;
+        document.getElementById('answerInput').value = '';
+        document.getElementById('answerInput').focus();
     }
 
-    function checkAnswer(btn, selected, correct) {
-        const btns = document.querySelectorAll('.options button');
-        // 중복 클릭 방지
-        btns.forEach(b => b.disabled = true);
+    function checkAnswer() {
+        const input = document.getElementById('answerInput').value.trim();
+        if (input === "") return; // 입력값이 없으면 반응 없음
 
-        if (selected === correct) {
-            btn.classList.add('correct');
+        const correct = quizList[currentIdx].a;
+        const feedback = document.getElementById('feedback');
+        const submitBtn = document.getElementById('submitBtn');
+        const nextBtn = document.getElementById('nextBtn');
+
+        document.getElementById('answerInput').disabled = true;
+        submitBtn.style.display = 'none';
+
+        if (input === correct) {
+            feedback.innerHTML = "<span class='correct'>✅ 정답입니다!</span>";
         } else {
-            btn.classList.add('wrong');
-            // 정답 표시
-            btns.forEach(b => {
-                if (b.innerText === correct) b.classList.add('correct');
-            });
+            feedback.innerHTML = `<span class='wrong'>❌ 오답!</span> 정답은 <span class='correct-answer-text'>${correct}</span> 입니다.`;
+            // 복습 목록에 추가 (중복 방지)
+            if (!wrongAnswers.some(w => w.a === correct)) {
+                wrongAnswers.push(quizList[currentIdx]);
+            }
         }
-
-        // 다음 버튼 생성
-        const nextBtn = document.createElement('button');
-        nextBtn.innerText = "다음 문제 ➡";
-        nextBtn.className = 'next-btn';
-        nextBtn.onclick = () => {
-            currentIdx++;
-            loadQuestion();
-        };
-        // 스타일상 grid 레이아웃에 맞게 추가
-        document.getElementById('options').appendChild(nextBtn);
         nextBtn.style.display = 'block';
+        nextBtn.focus();
     }
 
-    // 시작
+    function nextQuestion() {
+        currentIdx++;
+        if (currentIdx < quizList.length) {
+            resetUI();
+            loadQuestion();
+        } else {
+            finishGame();
+        }
+    }
+
+    function resetUI() {
+        document.getElementById('feedback').innerHTML = '';
+        document.getElementById('answerInput').disabled = false;
+        document.getElementById('submitBtn').style.display = 'block';
+        document.getElementById('nextBtn').style.display = 'none';
+        document.getElementById('submitBtn').innerText = "정답 확인";
+        document.getElementById('submitBtn').classList.remove('btn-review');
+        document.getElementById('submitBtn').onclick = checkAnswer;
+    }
+
+    function finishGame() {
+        document.getElementById('question-box').style.display = 'none';
+        document.getElementById('answerInput').style.display = 'none';
+        document.getElementById('nextBtn').style.display = 'none';
+
+        const feedback = document.getElementById('feedback');
+        const submitBtn = document.getElementById('submitBtn');
+
+        if (wrongAnswers.length > 0) {
+            feedback.innerHTML = `학습 종료! <br>총 ${wrongAnswers.length}개의 오답이 있습니다.`;
+            submitBtn.innerText = "🔄 틀린 문제 복습하기";
+            submitBtn.classList.add('btn-review');
+            submitBtn.style.display = 'block';
+            submitBtn.onclick = startReview;
+        } else {
+            feedback.innerHTML = `🎉 축하합니다! 모든 문제를 맞히셨습니다!`;
+            submitBtn.innerText = "처음부터 다시 하기";
+            submitBtn.style.display = 'block';
+            submitBtn.onclick = initQuiz;
+        }
+    }
+
+    function startReview() {
+        quizList = [...wrongAnswers];
+        wrongAnswers = []; // 복습 중 틀린 것을 다시 담기 위해 초기화
+        currentIdx = 0;
+        isReviewMode = true;
+        document.getElementById('mode-indicator').innerText = "모드: 🚨 오답 복습";
+        
+        document.getElementById('question-box').style.display = 'flex';
+        document.getElementById('answerInput').style.display = 'block';
+        resetUI();
+        loadQuestion();
+    }
+
+    // 엔터키 입력 시 정답 확인 기능
+    document.getElementById('answerInput').addEventListener("keypress", function(event) {
+        if (event.key === "Enter") {
+            event.preventDefault();
+            document.getElementById('submitBtn').click();
+        }
+    });
+
     initQuiz();
 </script>
-
 </body>
 </html>
