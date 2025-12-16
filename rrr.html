@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>오노마토페 문장 퀴즈</title>
+    <style>
+        body { font-family: 'Helvetica Neue', Arial, sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; background-color: #fff3e0; }
+        .quiz-container { background: white; padding: 2rem; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); max-width: 700px; width: 100%; text-align: center; }
+        h1 { color: #e67e22; font-size: 1.5rem; margin-bottom: 1.5rem; }
+        .question { font-size: 1.1rem; font-weight: normal; margin-bottom: 25px; color: #2d3436; min-height: 80px; display: flex; align-items: center; justify-content: center; line-height: 1.6; word-break: keep-all; }
+        .question strong { color: #e67e22; font-size: 1.3rem; margin: 0 5px; text-decoration: underline; }
+        .options { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        button { padding: 15px; font-size: 1rem; border: 2px solid #e0e0e0; background: white; border-radius: 8px; cursor: pointer; transition: all 0.2s; color: #555; }
+        button:hover { background-color: #fff8e1; border-color: #fce8b2; }
+        button.correct { background-color: #d4edda; border-color: #c3e6cb; color: #155724; }
+        button.wrong { background-color: #f8d7da; border-color: #f5c6cb; color: #721c24; }
+        .next-btn { grid-column: span 2; background-color: #e67e22; color: white; border: none; font-weight: bold; margin-top: 15px; display: none; }
+        .next-btn:hover { background-color: #d35400; color: white; border: none; }
+        .score { margin-top: 15px; color: #7f8c8d; font-size: 0.9rem; }
+    </style>
+</head>
+<body>
+
+<div class="quiz-container">
+    <h1>오노마토페 문장 빈칸 퀴즈</h1>
+    <div class="score">진행 상황: <span id="current-count">0</span> / <span id="total-count">0</span></div>
+    <div class="question" id="question">문제를 불러오는 중...</div>
+    <div class="options" id="options"></div>
+</div>
+
+<script>
+    // 사진 속 예문 데이터베이스 (빈칸은 ____ 로 표시)
+    const sentenceData = [
+        // 이미지 2
+        { q: "夕べ飲みすぎたせいで、今日は二日酔いがひどくて胸が（ ____ ）します。", a: "むかむか" },
+        { q: "薄着のまま外に出たら、風が冷たくて、（ ____ ）震えました。", a: "ぶるぶる" },
+        { q: "最近、ストレスがたまっていて、胃が（ ____ ）と痛みます。", a: "きりきり" },
+        { q: "風邪が悪化したようで、（ ____ ）と寒気もします。", a: "ぞくぞく" },
+        { q: "一日中、海辺で寝てたら、背中が日焼けして（ ____ ）します。", a: "ひりひり" },
+        { q: "子どもが風邪を引いたのか、今朝から（ ____ ）と少しせきをしています。", a: "こんこん" },
+
+        // 이미지 4 + (마지막 문장 수정 반영)
+        { q: "彼は試験の結果が気になるようで、朝から（ ____ ）しています。", a: "そわそわ" },
+        { q: "言いたいことを上手く伝えられず、（ ____ ）しています。", a: "もやもや" },
+        { q: "雪道で車がスリップしたときは（ ____ ）としました。", a: "ひやり" },
+        { q: "締切の５分前、まだ課題を出していないことに、（ ____ ）気づいた。", a: "はっと" },
+        { q: "昨日の野球の試合見た？９回の裏、２アウト満塁の場面は（ ____ ）したね。", a: "はらはら" },
+        { q: "雨で旅行が中止になって、みんな（ ____ ）している。", a: "がっかり" }, // 요청하신 수정 반영
+
+        // 이미지 5
+        { q: "アパートの上の階で誰かが（ ____ ）走り回っていて、うるさいです。", a: "どたどた" },
+        { q: "彼は雪道で足をすべらせて、（ ____ ）と転びました。", a: "すてん" },
+        { q: "急いでいたのか、彼は私に気づかずに、（ ____ ）と通り過ぎました。", a: "すたすた" },
+        { q: "サッカーの試合中、一人の選手が熱中症で（ ____ ）倒れた。", a: "ばたっ" },
+        { q: "この店の店員さんはいつも（ ____ ）働いていて、見ていて気持ちがいい。", a: "きびきび" },
+        { q: "この時間は通勤ラッシュで、車が（ ____ ）と進んでいます。", a: "のろのろ" }
+    ];
+
+    // 오답용 전체 단어 풀 (뜻 퀴즈의 답안까지 포함하여 더 풍부하게 오답 구성)
+    const allWords = [
+        "ガンガン", "ずきずき", "きりきり", "ひりひり", "むかむか", 
+        "こんこん", "ごほごほ", "はくしょん", "ぞくぞく", "ぶるぶる",
+        "はらはら", "そわそわ", "おどおど", "ひやり", "びくびく", 
+        "がっかり", "しょんぼり", "うんざり", "はっと", "もやもや",
+        "すたすた", "どたどた", "とぼとぼ", "よちよち", "よろよろ", 
+        "のろのろ", "きびきび", "ぴたり", "すてん", "ばたっ"
+    ];
+
+    let quizList = [];
+    let currentIdx = 0;
+
+    function shuffleArray(array) {
+        for (let i = array.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [array[i], array[j]] = [array[j], array[i]];
+        }
+        return array;
+    }
+
+    function initQuiz() {
+        quizList = shuffleArray([...sentenceData]);
+        currentIdx = 0;
+        document.getElementById('total-count').innerText = quizList.length;
+        loadQuestion();
+    }
+
+    function loadQuestion() {
+        if (currentIdx >= quizList.length) {
+            if(confirm("모든 문제를 다 풀었습니다! 다시 하시겠습니까?")) {
+                initQuiz();
+            }
+            return;
+        }
+
+        const item = quizList[currentIdx];
+        const questionText = item.q.replace("____", "<strong>( ? )</strong>");
+        document.getElementById('question').innerHTML = questionText;
+        document.getElementById('current-count').innerText = currentIdx + 1;
+
+        // 오답 생성 (전체 단어 풀에서 정답 제외하고 3개 추출)
+        const distractors = allWords.filter(w => w !== item.a);
+        const randomDistractors = shuffleArray(distractors).slice(0, 3);
+        
+        // 선택지 구성
+        const options = shuffleArray([item.a, ...randomDistractors]);
+
+        const optionsContainer = document.getElementById('options');
+        optionsContainer.innerHTML = '';
+
+        options.forEach(optText => {
+            const btn = document.createElement('button');
+            btn.innerText = optText;
+            btn.onclick = () => checkAnswer(btn, optText, item.a);
+            optionsContainer.appendChild(btn);
+        });
+    }
+
+    function checkAnswer(btn, selected, correct) {
+        const btns = document.querySelectorAll('.options button');
+        btns.forEach(b => b.disabled = true);
+
+        if (selected === correct) {
+            btn.classList.add('correct');
+            // 문장의 빈칸을 정답으로 채워주기
+            document.getElementById('question').innerHTML = quizList[currentIdx].q.replace("____", `<strong style="color:#27ae60">${correct}</strong>`);
+        } else {
+            btn.classList.add('wrong');
+            btns.forEach(b => {
+                if (b.innerText === correct) b.classList.add('correct');
+            });
+        }
+
+        const nextBtn = document.createElement('button');
+        nextBtn.innerText = "다음 문제 ➡";
+        nextBtn.className = 'next-btn';
+        nextBtn.onclick = () => {
+            currentIdx++;
+            loadQuestion();
+        };
+        document.getElementById('options').appendChild(nextBtn);
+        nextBtn.style.display = 'block';
+    }
+
+    initQuiz();
+</script>
+
+</body>
+</html>
