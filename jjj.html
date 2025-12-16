@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>오노마토페 뜻 맞히기 퀴즈</title>
+    <style>
+        body { font-family: 'Helvetica Neue', Arial, sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; background-color: #f0f2f5; }
+        .quiz-container { background: white; padding: 2rem; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); max-width: 600px; width: 100%; text-align: center; }
+        h1 { color: #333; font-size: 1.5rem; margin-bottom: 1.5rem; }
+        .question { font-size: 1.2rem; font-weight: bold; margin-bottom: 20px; color: #2c3e50; min-height: 60px; display: flex; align-items: center; justify-content: center; word-break: keep-all;}
+        .options { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        button { padding: 15px; font-size: 1rem; border: 2px solid #e0e0e0; background: white; border-radius: 8px; cursor: pointer; transition: all 0.2s; color: #555; }
+        button:hover { background-color: #f8f9fa; border-color: #bdc3c7; }
+        button.correct { background-color: #d4edda; border-color: #c3e6cb; color: #155724; }
+        button.wrong { background-color: #f8d7da; border-color: #f5c6cb; color: #721c24; }
+        .next-btn { grid-column: span 2; background-color: #3498db; color: white; border: none; font-weight: bold; margin-top: 15px; display: none; }
+        .next-btn:hover { background-color: #2980b9; color: white; border: none; }
+        .score { margin-top: 15px; color: #7f8c8d; font-size: 0.9rem; }
+    </style>
+</head>
+<body>
+
+<div class="quiz-container">
+    <h1>오노마토페 의미 퀴즈</h1>
+    <div class="score">진행 상황: <span id="current-count">0</span> / <span id="total-count">0</span></div>
+    <div class="question" id="question">문제를 불러오는 중...</div>
+    <div class="options" id="options"></div>
+</div>
+
+<script>
+    // 사진 속 데이터베이스 (총 30개 항목)
+    const rawData = [
+        // 통증/감기
+        { q: "頭の中で大きな音がするような強い痛み", a: "ガンガン" },
+        { q: "脈拍に合わせて繰り返す歯や傷の痛み", a: "ずきずき" },
+        { q: "お腹や胃を細い針で刺されたような痛み", a: "きりきり" },
+        { q: "辛さや日焼け、すり傷などの皮膚の痛み", a: "ひりひり" },
+        { q: "胃が気持ち悪く、吐きそうな感じ", a: "むかむか" },
+        { q: "軽いせきが、何回も続けて出る音", a: "こんこん" }, // 수정됨
+        { q: "強く何回もせきをするときの音", a: "ごほごほ" }, // 수정됨
+        { q: "大きなくしゃみをするときの音", a: "はくしょん" },
+        { q: "体の内側から急に冷たくなる感じ", a: "ぞくぞく" }, // 수정됨
+        { q: "寒さや怖さで、体が細かく震える様子", a: "ぶるぶる" }, // 수정됨
+        
+        // 감정
+        { q: "危なっかしくて、見ていられない様子", a: "はらはら" },
+        { q: "何かが気になって落ち着かない様子", a: "そわそわ" },
+        { q: "自信がなくて、不安そうな様子", a: "おどおど" },
+        { q: "瞬間的に危険や恐怖を感じる様子", a: "ひやり" },
+        { q: "怖くて、心配や緊張が続いている様子", a: "びくびく" },
+        { q: "期待と違って、残念に思っている様子", a: "がっかり" },
+        { q: "何か悪いことがあって、元気ない様子", a: "しょんぼり" },
+        { q: "同じことが続き、嫌に感じている様子", a: "うんざり" },
+        { q: "急に気がついて、驚いている様子", a: "はっと" },
+        { q: "何かの理由で気分がすっきりしない様子", a: "もやもや" },
+
+        // 움직임
+        { q: "速くしっかり、軽やかに歩く様子", a: "すたすた" },
+        { q: "足音が大きく、重く歩く様子", a: "どたどた" },
+        { q: "元気がなく、ゆっくり歩く様子", a: "とぼとぼ" },
+        { q: "赤ちゃんや小さい子が不安定に歩く様子", a: "よちよち" },
+        { q: "体が安定せず、今にも倒れそうに歩く様子", a: "よろよろ" },
+        { q: "動きがとても遅い様子", a: "のろのろ" },
+        { q: "動きが速く、元気で、無駄がない様子", a: "きびきび" },
+        { q: "急に、完全に止まる様子", a: "ぴたり" },
+        { q: "滑ったりバランスを失って転ぶ様子", a: "すてん" },
+        { q: "勢いよく、音を立てて倒れる様子", a: "ばたっ" }
+    ];
+
+    let quizList = [];
+    let currentIdx = 0;
+
+    // 배열 섞기 (Fisher-Yates)
+    function shuffleArray(array) {
+        for (let i = array.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [array[i], array[j]] = [array[j], array[i]];
+        }
+        return array;
+    }
+
+    function initQuiz() {
+        quizList = shuffleArray([...rawData]);
+        currentIdx = 0;
+        document.getElementById('total-count').innerText = quizList.length;
+        loadQuestion();
+    }
+
+    function loadQuestion() {
+        if (currentIdx >= quizList.length) {
+            if(confirm("모든 문제를 다 풀었습니다! 다시 하시겠습니까?")) {
+                initQuiz();
+            }
+            return;
+        }
+
+        const item = quizList[currentIdx];
+        document.getElementById('question').innerText = item.q;
+        document.getElementById('current-count').innerText = currentIdx + 1;
+
+        // 오답 생성 (현재 정답을 제외한 전체 리스트에서 3개 랜덤 추출)
+        const distractors = rawData.filter(d => d.a !== item.a);
+        const randomDistractors = shuffleArray(distractors).slice(0, 3);
+        
+        // 선택지 구성 (정답 + 오답) 후 섞기
+        const options = shuffleArray([item, ...randomDistractors]);
+
+        const optionsContainer = document.getElementById('options');
+        optionsContainer.innerHTML = '';
+
+        options.forEach(opt => {
+            const btn = document.createElement('button');
+            btn.innerText = opt.a;
+            btn.onclick = () => checkAnswer(btn, opt.a, item.a);
+            optionsContainer.appendChild(btn);
+        });
+    }
+
+    function checkAnswer(btn, selected, correct) {
+        const btns = document.querySelectorAll('.options button');
+        // 중복 클릭 방지
+        btns.forEach(b => b.disabled = true);
+
+        if (selected === correct) {
+            btn.classList.add('correct');
+        } else {
+            btn.classList.add('wrong');
+            // 정답 표시
+            btns.forEach(b => {
+                if (b.innerText === correct) b.classList.add('correct');
+            });
+        }
+
+        // 다음 버튼 생성
+        const nextBtn = document.createElement('button');
+        nextBtn.innerText = "다음 문제 ➡";
+        nextBtn.className = 'next-btn';
+        nextBtn.onclick = () => {
+            currentIdx++;
+            loadQuestion();
+        };
+        // 스타일상 grid 레이아웃에 맞게 추가
+        document.getElementById('options').appendChild(nextBtn);
+        nextBtn.style.display = 'block';
+    }
+
+    // 시작
+    initQuiz();
+</script>
+
+</body>
+</html>
