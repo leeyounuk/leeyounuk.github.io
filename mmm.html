@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>영어 단어 쓰기 퀴즈 (9주차-14주차)</title>
+    <title>단어 뜻 맞추기 (영어 -> 한글)</title>
     <style>
         body {
             font-family: 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
@@ -50,13 +50,13 @@
         #quiz-screen, #result-screen { display: none; }
         .progress { color: #888; margin-bottom: 15px; font-size: 0.9rem; }
         
-        .meaning-card {
-            font-size: 1.8rem;
+        .word-card {
+            font-size: 2.2rem;
             font-weight: bold;
             color: #2c3e50;
             margin: 20px 0;
             padding: 30px 10px;
-            background: #f8f9fa;
+            background: #e9ecef;
             border-radius: 10px;
             word-break: keep-all;
         }
@@ -108,8 +108,8 @@
 
 <div class="container">
     <div id="start-screen">
-        <h1>영어 단어 쓰기 테스트</h1>
-        <p class="subtitle">뜻을 보고 정확한 영어 스펠링을 입력하세요.<br>(9주차 ~ 14주차 통합)</p>
+        <h1>단어 뜻 맞추기 퀴즈</h1>
+        <p class="subtitle">영어 단어를 보고 한글 뜻을 입력하세요.<br>(9주차 ~ 14주차 통합)</p>
         <p>총 <span id="total-count">0</span>개의 단어</p>
         <button class="btn" onclick="startQuiz('all')">전체 랜덤 시작</button>
     </div>
@@ -117,10 +117,10 @@
     <div id="quiz-screen">
         <div class="progress">문제 <span id="current-num">1</span> / <span id="total-num">10</span></div>
         
-        <div class="meaning-card" id="question-meaning">Meaning</div>
+        <div class="word-card" id="question-word">Word</div>
         
         <div class="input-area">
-            <input type="text" id="answer-input" placeholder="영어 단어 입력" autocomplete="off">
+            <input type="text" id="answer-input" placeholder="한글 뜻 입력" autocomplete="off">
             <div id="hint-display" class="hint-text" onclick="showHint()">💡 힌트 보기 (클릭)</div>
         </div>
 
@@ -241,7 +241,7 @@
         // UI 초기화
         document.getElementById('current-num').innerText = currentIndex + 1;
         document.getElementById('total-num').innerText = currentQuestions.length;
-        document.getElementById('question-meaning').innerText = currentData.m;
+        document.getElementById('question-word').innerText = currentData.w; // 영어 단어 표시
         
         const inputField = document.getElementById('answer-input');
         inputField.value = '';
@@ -257,34 +257,43 @@
 
     function showHint() {
         if (isAnswerChecked) return;
-        const currentWord = currentQuestions[currentIndex].w;
-        const firstLetter = currentWord.charAt(0);
-        const length = currentWord.length;
-        document.getElementById('hint-display').innerText = `첫 글자: "${firstLetter}" (총 ${length}글자)`;
+        const currentMean = currentQuestions[currentIndex].m;
+        // 힌트: 한글 첫 글자 또는 특수문자가 있다면 그 다음 글자
+        let hintChar = currentMean.charAt(0);
+        if (hintChar === '~') hintChar = currentMean.charAt(1);
+        
+        document.getElementById('hint-display').innerText = `첫 글자 힌트: "${hintChar}"`;
+    }
+
+    // 문자열 정규화 (띄어쓰기, 특수문자 제거 후 비교)
+    function cleanString(str) {
+        // 공백 제거, ~, ., , 제거
+        return str.replace(/[\s~\.,]/g, '').toLowerCase();
     }
 
     function checkAnswer() {
         const inputField = document.getElementById('answer-input');
-        const userVal = inputField.value.trim().toLowerCase();
-        const correctVal = currentQuestions[currentIndex].w.toLowerCase();
+        const userVal = inputField.value.trim();
+        const correctVal = currentQuestions[currentIndex].m;
         const feedback = document.getElementById('feedback-msg');
 
-        if (userVal === '') return; // 빈칸이면 반응 없음
+        if (userVal === '') return;
 
         isAnswerChecked = true;
         inputField.disabled = true;
 
-        if (userVal === correctVal) {
+        // 정답 비교 (유연한 비교)
+        if (cleanString(userVal) === cleanString(correctVal)) {
             score++;
             feedback.innerHTML = '<span class="correct-msg">정답입니다! 🎉</span>';
         } else {
-            feedback.innerHTML = `<span class="wrong-msg">오답! 정답은: <u>${currentQuestions[currentIndex].w}</u></span>`;
+            feedback.innerHTML = `<span class="wrong-msg">오답! 정답은: <u>${correctVal}</u></span>`;
             wrongAnswers.push(currentQuestions[currentIndex]);
         }
 
         document.getElementById('submit-btn').style.display = 'none';
         document.getElementById('next-btn').style.display = 'inline-block';
-        document.getElementById('next-btn').focus(); // 엔터키 연타를 위해 포커스 이동
+        document.getElementById('next-btn').focus();
     }
 
     function nextQuestion() {
@@ -306,7 +315,7 @@
             wrongAnswers.forEach(item => {
                 const div = document.createElement('div');
                 div.className = 'wrong-item';
-                div.innerHTML = `<div>${item.m}</div><span>${item.w}</span>`;
+                div.innerHTML = `<div>${item.w}</div><span>${item.m}</span>`;
                 wrongList.appendChild(div);
             });
         } else {
