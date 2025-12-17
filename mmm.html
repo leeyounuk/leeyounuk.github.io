@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>영어 단어 퀴즈 (9주차-14주차)</title>
+    <title>영어 단어 쓰기 퀴즈 (9주차-14주차)</title>
     <style>
         body {
             font-family: 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
@@ -16,14 +16,16 @@
         }
         .container {
             background-color: white;
-            padding: 2rem;
+            padding: 2.5rem;
             border-radius: 15px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
             width: 90%;
             max-width: 500px;
             text-align: center;
         }
-        h1 { color: #333; margin-bottom: 20px; font-size: 1.5rem; }
+        h1 { color: #333; margin-bottom: 10px; font-size: 1.5rem; }
+        .subtitle { color: #666; font-size: 0.9rem; margin-bottom: 20px; }
+        
         .btn {
             background-color: #007bff;
             color: white;
@@ -32,42 +34,54 @@
             border-radius: 8px;
             font-size: 1rem;
             cursor: pointer;
-            transition: background 0.3s;
+            transition: background 0.2s;
             margin: 5px;
         }
         .btn:hover { background-color: #0056b3; }
+        .btn-secondary { background-color: #6c757d; }
+        .btn-secondary:hover { background-color: #545b62; }
         .btn-outline {
             background-color: white;
             color: #007bff;
             border: 2px solid #007bff;
         }
-        .btn-outline:hover { background-color: #f0f8ff; }
-        
+
         /* Quiz Screen */
         #quiz-screen, #result-screen { display: none; }
-        .progress { color: #666; margin-bottom: 10px; font-size: 0.9rem; }
-        .word-card {
-            font-size: 2rem;
+        .progress { color: #888; margin-bottom: 15px; font-size: 0.9rem; }
+        
+        .meaning-card {
+            font-size: 1.8rem;
             font-weight: bold;
             color: #2c3e50;
-            margin: 30px 0;
-            padding: 20px;
+            margin: 20px 0;
+            padding: 30px 10px;
             background: #f8f9fa;
             border-radius: 10px;
+            word-break: keep-all;
         }
-        .options { display: grid; gap: 10px; }
-        .option-btn {
-            background-color: white;
-            border: 2px solid #e9ecef;
-            padding: 15px;
+
+        .input-area { margin: 20px 0; }
+        input[type="text"] {
+            width: 80%;
+            padding: 12px;
+            font-size: 1.2rem;
+            border: 2px solid #ddd;
             border-radius: 8px;
-            font-size: 1rem;
-            cursor: pointer;
-            transition: all 0.2s;
+            text-align: center;
+            outline: none;
         }
-        .option-btn:hover { border-color: #007bff; background-color: #f8f9fa; }
-        .option-btn.correct { background-color: #d4edda; border-color: #28a745; color: #155724; }
-        .option-btn.wrong { background-color: #f8d7da; border-color: #dc3545; color: #721c24; }
+        input[type="text"]:focus { border-color: #007bff; }
+
+        .feedback {
+            min-height: 24px;
+            margin: 10px 0;
+            font-weight: bold;
+        }
+        .correct-msg { color: #28a745; }
+        .wrong-msg { color: #dc3545; }
+        
+        .hint-text { font-size: 0.9rem; color: #aaa; margin-top: 5px; cursor: pointer; }
 
         /* Result Screen */
         .score-display { font-size: 2rem; font-weight: bold; color: #007bff; margin: 20px 0; }
@@ -77,10 +91,16 @@
             max-height: 200px; 
             overflow-y: auto; 
             background: #f8f9fa;
-            padding: 10px;
+            padding: 15px;
             border-radius: 8px;
         }
-        .wrong-item { border-bottom: 1px solid #ddd; padding: 5px 0; font-size: 0.9rem; }
+        .wrong-item { 
+            border-bottom: 1px solid #ddd; 
+            padding: 8px 0; 
+            font-size: 0.95rem;
+            display: flex;
+            justify-content: space-between;
+        }
         .wrong-item span { font-weight: bold; color: #dc3545; }
     </style>
 </head>
@@ -88,25 +108,35 @@
 
 <div class="container">
     <div id="start-screen">
-        <h1>영어 단어 복습 퀴즈<br>(9주차 ~ 14주차)</h1>
-        <p>총 <span id="total-count">0</span>개의 단어가 있습니다.</p>
+        <h1>영어 단어 쓰기 테스트</h1>
+        <p class="subtitle">뜻을 보고 정확한 영어 스펠링을 입력하세요.<br>(9주차 ~ 14주차 통합)</p>
+        <p>총 <span id="total-count">0</span>개의 단어</p>
         <button class="btn" onclick="startQuiz('all')">전체 랜덤 시작</button>
     </div>
 
     <div id="quiz-screen">
         <div class="progress">문제 <span id="current-num">1</span> / <span id="total-num">10</span></div>
-        <div class="word-card" id="question-word">Word</div>
-        <div class="options" id="options-container">
-            </div>
+        
+        <div class="meaning-card" id="question-meaning">Meaning</div>
+        
+        <div class="input-area">
+            <input type="text" id="answer-input" placeholder="영어 단어 입력" autocomplete="off">
+            <div id="hint-display" class="hint-text" onclick="showHint()">💡 힌트 보기 (클릭)</div>
+        </div>
+
+        <div class="feedback" id="feedback-msg"></div>
+
+        <button class="btn" id="submit-btn" onclick="checkAnswer()">제출</button>
+        <button class="btn btn-secondary" id="next-btn" onclick="nextQuestion()" style="display:none;">다음 문제 &rarr;</button>
     </div>
 
     <div id="result-screen">
-        <h1>퀴즈 종료!</h1>
+        <h1>테스트 종료!</h1>
         <div class="score-display">점수: <span id="score">0</span>점</div>
         <div id="wrong-answer-section" style="display:none;">
-            <h3>틀린 단어 목록</h3>
+            <h3>틀린 단어 복습</h3>
             <div class="wrong-list" id="wrong-list"></div>
-            <button class="btn" onclick="startQuiz('review')">틀린 문제만 복습하기</button>
+            <button class="btn" onclick="startQuiz('review')">틀린 문제만 다시 풀기</button>
         </div>
         <button class="btn btn-outline" onclick="location.reload()">처음으로 돌아가기</button>
     </div>
@@ -157,11 +187,21 @@
     let currentIndex = 0;
     let score = 0;
     let wrongAnswers = [];
+    let isAnswerChecked = false;
 
-    // 초기화
     document.getElementById('total-count').innerText = vocabData.length;
 
-    // 배열 섞기 (Fisher-Yates Shuffle)
+    // 엔터키 이벤트 리스너
+    document.getElementById("answer-input").addEventListener("keypress", function(event) {
+        if (event.key === "Enter") {
+            if (!isAnswerChecked) {
+                checkAnswer();
+            } else {
+                nextQuestion();
+            }
+        }
+    });
+
     function shuffleArray(array) {
         for (let i = array.length - 1; i > 0; i--) {
             const j = Math.floor(Math.random() * (i + 1));
@@ -170,14 +210,13 @@
         return array;
     }
 
-    // 퀴즈 시작 함수
     function startQuiz(mode) {
         if (mode === 'all') {
-            currentQuestions = shuffleArray([...vocabData]); // 전체 데이터를 복사해서 섞음
-            wrongAnswers = []; // 틀린 목록 초기화
+            currentQuestions = shuffleArray([...vocabData]);
+            wrongAnswers = [];
         } else if (mode === 'review') {
-            currentQuestions = shuffleArray([...wrongAnswers]); // 틀린 것만 복사해서 섞음
-            wrongAnswers = []; // 재검증을 위해 초기화
+            currentQuestions = shuffleArray([...wrongAnswers]);
+            wrongAnswers = [];
         }
 
         currentIndex = 0;
@@ -190,7 +229,6 @@
         loadQuestion();
     }
 
-    // 문제 로드 함수
     function loadQuestion() {
         if (currentIndex >= currentQuestions.length) {
             showResult();
@@ -198,61 +236,62 @@
         }
 
         const currentData = currentQuestions[currentIndex];
+        isAnswerChecked = false;
+        
+        // UI 초기화
         document.getElementById('current-num').innerText = currentIndex + 1;
         document.getElementById('total-num').innerText = currentQuestions.length;
-        document.getElementById('question-word').innerText = currentData.w;
-
-        // 보기 생성 (정답 1개 + 오답 3개)
-        const optionsContainer = document.getElementById('options-container');
-        optionsContainer.innerHTML = '';
-
-        // 오답 후보군 만들기 (현재 정답 제외)
-        const distractors = vocabData.filter(item => item.w !== currentData.w);
-        const shuffledDistractors = shuffleArray(distractors).slice(0, 3);
+        document.getElementById('question-meaning').innerText = currentData.m;
         
-        // 정답과 오답 합치기
-        let options = [...shuffledDistractors, currentData];
-        options = shuffleArray(options);
-
-        // 버튼 렌더링
-        options.forEach(opt => {
-            const btn = document.createElement('button');
-            btn.className = 'option-btn';
-            btn.innerText = opt.m;
-            btn.onclick = () => checkAnswer(opt, currentData, btn);
-            optionsContainer.appendChild(btn);
-        });
+        const inputField = document.getElementById('answer-input');
+        inputField.value = '';
+        inputField.disabled = false;
+        inputField.focus();
+        
+        document.getElementById('feedback-msg').innerHTML = '';
+        document.getElementById('hint-display').innerText = '💡 힌트 보기 (클릭)';
+        
+        document.getElementById('submit-btn').style.display = 'inline-block';
+        document.getElementById('next-btn').style.display = 'none';
     }
 
-    // 정답 확인 함수
-    function checkAnswer(selected, correct, btnElement) {
-        const buttons = document.querySelectorAll('.option-btn');
-        // 중복 클릭 방지
-        buttons.forEach(btn => btn.onclick = null);
+    function showHint() {
+        if (isAnswerChecked) return;
+        const currentWord = currentQuestions[currentIndex].w;
+        const firstLetter = currentWord.charAt(0);
+        const length = currentWord.length;
+        document.getElementById('hint-display').innerText = `첫 글자: "${firstLetter}" (총 ${length}글자)`;
+    }
 
-        if (selected.w === correct.w) {
-            btnElement.classList.add('correct');
+    function checkAnswer() {
+        const inputField = document.getElementById('answer-input');
+        const userVal = inputField.value.trim().toLowerCase();
+        const correctVal = currentQuestions[currentIndex].w.toLowerCase();
+        const feedback = document.getElementById('feedback-msg');
+
+        if (userVal === '') return; // 빈칸이면 반응 없음
+
+        isAnswerChecked = true;
+        inputField.disabled = true;
+
+        if (userVal === correctVal) {
             score++;
+            feedback.innerHTML = '<span class="correct-msg">정답입니다! 🎉</span>';
         } else {
-            btnElement.classList.add('wrong');
-            // 틀렸을 때 정답 표시해주기
-            buttons.forEach(btn => {
-                if (btn.innerText === correct.m) btn.classList.add('correct');
-            });
-            // 틀린 목록에 추가 (중복 방지)
-            if (!wrongAnswers.some(item => item.w === correct.w)) {
-                wrongAnswers.push(correct);
-            }
+            feedback.innerHTML = `<span class="wrong-msg">오답! 정답은: <u>${currentQuestions[currentIndex].w}</u></span>`;
+            wrongAnswers.push(currentQuestions[currentIndex]);
         }
 
-        // 다음 문제로 (0.8초 딜레이)
-        setTimeout(() => {
-            currentIndex++;
-            loadQuestion();
-        }, 800);
+        document.getElementById('submit-btn').style.display = 'none';
+        document.getElementById('next-btn').style.display = 'inline-block';
+        document.getElementById('next-btn').focus(); // 엔터키 연타를 위해 포커스 이동
     }
 
-    // 결과 화면 표시
+    function nextQuestion() {
+        currentIndex++;
+        loadQuestion();
+    }
+
     function showResult() {
         document.getElementById('quiz-screen').style.display = 'none';
         document.getElementById('result-screen').style.display = 'block';
@@ -267,7 +306,7 @@
             wrongAnswers.forEach(item => {
                 const div = document.createElement('div');
                 div.className = 'wrong-item';
-                div.innerHTML = `<span>${item.w}</span> : ${item.m}`;
+                div.innerHTML = `<div>${item.m}</div><span>${item.w}</span>`;
                 wrongList.appendChild(div);
             });
         } else {
