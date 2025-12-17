@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>영어 단어 퀴즈 (9주차-14주차)</title>
+    <style>
+        body {
+            font-family: 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
+            background-color: #f0f2f5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+        .container {
+            background-color: white;
+            padding: 2rem;
+            border-radius: 15px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            width: 90%;
+            max-width: 500px;
+            text-align: center;
+        }
+        h1 { color: #333; margin-bottom: 20px; font-size: 1.5rem; }
+        .btn {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background 0.3s;
+            margin: 5px;
+        }
+        .btn:hover { background-color: #0056b3; }
+        .btn-outline {
+            background-color: white;
+            color: #007bff;
+            border: 2px solid #007bff;
+        }
+        .btn-outline:hover { background-color: #f0f8ff; }
+        
+        /* Quiz Screen */
+        #quiz-screen, #result-screen { display: none; }
+        .progress { color: #666; margin-bottom: 10px; font-size: 0.9rem; }
+        .word-card {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #2c3e50;
+            margin: 30px 0;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+        }
+        .options { display: grid; gap: 10px; }
+        .option-btn {
+            background-color: white;
+            border: 2px solid #e9ecef;
+            padding: 15px;
+            border-radius: 8px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .option-btn:hover { border-color: #007bff; background-color: #f8f9fa; }
+        .option-btn.correct { background-color: #d4edda; border-color: #28a745; color: #155724; }
+        .option-btn.wrong { background-color: #f8d7da; border-color: #dc3545; color: #721c24; }
+
+        /* Result Screen */
+        .score-display { font-size: 2rem; font-weight: bold; color: #007bff; margin: 20px 0; }
+        .wrong-list { 
+            text-align: left; 
+            margin-top: 20px; 
+            max-height: 200px; 
+            overflow-y: auto; 
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 8px;
+        }
+        .wrong-item { border-bottom: 1px solid #ddd; padding: 5px 0; font-size: 0.9rem; }
+        .wrong-item span { font-weight: bold; color: #dc3545; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div id="start-screen">
+        <h1>영어 단어 복습 퀴즈<br>(9주차 ~ 14주차)</h1>
+        <p>총 <span id="total-count">0</span>개의 단어가 있습니다.</p>
+        <button class="btn" onclick="startQuiz('all')">전체 랜덤 시작</button>
+    </div>
+
+    <div id="quiz-screen">
+        <div class="progress">문제 <span id="current-num">1</span> / <span id="total-num">10</span></div>
+        <div class="word-card" id="question-word">Word</div>
+        <div class="options" id="options-container">
+            </div>
+    </div>
+
+    <div id="result-screen">
+        <h1>퀴즈 종료!</h1>
+        <div class="score-display">점수: <span id="score">0</span>점</div>
+        <div id="wrong-answer-section" style="display:none;">
+            <h3>틀린 단어 목록</h3>
+            <div class="wrong-list" id="wrong-list"></div>
+            <button class="btn" onclick="startQuiz('review')">틀린 문제만 복습하기</button>
+        </div>
+        <button class="btn btn-outline" onclick="location.reload()">처음으로 돌아가기</button>
+    </div>
+</div>
+
+<script>
+    // 데이터: 9주차~14주차 단어 리스트
+    const vocabData = [
+        // 9주차
+        { w: "be composed of", m: "~로 구성된" }, { w: "span", m: "기간" }, 
+        { w: "consist of", m: "~로 구성되다" }, { w: "metropolitan", m: "대도시의" },
+        { w: "geometric", m: "기하학의" }, { w: "inexpensive", m: "저렴한" },
+        { w: "bottleneck", m: "병목현상" }, { w: "bandwidth", m: "대역폭" },
+        { w: "be convicted", m: "유죄 판결을 받다" },
+        // 10주차
+        { w: "security", m: "보안" }, { w: "intruder", m: "침입자" },
+        { w: "destructive", m: "파괴적인" }, { w: "effective", m: "효과적인" },
+        { w: "regulate", m: "규제하다" }, { w: "remarkably", m: "현저히" },
+        { w: "anarchy", m: "무정부의" }, { w: "suite", m: "일행" },
+        { w: "abbreviation", m: "약어" }, { w: "formatted", m: "포맷된" },
+        // 11주차
+        { w: "broadcasting", m: "방송" }, { w: "confine", m: "제한하다" },
+        { w: "enabling", m: "가능케하는" }, { w: "flexible", m: "유연한" },
+        { w: "publicize", m: "광고하다" }, { w: "objective", m: "객관적인" },
+        { w: "corruption", m: "부패" }, { w: "preservation", m: "보호" },
+        { w: "replicate", m: "복제하다" }, { w: "eavesdrop on", m: "몰래 엿듣다" },
+        // 12주차
+        { w: "regularly", m: "규칙적으로" }, { w: "well-thought-out", m: "잘 생각해낸" },
+        { w: "recipient", m: "수취인" }, { w: "facility", m: "용량" },
+        { w: "spun", m: "잣다" }, { w: "dissimilar", m: "비슷하지 않은" },
+        { w: "alter", m: "대체 하다" }, { w: "suited for", m: "~에 적합한" },
+        { w: "refinement", m: "정제" }, { w: "lax", m: "느슨한" },
+        // 13주차
+        { w: "reasoning", m: "추론" }, { w: "coined in", m: "~에서 만들어진" },
+        { w: "diagnose", m: "진단하다" }, { w: "stimuli", m: "자극" },
+        { w: "expert", m: "전문가" }, { w: "defeat", m: "패배시키다" },
+        { w: "clumsily", m: "서투르게" }, { w: "rudimentary", m: "가장 기초적인" },
+        { w: "dictation", m: "받아쓰기" }, { w: "discipline", m: "학문 분야" },
+        // 14주차
+        { w: "illness", m: "병" }, { w: "financial", m: "재정의" },
+        { w: "challenging", m: "어려운" }, { w: "elusive", m: "이해하기 힘든" },
+        { w: "progress", m: "진전" }, { w: "attempt", m: "시도하다" },
+        { w: "predict", m: "예측하다" }, { w: "prominently", m: "두드러지게" },
+        { w: "imply", m: "암시하다" }, { w: "stride", m: "성큼성큼 걷다" }
+    ];
+
+    let currentQuestions = [];
+    let currentIndex = 0;
+    let score = 0;
+    let wrongAnswers = [];
+
+    // 초기화
+    document.getElementById('total-count').innerText = vocabData.length;
+
+    // 배열 섞기 (Fisher-Yates Shuffle)
+    function shuffleArray(array) {
+        for (let i = array.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [array[i], array[j]] = [array[j], array[i]];
+        }
+        return array;
+    }
+
+    // 퀴즈 시작 함수
+    function startQuiz(mode) {
+        if (mode === 'all') {
+            currentQuestions = shuffleArray([...vocabData]); // 전체 데이터를 복사해서 섞음
+            wrongAnswers = []; // 틀린 목록 초기화
+        } else if (mode === 'review') {
+            currentQuestions = shuffleArray([...wrongAnswers]); // 틀린 것만 복사해서 섞음
+            wrongAnswers = []; // 재검증을 위해 초기화
+        }
+
+        currentIndex = 0;
+        score = 0;
+
+        document.getElementById('start-screen').style.display = 'none';
+        document.getElementById('result-screen').style.display = 'none';
+        document.getElementById('quiz-screen').style.display = 'block';
+        
+        loadQuestion();
+    }
+
+    // 문제 로드 함수
+    function loadQuestion() {
+        if (currentIndex >= currentQuestions.length) {
+            showResult();
+            return;
+        }
+
+        const currentData = currentQuestions[currentIndex];
+        document.getElementById('current-num').innerText = currentIndex + 1;
+        document.getElementById('total-num').innerText = currentQuestions.length;
+        document.getElementById('question-word').innerText = currentData.w;
+
+        // 보기 생성 (정답 1개 + 오답 3개)
+        const optionsContainer = document.getElementById('options-container');
+        optionsContainer.innerHTML = '';
+
+        // 오답 후보군 만들기 (현재 정답 제외)
+        const distractors = vocabData.filter(item => item.w !== currentData.w);
+        const shuffledDistractors = shuffleArray(distractors).slice(0, 3);
+        
+        // 정답과 오답 합치기
+        let options = [...shuffledDistractors, currentData];
+        options = shuffleArray(options);
+
+        // 버튼 렌더링
+        options.forEach(opt => {
+            const btn = document.createElement('button');
+            btn.className = 'option-btn';
+            btn.innerText = opt.m;
+            btn.onclick = () => checkAnswer(opt, currentData, btn);
+            optionsContainer.appendChild(btn);
+        });
+    }
+
+    // 정답 확인 함수
+    function checkAnswer(selected, correct, btnElement) {
+        const buttons = document.querySelectorAll('.option-btn');
+        // 중복 클릭 방지
+        buttons.forEach(btn => btn.onclick = null);
+
+        if (selected.w === correct.w) {
+            btnElement.classList.add('correct');
+            score++;
+        } else {
+            btnElement.classList.add('wrong');
+            // 틀렸을 때 정답 표시해주기
+            buttons.forEach(btn => {
+                if (btn.innerText === correct.m) btn.classList.add('correct');
+            });
+            // 틀린 목록에 추가 (중복 방지)
+            if (!wrongAnswers.some(item => item.w === correct.w)) {
+                wrongAnswers.push(correct);
+            }
+        }
+
+        // 다음 문제로 (0.8초 딜레이)
+        setTimeout(() => {
+            currentIndex++;
+            loadQuestion();
+        }, 800);
+    }
+
+    // 결과 화면 표시
+    function showResult() {
+        document.getElementById('quiz-screen').style.display = 'none';
+        document.getElementById('result-screen').style.display = 'block';
+        document.getElementById('score').innerText = Math.round((score / currentQuestions.length) * 100);
+
+        const wrongSection = document.getElementById('wrong-answer-section');
+        const wrongList = document.getElementById('wrong-list');
+        
+        if (wrongAnswers.length > 0) {
+            wrongSection.style.display = 'block';
+            wrongList.innerHTML = '';
+            wrongAnswers.forEach(item => {
+                const div = document.createElement('div');
+                div.className = 'wrong-item';
+                div.innerHTML = `<span>${item.w}</span> : ${item.m}`;
+                wrongList.appendChild(div);
+            });
+        } else {
+            wrongSection.style.display = 'none';
+        }
+    }
+</script>
+
+</body>
+</html>
