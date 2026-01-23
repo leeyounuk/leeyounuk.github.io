@@ -1,0 +1,798 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>프로그래밍기능사 - 네트워크 집중 모의고사</title>
+    <style>
+        :root { --primary: #7c3aed; --correct: #22c55e; --wrong: #ef4444; --bg: #f5f3ff; }
+        body { font-family: 'Pretendard', 'Malgun Gothic', sans-serif; background: var(--bg); color: #333; margin: 0; padding: 20px; display: flex; justify-content: center; line-height: 1.6; }
+        .container { max-width: 720px; width: 100%; background: white; border-radius: 16px; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); padding: 30px; }
+        h1 { font-size: 1.6rem; color: var(--primary); text-align: center; margin-bottom: 25px; border-bottom: 2px solid #ddd6fe; padding-bottom: 15px; }
+        .status-bar { display: flex; justify-content: space-between; margin-bottom: 20px; font-weight: bold; color: #57606a; background: #f3f4f6; padding: 10px 15px; border-radius: 8px; }
+        .question-text { font-size: 1.15rem; font-weight: 700; margin-bottom: 15px; word-break: keep-all; }
+        .code-box { background: #1e293b; color: #e2e8f0; padding: 15px; border-radius: 8px; font-family: 'Consolas', monospace; font-size: 0.95rem; margin: 10px 0 20px; white-space: pre-wrap; overflow-x: auto; position: relative; }
+        .options-grid { display: grid; gap: 10px; }
+        .option-btn { padding: 16px; border: 2px solid #e2e8f0; background: white; border-radius: 10px; cursor: pointer; text-align: left; font-size: 1rem; transition: all 0.2s; position: relative; }
+        .option-btn:hover:not(:disabled) { border-color: var(--primary); background: #f5f3ff; }
+        .option-btn.correct { border-color: var(--correct); background: #dcfce7; color: #14532d; font-weight: bold; }
+        .option-btn.wrong { border-color: var(--wrong); background: #fee2e2; color: #7f1d1d; }
+        .option-btn.correct::after { content: "✅"; position: absolute; right: 15px; }
+        .option-btn.wrong::after { content: "❌"; position: absolute; right: 15px; }
+        .feedback-area { margin-top: 25px; padding: 20px; border-radius: 12px; background: #f8fafc; border: 1px solid #e2e8f0; display: none; animation: fadeIn 0.3s; }
+        .feedback-title { font-weight: bold; color: var(--primary); margin-bottom: 5px; display: block; }
+        .btn { background: var(--primary); color: white; padding: 14px 28px; border: none; border-radius: 8px; cursor: pointer; font-size: 1rem; font-weight: bold; transition: opacity 0.2s; width: 100%; margin-top: 20px; }
+        .btn:hover { opacity: 0.9; }
+        .hidden { display: none; }
+        .score-box { text-align: center; padding: 50px 20px; }
+        .score-number { font-size: 4rem; font-weight: 800; color: var(--primary); margin: 20px 0; }
+        
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        
+        @media (max-width: 600px) {
+            .container { padding: 20px; }
+            h1 { font-size: 1.3rem; }
+            .option-btn { padding: 14px; font-size: 0.95rem; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div id="quiz-view">
+        <h1>네트워크 & 정보통신 집중대비</h1>
+        <div class="status-bar">
+            <span id="progress">문제 1 / 60</span>
+            <span id="score">현재 점수: 0</span>
+        </div>
+        
+        <div class="question-box">
+            <div id="question-content"></div>
+        </div>
+        
+        <div class="options-grid" id="options"></div>
+        
+        <div class="feedback-area" id="feedback">
+            <span class="feedback-title">💡 해설 및 정답</span>
+            <div id="explanation"></div>
+            <button class="btn" id="next-btn" onclick="nextQuestion()">다음 문제 ➔</button>
+        </div>
+    </div>
+
+    <div id="result-view" class="hidden score-box">
+        <h2>시험 종료! 수고하셨습니다.</h2>
+        <div class="score-number" id="final-score">0점</div>
+        <p>총 60문제 중 <span id="correct-count" style="font-weight:bold; color:var(--primary)">0</span>개를 맞췄습니다.</p>
+        <p id="pass-fail" style="font-size: 1.2rem; font-weight: bold; margin-top: 20px;"></p>
+        <button class="btn" onclick="location.reload()">다시 풀기 (문제 섞기)</button>
+    </div>
+</div>
+
+<script>
+    // 네트워크 집중 모의고사 데이터 (60문제)
+    const rawData = [
+        // 1. OSI 7계층 기초
+        {
+            q: "OSI 7계층 중 물리적 전송 매체를 통해 비트(Bit) 단위의 데이터를 전송하는 계층은?",
+            a: [
+                { text: "물리 계층 (Physical Layer)", isCorrect: true },
+                { text: "데이터 링크 계층", isCorrect: false },
+                { text: "네트워크 계층", isCorrect: false },
+                { text: "전송 계층", isCorrect: false }
+            ],
+            desc: "물리 계층은 케이블, 리피터 등을 이용해 0과 1의 비트 정보를 회선을 통해 전송합니다."
+        },
+        {
+            q: "OSI 7계층 중 인접한 두 시스템 간의 신뢰성 있는 정보 전송을 담당하며, '프레임(Frame)' 단위를 사용하는 계층은?",
+            a: [
+                { text: "물리 계층", isCorrect: false },
+                { text: "데이터 링크 계층 (Data Link Layer)", isCorrect: true },
+                { text: "세션 계층", isCorrect: false },
+                { text: "표현 계층", isCorrect: false }
+            ],
+            desc: "데이터 링크 계층은 프레임 전송, 흐름 제어, 오류 제어를 담당하며 MAC 주소를 사용합니다."
+        },
+        {
+            q: "OSI 7계층 중 경로 설정(Routing)을 담당하며, 패킷(Packet)을 목적지까지 전송하는 역할을 하는 계층은?",
+            a: [
+                { text: "전송 계층", isCorrect: false },
+                { text: "네트워크 계층 (Network Layer)", isCorrect: true },
+                { text: "데이터 링크 계층", isCorrect: false },
+                { text: "응용 계층", isCorrect: false }
+            ],
+            desc: "네트워크 계층은 라우팅 프로토콜을 이용해 최적의 경로를 설정합니다. (IP가 대표적)"
+        },
+        {
+            q: "OSI 7계층 중 종단(End-to-End) 간의 신뢰성 있는 데이터 전송을 담당하며, TCP와 UDP 프로토콜이 동작하는 계층은?",
+            a: [
+                { text: "전송 계층 (Transport Layer)", isCorrect: true },
+                { text: "세션 계층", isCorrect: false },
+                { text: "네트워크 계층", isCorrect: false },
+                { text: "데이터 링크 계층", isCorrect: false }
+            ],
+            desc: "전송 계층은 오류 복구와 흐름 제어를 통해 신뢰성 있는 전송을 보장합니다."
+        },
+        {
+            q: "OSI 7계층 중 데이터의 암호화, 압축, 코드 변환 등을 담당하여 상호 간에 이해할 수 있는 형태로 만드는 계층은?",
+            a: [
+                { text: "세션 계층", isCorrect: false },
+                { text: "표현 계층 (Presentation Layer)", isCorrect: true },
+                { text: "응용 계층", isCorrect: false },
+                { text: "전송 계층", isCorrect: false }
+            ],
+            desc: "표현 계층은 데이터의 형식(Format)을 정의하고 변환(압축/암호화)합니다."
+        },
+        
+        // 2. TCP/IP 프로토콜
+        {
+            q: "TCP/IP 프로토콜 중 연결 지향형 서비스를 제공하며, 신뢰성 있는 데이터 전송을 보장하는 프로토콜은?",
+            a: [
+                { text: "IP", isCorrect: false },
+                { text: "UDP", isCorrect: false },
+                { text: "TCP", isCorrect: true },
+                { text: "ICMP", isCorrect: false }
+            ],
+            desc: "TCP(Transmission Control Protocol)는 연결형, 신뢰성, 흐름 제어 등의 특징을 가집니다."
+        },
+        {
+            q: "TCP/IP 프로토콜 중 비연결형 서비스를 제공하며, 전송 속도가 빠르지만 신뢰성을 보장하지 않는 프로토콜은?",
+            a: [
+                { text: "TCP", isCorrect: false },
+                { text: "UDP", isCorrect: true },
+                { text: "FTP", isCorrect: false },
+                { text: "SMTP", isCorrect: false }
+            ],
+            desc: "UDP(User Datagram Protocol)는 실시간 방송, 온라인 게임 등 속도가 중요한 서비스에 주로 사용됩니다."
+        },
+        {
+            q: "IP 주소를 MAC 주소(물리적 주소)로 변환해주는 프로토콜은?",
+            a: [
+                { text: "ARP", isCorrect: true },
+                { text: "RARP", isCorrect: false },
+                { text: "ICMP", isCorrect: false },
+                { text: "DHCP", isCorrect: false }
+            ],
+            desc: "ARP(Address Resolution Protocol)는 논리 주소(IP)를 물리 주소(MAC)로 변환합니다."
+        },
+        {
+            q: "MAC 주소를 이용하여 IP 주소를 알아내는(역변환) 프로토콜은?",
+            a: [
+                { text: "ARP", isCorrect: false },
+                { text: "RARP", isCorrect: true },
+                { text: "DNS", isCorrect: false },
+                { text: "SNMP", isCorrect: false }
+            ],
+            desc: "RARP(Reverse ARP)는 물리 주소(MAC)를 논리 주소(IP)로 변환합니다."
+        },
+        {
+            q: "인터넷 제어 메시지 프로토콜로, 통신 중 발생하는 오류 처리와 전송 경로 변경 등의 제어 메시지를 관리하는 것은?",
+            a: [
+                { text: "ICMP", isCorrect: true },
+                { text: "IGMP", isCorrect: false },
+                { text: "SNMP", isCorrect: false },
+                { text: "UDP", isCorrect: false }
+            ],
+            desc: "ICMP(Internet Control Message Protocol)는 Ping 명령어 등에 사용되며 오류 보고를 담당합니다."
+        },
+
+        // 3. 응용 계층 프로토콜 및 포트
+        {
+            q: "인터넷 상에서 하이퍼텍스트 문서를 전송하기 위해 사용되는 프로토콜은?",
+            a: [
+                { text: "FTP", isCorrect: false },
+                { text: "HTTP", isCorrect: true },
+                { text: "SMTP", isCorrect: false },
+                { text: "Telnet", isCorrect: false }
+            ],
+            desc: "HTTP(HyperText Transfer Protocol)는 웹 문서를 전송하는 표준 프로토콜입니다."
+        },
+        {
+            q: "파일 전송을 위한 표준 프로토콜로, 기본 포트 21번을 사용하는 것은?",
+            a: [
+                { text: "HTTP", isCorrect: false },
+                { text: "FTP", isCorrect: true },
+                { text: "SMTP", isCorrect: false },
+                { text: "SNMP", isCorrect: false }
+            ],
+            desc: "FTP(File Transfer Protocol)는 파일 전송용 프로토콜입니다."
+        },
+        {
+            q: "이메일(E-mail)을 송신할 때 주로 사용되는 프로토콜은?",
+            a: [
+                { text: "POP3", isCorrect: false },
+                { text: "IMAP", isCorrect: false },
+                { text: "SMTP", isCorrect: true },
+                { text: "SNMP", isCorrect: false }
+            ],
+            desc: "SMTP(Simple Mail Transfer Protocol)는 메일 전송, POP3/IMAP은 메일 수신에 사용됩니다."
+        },
+        {
+            q: "네트워크 관리 및 감시를 위해 사용되는 프로토콜은?",
+            a: [
+                { text: "SNMP", isCorrect: true },
+                { text: "SMTP", isCorrect: false },
+                { text: "HTTP", isCorrect: false },
+                { text: "DHCP", isCorrect: false }
+            ],
+            desc: "SNMP(Simple Network Management Protocol)는 네트워크 장비 관리에 사용됩니다."
+        },
+        {
+            q: "도메인 이름(www.naver.com 등)을 IP 주소로 변환해주는 시스템은?",
+            a: [
+                { text: "DNS", isCorrect: true },
+                { text: "DHCP", isCorrect: false },
+                { text: "URL", isCorrect: false },
+                { text: "HTTP", isCorrect: false }
+            ],
+            desc: "DNS(Domain Name System)는 문자열 도메인을 IP 주소로 매핑해줍니다."
+        },
+
+        // 4. IP 주소 체계 (IPv4, IPv6)
+        {
+            q: "IPv4 주소 체계는 총 몇 비트로 구성되어 있는가?",
+            a: [
+                { text: "32비트", isCorrect: true },
+                { text: "64비트", isCorrect: false },
+                { text: "128비트", isCorrect: false },
+                { text: "256비트", isCorrect: false }
+            ],
+            desc: "IPv4는 8비트씩 4부분, 총 32비트로 구성됩니다."
+        },
+        {
+            q: "IPv6 주소 체계는 총 몇 비트로 구성되어 있는가?",
+            a: [
+                { text: "32비트", isCorrect: false },
+                { text: "64비트", isCorrect: false },
+                { text: "128비트", isCorrect: true },
+                { text: "256비트", isCorrect: false }
+            ],
+            desc: "IPv6는 16비트씩 8부분, 총 128비트로 구성되어 주소 부족 문제를 해결합니다."
+        },
+        {
+            q: "IPv4의 C 클래스(Class C) 네트워크가 가질 수 있는 기본 서브넷 마스크는?",
+            a: [
+                { text: "255.0.0.0", isCorrect: false },
+                { text: "255.255.0.0", isCorrect: false },
+                { text: "255.255.255.0", isCorrect: true },
+                { text: "255.255.255.255", isCorrect: false }
+            ],
+            desc: "A클래스: 255.0.0.0, B클래스: 255.255.0.0, C클래스: 255.255.255.0 입니다."
+        },
+        {
+            q: "IPv6에 대한 설명으로 틀린 것은?",
+            a: [
+                { text: "128비트 주소 체계이다.", isCorrect: false },
+                { text: "보안 기능이 강화되었다.", isCorrect: false },
+                { text: "주소 자동 설정 기능을 제공한다.", isCorrect: false },
+                { text: "브로드캐스트(Broadcast) 전송 방식을 주로 사용한다.", isCorrect: true }
+            ],
+            desc: "IPv6는 브로드캐스트를 지원하지 않으며, 대신 애니캐스트(Anycast), 멀티캐스트, 유니캐스트를 사용합니다."
+        },
+        {
+            q: "다음 중 IPv4 주소 클래스 범위가 올바르게 짝지어진 것은?",
+            a: [
+                { text: "A Class: 0 ~ 127", isCorrect: true },
+                { text: "B Class: 128 ~ 200", isCorrect: false },
+                { text: "C Class: 200 ~ 240", isCorrect: false },
+                { text: "D Class: 240 ~ 255", isCorrect: false }
+            ],
+            desc: "A: 0~127, B: 128~191, C: 192~223 입니다."
+        },
+
+        // 5. 네트워크 장비 및 토폴로지
+        {
+            q: "OSI 7계층 중 물리 계층 장비로, 신호를 증폭하여 먼 거리로 전송하는 장치는?",
+            a: [
+                { text: "리피터 (Repeater)", isCorrect: true },
+                { text: "브리지 (Bridge)", isCorrect: false },
+                { text: "라우터 (Router)", isCorrect: false },
+                { text: "게이트웨이 (Gateway)", isCorrect: false }
+            ],
+            desc: "리피터는 감쇠된 신호를 증폭/재생하여 전송 거리를 연장합니다."
+        },
+        {
+            q: "네트워크 계층의 장비로, 최적의 경로를 설정하여 패킷을 전달하는 장치는?",
+            a: [
+                { text: "허브", isCorrect: false },
+                { text: "브리지", isCorrect: false },
+                { text: "라우터 (Router)", isCorrect: true },
+                { text: "리피터", isCorrect: false }
+            ],
+            desc: "라우터는 IP 주소를 바탕으로 경로를 지정(Routing)합니다."
+        },
+        {
+            q: "중앙에 호스트 컴퓨터가 있고 분산된 단말기들이 일대일로 연결된 형태의 네트워크 토폴로지는?",
+            a: [
+                { text: "성형 (Star)", isCorrect: true },
+                { text: "링형 (Ring)", isCorrect: false },
+                { text: "버스형 (Bus)", isCorrect: false },
+                { text: "망형 (Mesh)", isCorrect: false }
+            ],
+            desc: "중앙 집중식 구조는 성형(Star Topology)입니다. 중앙 장애 시 전체 마비가 되는 단점이 있습니다."
+        },
+        {
+            q: "한 통신 회선에 여러 대의 단말기가 연결되어 있는 형태로, 구조가 간단하고 증설이 용이한 토폴로지는?",
+            a: [
+                { text: "성형", isCorrect: false },
+                { text: "버스형 (Bus)", isCorrect: true },
+                { text: "링형", isCorrect: false },
+                { text: "트리형", isCorrect: false }
+            ],
+            desc: "버스형은 하나의 공통 회선을 공유하는 방식입니다."
+        },
+        {
+            q: "모든 노드가 서로 연결되어 있어 신뢰성이 가장 높지만, 회선 비용이 가장 많이 드는 토폴로지는?",
+            a: [
+                { text: "성형", isCorrect: false },
+                { text: "버스형", isCorrect: false },
+                { text: "망형 (Mesh)", isCorrect: true },
+                { text: "트리형", isCorrect: false }
+            ],
+            desc: "망형은 우회 경로가 많아 장애에 강하지만 구축 비용이 비쌉니다. (회선 수 = n(n-1)/2)"
+        },
+
+        // 6. 데이터 통신 기초 및 기술
+        {
+            q: "데이터 전송 방식 중 한쪽 방향으로만 전송이 가능한 방식은? (예: TV, 라디오)",
+            a: [
+                { text: "단방향 (Simplex)", isCorrect: true },
+                { text: "반이중 (Half Duplex)", isCorrect: false },
+                { text: "전이중 (Full Duplex)", isCorrect: false },
+                { text: "혼합형", isCorrect: false }
+            ],
+            desc: "단방향: TV/라디오, 반이중: 무전기, 전이중: 전화기."
+        },
+        {
+            q: "데이터 전송 방식 중 양쪽 방향 전송이 가능하지만, 동시에 전송할 수는 없는 방식은? (예: 무전기)",
+            a: [
+                { text: "단방향", isCorrect: false },
+                { text: "반이중 (Half Duplex)", isCorrect: true },
+                { text: "전이중", isCorrect: false },
+                { text: "쿼드러플", isCorrect: false }
+            ],
+            desc: "반이중 방식은 1차선 도로와 같아서 동시 송수신이 불가능합니다."
+        },
+        {
+            q: "LAN의 매체 접근 제어 방식 중 이더넷(Ethernet)에서 사용하는 방식은?",
+            a: [
+                { text: "CSMA/CD", isCorrect: true },
+                { text: "Token Ring", isCorrect: false },
+                { text: "Token Bus", isCorrect: false },
+                { text: "Slotted Ring", isCorrect: false }
+            ],
+            desc: "CSMA/CD(Carrier Sense Multiple Access / Collision Detection)는 충돌을 감지하고 재전송하는 방식입니다."
+        },
+        {
+            q: "데이터 교환 방식 중, 데이터를 일정한 길이의 패킷으로 잘라서 전송하며 저장-전송 방식을 사용하는 것은?",
+            a: [
+                { text: "회선 교환 (Circuit Switching)", isCorrect: false },
+                { text: "패킷 교환 (Packet Switching)", isCorrect: true },
+                { text: "메시지 교환", isCorrect: false },
+                { text: "공간 분할 교환", isCorrect: false }
+            ],
+            desc: "인터넷은 대표적인 패킷 교환 방식을 사용합니다. 회선 교환은 전화망에서 주로 사용됩니다."
+        },
+        {
+            q: "수신 측에서 데이터의 오류를 검출만 하고, 송신 측에 재전송을 요청하는 오류 제어 방식은?",
+            a: [
+                { text: "FEC (전진 오류 수정)", isCorrect: false },
+                { text: "ARQ (자동 반복 요청)", isCorrect: true },
+                { text: "Parity Check", isCorrect: false },
+                { text: "Hamming Code", isCorrect: false }
+            ],
+            desc: "ARQ(Automatic Repeat Request)는 오류 발생 시 재전송을 요청하는 기법입니다. (Stop-and-Wait, Go-Back-N 등)"
+        },
+
+        // 7. 기타 및 혼합 문제
+        {
+            q: "다음 중 사설 IP 주소(Private IP) 대역에 해당하지 않는 것은?",
+            a: [
+                { text: "10.0.0.1", isCorrect: false },
+                { text: "172.16.0.1", isCorrect: false },
+                { text: "192.168.0.1", isCorrect: false },
+                { text: "203.230.10.1", isCorrect: true }
+            ],
+            desc: "203.x.x.x 대역은 공인 IP 주소입니다. 사설 IP: 10.x, 172.16~31.x, 192.168.x"
+        },
+        {
+            q: "서로 다른 종류의 네트워크(프로토콜이 전혀 다른 망)를 연결할 때 사용하는 장비는?",
+            a: [
+                { text: "리피터", isCorrect: false },
+                { text: "브리지", isCorrect: false },
+                { text: "라우터", isCorrect: false },
+                { text: "게이트웨이 (Gateway)", isCorrect: true }
+            ],
+            desc: "게이트웨이는 전 계층(1~7계층)의 프로토콜 변환을 수행하여 이종 네트워크를 연결합니다."
+        },
+        {
+            q: "TCP 헤더에 포함되지 않는 정보는?",
+            a: [
+                { text: "Source Port", isCorrect: false },
+                { text: "Sequence Number", isCorrect: false },
+                { text: "Checksum", isCorrect: false },
+                { text: "Source IP Address", isCorrect: true }
+            ],
+            desc: "IP 주소는 IP 헤더에 포함됩니다. TCP 헤더에는 포트 번호가 들어갑니다."
+        },
+        {
+            q: "Ping 명령어가 사용하는 프로토콜로, 네트워크 도달 가능성을 확인하는 데 쓰이는 것은?",
+            a: [
+                { text: "TCP", isCorrect: false },
+                { text: "ARP", isCorrect: false },
+                { text: "ICMP", isCorrect: true },
+                { text: "UDP", isCorrect: false }
+            ],
+            desc: "Ping은 ICMP의 Echo Request/Reply 메시지를 사용합니다."
+        },
+        {
+            q: "클래스 A 네트워크의 기본 서브넷 마스크는?",
+            a: [
+                { text: "255.0.0.0", isCorrect: true },
+                { text: "255.255.0.0", isCorrect: false },
+                { text: "255.255.255.0", isCorrect: false },
+                { text: "0.0.0.0", isCorrect: false }
+            ],
+            desc: "Class A: 255.0.0.0 (/8)"
+        },
+        {
+            q: "다음 중 무선 랜(WLAN) 표준 규격은?",
+            a: [
+                { text: "IEEE 802.3", isCorrect: false },
+                { text: "IEEE 802.5", isCorrect: false },
+                { text: "IEEE 802.11", isCorrect: true },
+                { text: "IEEE 802.15", isCorrect: false }
+            ],
+            desc: "802.3: 이더넷, 802.5: 토큰링, 802.11: 무선랜(Wi-Fi), 802.15: 블루투스/지그비."
+        },
+        {
+            q: "데이터 전송 시 오류 검출을 위해 데이터에 추가적인 비트(패리티 등)를 붙여 보내고, 수신 측에서 스스로 오류를 정정(Correction)할 수 있는 코드는?",
+            a: [
+                { text: "패리티 비트", isCorrect: false },
+                { text: "해밍 코드 (Hamming Code)", isCorrect: true },
+                { text: "체크섬", isCorrect: false },
+                { text: "CRC", isCorrect: false }
+            ],
+            desc: "해밍 코드는 1비트의 오류를 검출하고 교정(수정)할 수 있습니다."
+        },
+        {
+            q: "윈도우 명령 프롬프트에서 자신의 IP 주소와 MAC 주소 등 네트워크 설정 정보를 확인하는 명령어는?",
+            a: [
+                { text: "ipconfig /all", isCorrect: true },
+                { text: "ping", isCorrect: false },
+                { text: "nslookup", isCorrect: false },
+                { text: "netstat", isCorrect: false }
+            ],
+            desc: "ipconfig는 IP설정 확인, /all 옵션 사용 시 MAC 주소까지 확인 가능합니다."
+        },
+        {
+            q: "목적지까지의 패킷 이동 경로를 추적하는 명령어는? (Windows 기준)",
+            a: [
+                { text: "ping", isCorrect: false },
+                { text: "tracert", isCorrect: true },
+                { text: "route", isCorrect: false },
+                { text: "netstat", isCorrect: false }
+            ],
+            desc: "Windows: tracert, Unix/Linux: traceroute."
+        },
+        {
+            q: "현재 열려 있는 포트와 연결 상태(Listening, Established 등)를 확인하는 명령어는?",
+            a: [
+                { text: "ipconfig", isCorrect: false },
+                { text: "netstat", isCorrect: true },
+                { text: "nslookup", isCorrect: false },
+                { text: "arp", isCorrect: false }
+            ],
+            desc: "netstat (Network Statistics) 명령어로 네트워크 연결 상태를 확인합니다."
+        },
+        {
+            q: "128.0.0.0 ~ 191.255.255.255 범위의 IP 주소를 가지는 클래스는?",
+            a: [
+                { text: "A Class", isCorrect: false },
+                { text: "B Class", isCorrect: true },
+                { text: "C Class", isCorrect: false },
+                { text: "D Class", isCorrect: false }
+            ],
+            desc: "B 클래스는 첫 옥텟이 128~191 범위입니다."
+        },
+        {
+            q: "통신 프로토콜의 3대 기본 요소가 아닌 것은?",
+            a: [
+                { text: "구문 (Syntax)", isCorrect: false },
+                { text: "의미 (Semantics)", isCorrect: false },
+                { text: "순서 (Timing)", isCorrect: false },
+                { text: "처리 (Process)", isCorrect: true }
+            ],
+            desc: "프로토콜의 3요소: 구문, 의미, 타이밍(순서)."
+        },
+        {
+            q: "데이터 링크 계층에서 오류 제어를 위해 사용하는 방식 중, 다항식 코드를 사용하여 오류를 검출하는 방식은?",
+            a: [
+                { text: "Parity Bit", isCorrect: false },
+                { text: "CRC (순환 중복 검사)", isCorrect: true },
+                { text: "Block Sum", isCorrect: false },
+                { text: "Hamming Code", isCorrect: false }
+            ],
+            desc: "CRC(Cyclic Redundancy Check)는 집단 오류 검출 능력이 뛰어나 LAN 등에서 주로 사용됩니다."
+        },
+        {
+            q: "다음 중 라우팅 프로토콜(Routing Protocol)에 해당하지 않는 것은?",
+            a: [
+                { text: "RIP", isCorrect: false },
+                { text: "OSPF", isCorrect: false },
+                { text: "BGP", isCorrect: false },
+                { text: "SMTP", isCorrect: true }
+            ],
+            desc: "SMTP는 이메일 전송 프로토콜입니다. 나머지는 경로 설정을 위한 라우팅 프로토콜입니다."
+        },
+        {
+            q: "RIP(Routing Information Protocol)에 대한 설명으로 옳은 것은?",
+            a: [
+                { text: "거리 벡터(Distance Vector) 알고리즘을 사용한다.", isCorrect: true },
+                { text: "링크 상태(Link State) 알고리즘을 사용한다.", isCorrect: false },
+                { text: "대규모 네트워크에 적합하다.", isCorrect: false },
+                { text: "홉(Hop) 수 제한이 없다.", isCorrect: false }
+            ],
+            desc: "RIP는 거리 벡터 방식이며, 최대 홉 수가 15로 제한되어 소규모 네트워크에 적합합니다."
+        },
+        {
+            q: "OSI 7계층 모델을 제안한 국제 표준화 기구는?",
+            a: [
+                { text: "IEEE", isCorrect: false },
+                { text: "ISO", isCorrect: true },
+                { text: "ANSI", isCorrect: false },
+                { text: "EIA", isCorrect: false }
+            ],
+            desc: "ISO(International Organization for Standardization)에서 OSI 모델을 제정했습니다."
+        },
+        {
+            q: "정보의 전송 속도를 나타내는 단위로, 1초 동안 전송된 비트 수를 의미하는 것은?",
+            a: [
+                { text: "Baud", isCorrect: false },
+                { text: "bps (bits per second)", isCorrect: true },
+                { text: "Hz", isCorrect: false },
+                { text: "MIPS", isCorrect: false }
+            ],
+            desc: "bps는 data transfer rate의 단위입니다. Baud는 변조 속도 단위입니다."
+        },
+        {
+            q: "PCM(펄스 코드 변조)의 과정 순서가 올바른 것은?",
+            a: [
+                { text: "표본화 -> 부호화 -> 양자화 -> 복호화", isCorrect: false },
+                { text: "표본화 -> 양자화 -> 부호화 -> 복호화", isCorrect: true },
+                { text: "양자화 -> 표본화 -> 부호화 -> 복호화", isCorrect: false },
+                { text: "부호화 -> 양자화 -> 표본화 -> 복호화", isCorrect: false }
+            ],
+            desc: "송신측: 표본화(Sampling) -> 양자화(Quantization) -> 부호화(Encoding)."
+        },
+        {
+            q: "전송하려는 신호 대역폭이 전송 매체의 대역폭보다 클 때, 하나의 회선을 여러 채널로 나누어 동시에 전송하는 기술은?",
+            a: [
+                { text: "다중화 (Multiplexing)", isCorrect: true },
+                { text: "집중화", isCorrect: false },
+                { text: "변조", isCorrect: false },
+                { text: "복조", isCorrect: false }
+            ],
+            desc: "다중화(MUX)는 하나의 물리적 회선을 여러 논리적 채널로 공유합니다."
+        },
+        {
+            q: "주파수 분할 다중화(FDM)에서 채널 간의 간섭을 막기 위해 설정하는 여유 대역폭은?",
+            a: [
+                { text: "가드 밴드 (Guard Band)", isCorrect: true },
+                { text: "브로드 밴드", isCorrect: false },
+                { text: "베이스 밴드", isCorrect: false },
+                { text: "사이드 밴드", isCorrect: false }
+            ],
+            desc: "인접 채널 간 간섭 방지를 위한 보호 대역을 가드 밴드라고 합니다."
+        },
+        {
+            q: "동기식 전송 방식(Synchronous)에 대한 설명으로 틀린 것은?",
+            a: [
+                { text: "블록(프레임) 단위로 전송한다.", isCorrect: false },
+                { text: "전송 속도가 빠르고 효율이 높다.", isCorrect: false },
+                { text: "시작 비트(Start bit)와 정지 비트(Stop bit)를 사용한다.", isCorrect: true },
+                { text: "주로 원거리 대량 전송에 사용된다.", isCorrect: false }
+            ],
+            desc: "Start/Stop 비트를 사용하는 것은 '비동기식 전송'입니다."
+        },
+        {
+            q: "VAN(Value Added Network)의 우리말 용어는?",
+            a: [
+                { text: "근거리 통신망", isCorrect: false },
+                { text: "부가가치 통신망", isCorrect: true },
+                { text: "광대역 통신망", isCorrect: false },
+                { text: "종합 정보 통신망", isCorrect: false }
+            ],
+            desc: "회선을 임대하여 정보를 가공/축적/처리하여 부가가치를 부여한 통신망입니다."
+        },
+        {
+            q: "IoT(사물인터넷) 환경에서 저전력, 저속도 근거리 무선 통신을 위한 프로토콜은?",
+            a: [
+                { text: "Zigbee", isCorrect: true },
+                { text: "Wi-Fi", isCorrect: false },
+                { text: "LTE", isCorrect: false },
+                { text: "Fiber Optic", isCorrect: false }
+            ],
+            desc: "지그비(Zigbee)는 홈 오토메이션 등에 사용되는 저전력 무선 통신 규격입니다."
+        },
+        {
+            q: "OSI 7계층 중 가장 하위에 위치하며 기계적, 전기적 특성을 정의하는 계층은?",
+            a: [
+                { text: "물리 계층", isCorrect: true },
+                { text: "데이터 링크 계층", isCorrect: false },
+                { text: "네트워크 계층", isCorrect: false },
+                { text: "전송 계층", isCorrect: false }
+            ],
+            desc: "1계층인 물리 계층에 대한 설명입니다."
+        },
+        {
+            q: "다음 중 패킷 교환 방식의 특징이 아닌 것은?",
+            a: [
+                { text: "데이터를 패킷 단위로 전송한다.", isCorrect: false },
+                { text: "저장 후 전송(Store and Forward) 방식을 사용한다.", isCorrect: false },
+                { text: "회선을 독점하여 사용한다.", isCorrect: true },
+                { text: "전송량이 많을 경우 지연이 발생할 수 있다.", isCorrect: false }
+            ],
+            desc: "회선을 독점하는 것은 '회선 교환 방식'입니다. 패킷 교환은 회선을 공유합니다."
+        },
+        {
+            q: "URL(Uniform Resource Locator)의 일반적인 형식이 올바른 것은?",
+            a: [
+                { text: "프로토콜://호스트주소:포트/파일경로", isCorrect: true },
+                { text: "호스트주소://프로토콜/파일경로", isCorrect: false },
+                { text: "파일경로://호스트주소:프로토콜", isCorrect: false },
+                { text: "프로토콜@호스트주소/파일경로", isCorrect: false }
+            ],
+            desc: "예: http://www.example.com:80/index.html"
+        },
+        {
+            q: "다음 중 서브넷 마스크(Subnet Mask)의 주된 목적은?",
+            a: [
+                { text: "IP 주소와 MAC 주소를 구분하기 위해", isCorrect: false },
+                { text: "네트워크 ID와 호스트 ID를 구분하기 위해", isCorrect: true },
+                { text: "오류를 검출하기 위해", isCorrect: false },
+                { text: "전송 속도를 높이기 위해", isCorrect: false }
+            ],
+            desc: "서브넷 마스크는 IP 주소에서 어디까지가 네트워크 부분인지 식별하는 역할을 합니다."
+        },
+        {
+            q: "동적 호스트 구성 프로토콜로, 클라이언트에게 자동으로 IP 주소, 게이트웨이 등을 할당해주는 프로토콜은?",
+            a: [
+                { text: "DHCP (Dynamic Host Configuration Protocol)", isCorrect: true },
+                { text: "DNS", isCorrect: false },
+                { text: "ARP", isCorrect: false },
+                { text: "HTTP", isCorrect: false }
+            ],
+            desc: "DHCP 서버는 IP 주소를 자동으로 임대해줍니다."
+        },
+        {
+            q: "다음 중 브리지(Bridge)의 기능으로 가장 적절한 것은?",
+            a: [
+                { text: "서로 다른 네트워크 계층 프로토콜을 변환한다.", isCorrect: false },
+                { text: "같은 프로토콜을 사용하는 두 개의 LAN을 연결한다.", isCorrect: true },
+                { text: "최적의 경로를 설정한다.", isCorrect: false },
+                { text: "신호를 증폭한다.", isCorrect: false }
+            ],
+            desc: "브리지는 데이터 링크 계층 장비로, 동일한 LAN을 연결하거나 세그먼트를 분리합니다."
+        },
+        {
+            q: "IPv6의 주소 표현 방식은?",
+            a: [
+                { text: "10진수", isCorrect: false },
+                { text: "8진수", isCorrect: false },
+                { text: "16진수", isCorrect: true },
+                { text: "2진수", isCorrect: false }
+            ],
+            desc: "IPv6는 16진수로 표현하며 콜론(:)으로 구분합니다. (예: 2001:0db8:...)"
+        }
+    ];
+
+    let currentQuestions = [];
+    let currentIndex = 0;
+    let score = 0;
+
+    function shuffleArray(array) {
+        for (let i = array.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [array[i], array[j]] = [array[j], array[i]];
+        }
+    }
+
+    function initQuiz() {
+        currentQuestions = JSON.parse(JSON.stringify(rawData));
+        shuffleArray(currentQuestions);
+        currentIndex = 0;
+        score = 0;
+        document.getElementById('quiz-view').classList.remove('hidden');
+        document.getElementById('result-view').classList.add('hidden');
+        renderQuestion();
+        updateStatus();
+    }
+
+    function renderQuestion() {
+        const qData = currentQuestions[currentIndex];
+        let html = `<div class="question-text">Q${currentIndex + 1}. ${qData.q}</div>`;
+        if (qData.code) {
+            html += `<div class="code-box">${qData.code}</div>`;
+        }
+        document.getElementById('question-content').innerHTML = html;
+        
+        const optionsContainer = document.getElementById('options');
+        optionsContainer.innerHTML = '';
+        
+        let options = [...qData.a];
+        shuffleArray(options);
+
+        options.forEach(opt => {
+            const btn = document.createElement('button');
+            btn.className = 'option-btn';
+            btn.textContent = opt.text;
+            btn.onclick = () => checkAnswer(btn, opt.isCorrect, qData.a, qData.desc);
+            optionsContainer.appendChild(btn);
+        });
+
+        document.getElementById('feedback').style.display = 'none';
+        document.getElementById('next-btn').classList.add('hidden');
+    }
+
+    function checkAnswer(selectedBtn, isCorrect, allOptions, explanation) {
+        const btns = document.querySelectorAll('.option-btn');
+        btns.forEach(btn => btn.disabled = true);
+
+        if (isCorrect) {
+            selectedBtn.classList.add('correct');
+            score++;
+        } else {
+            selectedBtn.classList.add('wrong');
+            btns.forEach(btn => {
+                const correctOpt = allOptions.find(o => o.isCorrect);
+                if (btn.textContent === correctOpt.text) {
+                    btn.classList.add('correct');
+                }
+            });
+        }
+
+        document.getElementById('feedback').style.display = 'block';
+        document.getElementById('explanation').textContent = explanation;
+        document.getElementById('next-btn').classList.remove('hidden');
+        updateStatus();
+    }
+
+    function nextQuestion() {
+        currentIndex++;
+        if (currentIndex < currentQuestions.length) {
+            renderQuestion();
+            updateStatus();
+        } else {
+            showResult();
+        }
+    }
+
+    function updateStatus() {
+        document.getElementById('progress').textContent = `문제 ${currentIndex + 1} / ${currentQuestions.length}`;
+        document.getElementById('score').textContent = `현재 점수: ${Math.round(score * (100/60))}`; // 100점 만점 환산 단순화
+    }
+
+    function showResult() {
+        document.getElementById('quiz-view').classList.add('hidden');
+        document.getElementById('result-view').classList.remove('hidden');
+        
+        const finalScore = Math.round((score / currentQuestions.length) * 100);
+        document.getElementById('final-score').textContent = finalScore + '점';
+        document.getElementById('correct-count').textContent = score;
+        
+        const msg = document.getElementById('pass-fail');
+        if (finalScore >= 60) {
+            msg.textContent = "🎉 합격입니다! (60점 이상)";
+            msg.style.color = "var(--correct)";
+        } else {
+            msg.textContent = "⚠️ 불합격입니다. (60점 미만)";
+            msg.style.color = "var(--wrong)";
+        }
+    }
+
+    initQuiz();
+</script>
+
+</body>
+</html>
+
