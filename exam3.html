@@ -1,0 +1,788 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>2026 시나공 프로그래밍기능사 - 3회 모의고사</title>
+    <style>
+        :root { --primary: #2563eb; --correct: #22c55e; --wrong: #ef4444; --bg: #eff6ff; }
+        body { font-family: 'Pretendard', 'Malgun Gothic', sans-serif; background: var(--bg); color: #333; margin: 0; padding: 20px; display: flex; justify-content: center; line-height: 1.6; }
+        .container { max-width: 720px; width: 100%; background: white; border-radius: 16px; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); padding: 30px; }
+        h1 { font-size: 1.6rem; color: var(--primary); text-align: center; margin-bottom: 25px; border-bottom: 2px solid #dbeafe; padding-bottom: 15px; }
+        .status-bar { display: flex; justify-content: space-between; margin-bottom: 20px; font-weight: bold; color: #57606a; background: #f3f4f6; padding: 10px 15px; border-radius: 8px; }
+        .question-text { font-size: 1.15rem; font-weight: 700; margin-bottom: 15px; word-break: keep-all; }
+        .code-box { background: #1e293b; color: #e2e8f0; padding: 15px; border-radius: 8px; font-family: 'Consolas', monospace; font-size: 0.95rem; margin: 10px 0 20px; white-space: pre-wrap; overflow-x: auto; position: relative; line-height: 1.5; }
+        .options-grid { display: grid; gap: 10px; }
+        .option-btn { padding: 16px; border: 2px solid #e2e8f0; background: white; border-radius: 10px; cursor: pointer; text-align: left; font-size: 1rem; transition: all 0.2s; position: relative; }
+        .option-btn:hover:not(:disabled) { border-color: var(--primary); background: #eff6ff; }
+        .option-btn.correct { border-color: var(--correct); background: #dcfce7; color: #14532d; font-weight: bold; }
+        .option-btn.wrong { border-color: var(--wrong); background: #fee2e2; color: #7f1d1d; }
+        .option-btn.correct::after { content: "✅"; position: absolute; right: 15px; }
+        .option-btn.wrong::after { content: "❌"; position: absolute; right: 15px; }
+        .feedback-area { margin-top: 25px; padding: 20px; border-radius: 12px; background: #f8fafc; border: 1px solid #e2e8f0; display: none; animation: fadeIn 0.3s; }
+        .feedback-title { font-weight: bold; color: var(--primary); margin-bottom: 5px; display: block; }
+        .btn { background: var(--primary); color: white; padding: 14px 28px; border: none; border-radius: 8px; cursor: pointer; font-size: 1rem; font-weight: bold; transition: opacity 0.2s; width: 100%; margin-top: 20px; }
+        .btn:hover { opacity: 0.9; }
+        .hidden { display: none; }
+        .score-box { text-align: center; padding: 50px 20px; }
+        .score-number { font-size: 4rem; font-weight: 800; color: var(--primary); margin: 20px 0; }
+        
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        
+        @media (max-width: 600px) {
+            .container { padding: 20px; }
+            h1 { font-size: 1.3rem; }
+            .option-btn { padding: 14px; font-size: 0.95rem; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div id="quiz-view">
+        <h1>3회 최종점검 모의고사</h1>
+        <div class="status-bar">
+            <span id="progress">문제 1 / 60</span>
+            <span id="score">현재 점수: 0</span>
+        </div>
+        
+        <div class="question-box">
+            <div id="question-content"></div>
+        </div>
+        
+        <div class="options-grid" id="options"></div>
+        
+        <div class="feedback-area" id="feedback">
+            <span class="feedback-title">💡 해설 및 정답</span>
+            <div id="explanation"></div>
+            <button class="btn" id="next-btn" onclick="nextQuestion()">다음 문제 ➔</button>
+        </div>
+    </div>
+
+    <div id="result-view" class="hidden score-box">
+        <h2>시험 종료! 수고하셨습니다.</h2>
+        <div class="score-number" id="final-score">0점</div>
+        <p>총 60문제 중 <span id="correct-count" style="font-weight:bold; color:var(--primary)">0</span>개를 맞췄습니다.</p>
+        <p id="pass-fail" style="font-size: 1.2rem; font-weight: bold; margin-top: 20px;"></p>
+        <button class="btn" onclick="location.reload()">다시 풀기 (문제 섞기)</button>
+    </div>
+</div>
+
+<script>
+    const rawData = [
+        {
+            q: "다음 중 리스트를 정렬하는 메소드 sort()에 대한 설명으로 올바른 것은?",
+            a: [
+                { text: "sort()는 기본적으로 내림차순으로 정렬한다.", isCorrect: false },
+                { text: "sort(reverse=True)는 오름차순으로 정렬한다.", isCorrect: false },
+                { text: "sort()는 리스트의 순서를 역순으로 뒤집는다.", isCorrect: false },
+                { text: "sort()는 기본적으로 오름차순으로 정렬하며, reverse 속성을 통해 내림차순으로 변경할 수 있다.", isCorrect: true }
+            ],
+            desc: "sort()는 기본적으로 오름차순 정렬이며, reverse=True 옵션을 주면 내림차순이 됩니다. 역순으로 뒤집는 것은 reverse() 메소드입니다."
+        },
+        {
+            q: "다음 중 객체지향 프로그래밍 언어의 구성 요소를 설명한 것 중, 옳지 않은 것은?",
+            a: [
+                { text: "객체는 데이터(속성)와 이를 처리하는 연산(메소드)을 결합한 실체이다.", isCorrect: false },
+                { text: "클래스는 공통된 특성을 가진 객체들의 집합으로, 객체의 유형을 정의한다.", isCorrect: false },
+                { text: "속성은 객체가 메시지를 받아 실행해야 할 구체적인 연산을 정의한다.", isCorrect: true },
+                { text: "메소드는 객체의 상태를 참조하거나 변경하는 수단이 된다.", isCorrect: false }
+            ],
+            desc: "속성(Attribute)은 객체의 데이터(상태)를 의미하며, 연산을 정의하는 것은 메소드(Method)입니다."
+        },
+        {
+            q: "다음 중 클라이언트용 스크립트 언어와 서버용 스크립트 언어가 올바르게 묶인 것은?",
+            a: [
+                { text: "클라이언트용 : PHP, 파이썬", isCorrect: false },
+                { text: "클라이언트용 : 자바스크립트, VB 스크립트 / 서버용 : ASP, JSP", isCorrect: true },
+                { text: "서버용 : ASP, VB 스크립트", isCorrect: false },
+                { text: "서버용 : JSP, 자바스크립트", isCorrect: false }
+            ],
+            desc: "자바스크립트와 VB스크립트는 대표적인 클라이언트용 언어이며, ASP, JSP, PHP 등은 서버용 언어입니다."
+        },
+        {
+            q: "다음 중 JAVA의 데이터 타입과 그에 해당하는 크기 및 기억 범위가 올바르게 짝지어진 것은?",
+            a: [
+                { text: "short - 4 Byte", isCorrect: false },
+                { text: "long - 8 Byte (약 -922경 ~ 922경)", isCorrect: true },
+                { text: "float - 8 Byte", isCorrect: false },
+                { text: "double - 4 Byte", isCorrect: false }
+            ],
+            desc: "short는 2바이트, float는 4바이트, double은 8바이트입니다. long은 8바이트가 맞습니다."
+        },
+        {
+            q: "다음 중 변수명 작성 규칙에 위배되는 변수명은?",
+            a: [
+                { text: "variable_name", isCorrect: false },
+                { text: "user123", isCorrect: false },
+                { text: "class", isCorrect: true },
+                { text: "a_long_variable_name", isCorrect: false }
+            ],
+            desc: "class는 자바의 예약어(Keyword)이므로 변수명으로 사용할 수 없습니다."
+        },
+        {
+            q: "다음 JAVA 코드의 실행 결과는?",
+            code: "int a = 5;\nint b = 10;\nboolean result = (a > 3) && (b < 8);\nSystem.out.println(result);",
+            a: [
+                { text: "true", isCorrect: false },
+                { text: "false", isCorrect: true },
+                { text: "1", isCorrect: false },
+                { text: "0", isCorrect: false }
+            ],
+            desc: "(5 > 3)은 참(true), (10 < 8)은 거짓(false)입니다. true && false의 결과는 false입니다."
+        },
+        {
+            q: "JAVA에서 키보드로 입력받은 값을 정수형 변수 score에 저장하기 위한 코드로 올바른 것은? (Scanner 객체명: input)",
+            a: [
+                { text: "int score = input.nextFloat();", isCorrect: false },
+                { text: "String score = input.nextLine();", isCorrect: false },
+                { text: "int score = input.nextInt();", isCorrect: true },
+                { text: "float score = input.next();", isCorrect: false }
+            ],
+            desc: "정수를 입력받을 때는 nextInt() 메소드를 사용합니다."
+        },
+        {
+            q: "다음 JAVA 코드의 실행 결과는?",
+            code: "char grade = 'B';\nString result;\nif (grade == 'A') result = \"Excellent\";\nelse if (grade == 'B') result = \"Good\";\nelse if (grade == 'C') result = \"Pass\";\nelse result = \"Fail\";\nSystem.out.println(result);",
+            a: [
+                { text: "Excellent", isCorrect: false },
+                { text: "Good", isCorrect: true },
+                { text: "Pass", isCorrect: false },
+                { text: "Fail", isCorrect: false }
+            ],
+            desc: "grade가 'B'이므로 else if (grade == 'B') 조건이 참이 되어 \"Good\"이 출력됩니다."
+        },
+        {
+            q: "다음 중 break문과 continue문에 대한 설명으로 옳지 않은 것은?",
+            a: [
+                { text: "break문은 switch문이나 반복문을 즉시 종료한다.", isCorrect: false },
+                { text: "continue문은 남은 코드를 건너뛰고 다음 반복을 진행한다.", isCorrect: false },
+                { text: "break문은 주로 for, while 등에서 사용된다.", isCorrect: false },
+                { text: "continue문은 중첩된 루프에서는 사용할 수 없다.", isCorrect: true }
+            ],
+            desc: "continue문은 중첩된 루프 내에서도 사용 가능하며, 해당 루프의 다음 반복으로 넘어갑니다."
+        },
+        {
+            q: "다음 JAVA 코드의 실행 결과는?",
+            code: "Student s1 = new Student();\ns1.name = \"시나공\";\nStudent s2 = new Student(\"길벗\", \"AI빅데이터\");\nSystem.out.println(s1.name + \"의 전공은 \" + s2.major + \"입니다.\");",
+            a: [
+                { text: "시나공의 전공은 프로그래밍입니다.", isCorrect: false },
+                { text: "시나공의 전공은 AI빅데이터입니다.", isCorrect: true },
+                { text: "길벗의 전공은 프로그래밍입니다.", isCorrect: false },
+                { text: "길벗의 전공은 AI빅데이터입니다.", isCorrect: false }
+            ],
+            desc: "s1.name은 '시나공', s2.major는 생성자를 통해 'AI빅데이터'로 설정되었습니다. 따라서 '시나공의 전공은 AI빅데이터입니다.'가 출력됩니다."
+        },
+        {
+            q: "다음 파이썬(Python) 코드의 실행 결과는?",
+            code: "def sum_many(*args):\n    sum = 0\n    for i in args:\n        sum = sum + i\n    return sum\n\nresult = sum_many(1, 2, 3)\nprint(result)",
+            a: [
+                { text: "6", isCorrect: true },
+                { text: "3", isCorrect: false },
+                { text: "2", isCorrect: false },
+                { text: "1", isCorrect: false }
+            ],
+            desc: "1 + 2 + 3 = 6입니다. *args는 가변 인자를 받아 튜플로 처리합니다."
+        },
+        {
+            q: "다음 파이썬(Python) 코드의 실행 결과는?",
+            code: "class Calculator:\n    def __init__(self, a, b):\n        self.a = a\n        self.b = b\n    def add(self):\n        return self.a + self.b\n    def subtract(self):\n        return self.a - self.b\n\ncalc = Calculator(10, 5)\nprint(calc.add() + calc.subtract())",
+            a: [
+                { text: "5", isCorrect: false },
+                { text: "10", isCorrect: false },
+                { text: "15", isCorrect: false },
+                { text: "20", isCorrect: true }
+            ],
+            desc: "add()는 10+5=15, subtract()는 10-5=5. 두 결과의 합은 20입니다."
+        },
+        {
+            q: "다음 중 HTML 태그와 기능에 대한 설명으로 옳지 않은 것은?",
+            a: [
+                { text: "<p>: 문단을 정의하며, 닫는 태그가 필요 없다.", isCorrect: true },
+                { text: "<h1>~<h6>: 제목을 나타낸다.", isCorrect: false },
+                { text: "<br>: 줄 바꿈을 위해 사용한다.", isCorrect: false },
+                { text: "<img>: 이미지를 삽입한다.", isCorrect: false }
+            ],
+            desc: "<p> 태그는 문단을 정의하며, 원칙적으로 닫는 태그(</p>)가 필요합니다."
+        },
+        {
+            q: "다음 중 HTML 태그 설명으로 옳지 않은 것은?",
+            a: [
+                { text: "<mark>: 형광펜 효과(강조)", isCorrect: false },
+                { text: "<cite>: 웹 페이지 내비게이션 링크 정의", isCorrect: true },
+                { text: "<sub>: 아래 첨자", isCorrect: false },
+                { text: "<small>: 작은 글씨", isCorrect: false }
+            ],
+            desc: "<cite>는 작품의 제목 등을 나타낼 때 씁니다. 내비게이션 링크는 <nav> 태그입니다."
+        },
+        {
+            q: "다음 중 예외 처리(Exception Handling)에 대한 설명으로 가장 올바른 것은?",
+            a: [
+                { text: "예외는 하드웨어 문제로만 발생한다.", isCorrect: false },
+                { text: "try~catch문은 예외 처리 기능이 없는 언어에서 쓴다.", isCorrect: false },
+                { text: "예외 처리는 프로그램의 비정상 종료를 방지하고 안정성을 높인다.", isCorrect: true },
+                { text: "예외 처리 루틴은 항상 프로그램을 종료시킨다.", isCorrect: false }
+            ],
+            desc: "예외 처리는 에러 발생 시 프로그램이 멈추지 않고 적절히 대응하여 계속 실행되도록 돕습니다."
+        },
+        {
+            q: "데이터베이스 디자인 단계의 순서가 옳은 것은?",
+            a: [
+                { text: "목적 정의 -> 테이블 정의 -> 필드 정의 -> 관계 정의", isCorrect: true },
+                { text: "테이블 정의 -> 필드 정의 -> ...", isCorrect: false },
+                { text: "관계 정의 -> 테이블 정의 -> ...", isCorrect: false },
+                { text: "필드 정의 -> ...", isCorrect: false }
+            ],
+            desc: "일반적인 순서: 목적 정의 -> 필요한 테이블 파악 -> 필드 구성 -> 테이블 간 관계 설정."
+        },
+        {
+            q: "다음 중 DBMS의 장점이 아닌 것은?",
+            a: [
+                { text: "전산화 비용의 감소", isCorrect: true },
+                { text: "데이터의 일관성 유지", isCorrect: false },
+                { text: "데이터의 공유", isCorrect: false },
+                { text: "데이터의 무결성 유지", isCorrect: false }
+            ],
+            desc: "DBMS 도입 시 하드웨어 및 소프트웨어 구입 비용, 전문 인력 등으로 인해 전산화 비용이 증가할 수 있습니다."
+        },
+        {
+            q: "프로토콜의 계층 구성은 네트워크 구조에 따라 어떻게 구분하는가?",
+            a: [
+                { text: "구문 계층과 의미 계층", isCorrect: false },
+                { text: "비트 계층과 블록 계층", isCorrect: false },
+                { text: "하위 계층과 상위 계층", isCorrect: true },
+                { text: "직접 계층과 간접 계층", isCorrect: false }
+            ],
+            desc: "OSI 모델 등에서 물리/데이터링크/네트워크 등을 하위 계층, 전송/세션/표현/응용 등을 상위 계층으로 구분합니다."
+        },
+        {
+            q: "2차원적인 표(Table)를 이용하여 데이터의 상호관계를 정의하는 DB 구조는?",
+            a: [
+                { text: "객체 지향형 데이터베이스", isCorrect: false },
+                { text: "계층형 데이터베이스", isCorrect: false },
+                { text: "네트워크형 데이터베이스", isCorrect: false },
+                { text: "관계형 데이터베이스", isCorrect: true }
+            ],
+            desc: "표(Table, Relation) 구조를 사용하는 것은 관계형 데이터베이스(RDB)입니다."
+        },
+        {
+            q: "데이터베이스 설계 단계 중 저장 레코드 양식 설계, 접근 경로 설계와 관계되는 것은?",
+            a: [
+                { text: "논리적 설계", isCorrect: false },
+                { text: "요구 조건 분석", isCorrect: false },
+                { text: "개념적 설계", isCorrect: false },
+                { text: "물리적 설계", isCorrect: true }
+            ],
+            desc: "저장 장치에 어떻게 저장할지(레코드 형식, 인덱스, 접근 경로 등)를 다루는 것은 물리적 설계입니다."
+        },
+        {
+            q: "양방향에서 입/출력이 가능한 선형 자료 구조로, 양쪽 끝에서 삽입과 삭제가 가능한 것은?",
+            a: [
+                { text: "Stack", isCorrect: false },
+                { text: "Queue", isCorrect: false },
+                { text: "Deque (데크)", isCorrect: true },
+                { text: "Tree", isCorrect: false }
+            ],
+            desc: "Deque(Double Ended Queue)는 양쪽 끝에서 삽입/삭제가 모두 가능합니다."
+        },
+        {
+            q: "TCP 프로토콜과 관련한 설명으로 틀린 것은?",
+            a: [
+                { text: "인접한 노드 사이의 프레임 전송 및 오류를 제어한다.", isCorrect: true },
+                { text: "흐름 제어 기능을 수행한다.", isCorrect: false },
+                { text: "전이중 방식의 가상회선을 제공한다.", isCorrect: false },
+                { text: "전송 데이터와 응답 데이터를 함께 전송할 수 있다.", isCorrect: false }
+            ],
+            desc: "인접 노드 간 프레임 전송 및 오류 제어는 데이터 링크 계층의 역할입니다. TCP는 종단 간(End-to-End) 전송을 담당합니다."
+        },
+        {
+            q: "IPv6의 주소는 몇 비트로 이루어져 있나?",
+            a: [
+                { text: "16비트", isCorrect: false },
+                { text: "32비트", isCorrect: false },
+                { text: "64비트", isCorrect: false },
+                { text: "128비트", isCorrect: true }
+            ],
+            desc: "IPv4는 32비트, IPv6는 128비트입니다."
+        },
+        {
+            q: "분할 정복(Divide and Conquer) 기반, 피봇(Pivot)을 사용하는 정렬 알고리즘은?",
+            a: [
+                { text: "Selection Sort", isCorrect: false },
+                { text: "Insertion Sort", isCorrect: false },
+                { text: "Bubble Sort", isCorrect: false },
+                { text: "Quick Sort", isCorrect: true }
+            ],
+            desc: "피봇을 기준으로 리스트를 분할하여 정렬하는 방식은 퀵 정렬(Quick Sort)입니다."
+        },
+        {
+            q: "다음 트리를 후위 순회(Postorder)한 결과는?\n(루트 A, 왼쪽자식 B, 오른쪽자식 C. B의 자식 D. C의 자식 E,F. E의 자식 G,H)",
+            a: [
+                { text: "A B D C E F", isCorrect: false },
+                { text: "D B A E C F", isCorrect: false },
+                { text: "A B C D E F", isCorrect: false },
+                { text: "D B G H E F C A", isCorrect: true }
+            ],
+            desc: "후위 순회: 왼쪽 -> 오른쪽 -> 루트. (D->B) -> ((G->H->E)->F->C) -> A. 결과: DBGHEFCA."
+        },
+        {
+            q: "송신측에서 정보의 정확한 전송을 위해 데이터 앞뒤에 헤더와 트레일러를 첨가하는 과정은?",
+            a: [
+                { text: "정보의 캡슐화 (Encapsulation)", isCorrect: true },
+                { text: "연결 제어", isCorrect: false },
+                { text: "정보의 분할", isCorrect: false },
+                { text: "정보의 분석", isCorrect: false }
+            ],
+            desc: "상위 계층의 데이터에 제어 정보를 붙여 하위 계층으로 내리는 과정을 캡슐화라고 합니다."
+        },
+        {
+            q: "OSI 7계층 중 송수신측 간의 논리적 연결 통로를 만들고 패킷 전달을 검사하는 계층은?",
+            a: [
+                { text: "물리 계층", isCorrect: false },
+                { text: "전송 계층 (Transport Layer)", isCorrect: true },
+                { text: "데이터 링크 계층", isCorrect: false },
+                { text: "표현 계층", isCorrect: false }
+            ],
+            desc: "종단 간 신뢰성 있는 전송을 담당하는 계층은 전송 계층입니다."
+        },
+        {
+            q: "관계 데이터 모델의 릴레이션에 관한 설명으로 옳은 것은?",
+            a: [
+                { text: "릴레이션의 각 행을 스키마라 한다.", isCorrect: false },
+                { text: "릴레이션의 각 열을 튜플이라 한다.", isCorrect: false },
+                { text: "도메인은 속성이 가질 수 있는 원자값들의 집합이다.", isCorrect: true },
+                { text: "속성은 릴레이션의 이름을 의미한다.", isCorrect: false }
+            ],
+            desc: "행=튜플, 열=속성, 스키마=구조 정의입니다. 도메인은 하나의 속성이 취할 수 있는 값의 범위(집합)입니다."
+        },
+        {
+            q: "트랜잭션의 특성(ACID)을 모두 나열한 것은?",
+            a: [
+                { text: "Atomicity, Durability, Transparency, Portability", isCorrect: false },
+                { text: "Atomicity, Consistency, Isolation, Durability", isCorrect: true },
+                { text: "Consistency, Isolation, Transparency, Portability", isCorrect: false },
+                { text: "Atomicity, Durability, Consistency, Portability", isCorrect: false }
+            ],
+            desc: "트랜잭션의 4가지 특징: 원자성(Atomicity), 일관성(Consistency), 격리성(Isolation), 영속성(Durability)."
+        },
+        {
+            q: "데이터베이스 키(Key)에 대한 설명으로 옳지 않은 것은?",
+            a: [
+                { text: "후보키는 유일성과 최소성을 만족한다.", isCorrect: false },
+                { text: "슈퍼키는 유일성은 만족하나 최소성은 만족하지 않을 수 있다.", isCorrect: false },
+                { text: "외래키는 다른 테이블의 기본키를 참조한다.", isCorrect: false },
+                { text: "대체키는 슈퍼키 중에서 기본키를 제외한 것이다.", isCorrect: true }
+            ],
+            desc: "대체키는 '후보키' 중에서 기본키로 선택되지 않은 나머지 키들을 말합니다."
+        },
+        {
+            q: "특정 필드의 검색 결과를 순서대로 출력(정렬)하기 위한 SQL절은?",
+            a: [
+                { text: "GROUP BY", isCorrect: false },
+                { text: "HAVING", isCorrect: false },
+                { text: "ORDER BY", isCorrect: true },
+                { text: "SELECT", isCorrect: false }
+            ],
+            desc: "정렬은 ORDER BY 절을 사용합니다."
+        },
+        {
+            q: "두 테이블(상반기, 하반기)의 레코드를 통합하여 중복 없이 하나로 합치려 할 때 사용하는 연산은?",
+            a: [
+                { text: "JOIN", isCorrect: false },
+                { text: "WHERE", isCorrect: false },
+                { text: "OR", isCorrect: false },
+                { text: "UNION", isCorrect: true }
+            ],
+            desc: "UNION 연산자는 두 쿼리의 결과를 합치며 중복된 행은 제거합니다."
+        },
+        {
+            q: "다음 SQL문의 실행 결과는?\n(도서: 자료구조 책번호=222)\n(도서가격: 222번 가격=25,000)\nSELECT 가격 FROM 도서가격 WHERE 책번호 = (SELECT 책번호 FROM 도서 WHERE 책명 = '자료구조');",
+            a: [
+                { text: "10,000", isCorrect: false },
+                { text: "15,000", isCorrect: false },
+                { text: "20,000", isCorrect: false },
+                { text: "25,000", isCorrect: true }
+            ],
+            desc: "서브쿼리 결과(222)를 이용해 메인 쿼리에서 가격을 조회하면 25,000이 됩니다."
+        },
+        {
+            q: "다음 SELECT문의 괄호에 들어갈 알맞은 예약어는?\nSELECT 학과명 ( ) 학생 WHERE 총점 > 80;",
+            a: [
+                { text: "GROUP BY", isCorrect: false },
+                { text: "FROM", isCorrect: true },
+                { text: "ORDER BY", isCorrect: false },
+                { text: "OPTION", isCorrect: false }
+            ],
+            desc: "SELECT [컬럼] FROM [테이블] 형식입니다."
+        },
+        {
+            q: "다음 SQL 명령문의 의미는?\nDROP TABLE 학과 CASCADE;",
+            a: [
+                { text: "학과 테이블만 제거하라.", isCorrect: false },
+                { text: "학과 필드를 제거하라.", isCorrect: false },
+                { text: "학과 테이블과 이를 참조하는 다른 테이블도 함께 제거하라.", isCorrect: true },
+                { text: "참조 중이면 제거하지 마라.", isCorrect: false }
+            ],
+            desc: "CASCADE 옵션은 해당 객체와 연관된(참조하는) 다른 객체들도 연쇄적으로 삭제합니다."
+        },
+        {
+            q: "트랜잭션 실패 시 수행 결과를 원래 상태로 복귀시키는 연산은?",
+            a: [
+                { text: "COMMIT", isCorrect: false },
+                { text: "BACKUP", isCorrect: false },
+                { text: "LOG", isCorrect: false },
+                { text: "ROLLBACK", isCorrect: true }
+            ],
+            desc: "작업 취소 및 복구는 ROLLBACK입니다."
+        },
+        {
+            q: "SQL문에서 SELECT에 대한 설명으로 옳지 않은 것은?",
+            a: [
+                { text: "FROM절에는 테이블명을 기술한다.", isCorrect: false },
+                { text: "중복 제거를 위해 WHERE절에 DISTINCT를 쓴다.", isCorrect: true },
+                { text: "HAVING절은 그룹에 대한 조건을 지정한다.", isCorrect: false },
+                { text: "ORDER BY는 정렬에 사용된다.", isCorrect: false }
+            ],
+            desc: "DISTINCT는 WHERE절이 아니라 SELECT 바로 뒤(속성 앞)에 위치합니다. (예: SELECT DISTINCT 학과...)"
+        },
+        {
+            q: "SQL문의 형식 중 옳지 않은 것은?",
+            a: [
+                { text: "INSERT INTO ~ VALUES", isCorrect: false },
+                { text: "UPDATE ~ SET ~ WHERE", isCorrect: false },
+                { text: "DELETE ~ SET ~ WHERE", isCorrect: true },
+                { text: "SELECT ~ FROM ~ WHERE", isCorrect: false }
+            ],
+            desc: "DELETE 문은 'DELETE FROM 테이블 WHERE 조건' 형식을 가지며 SET 절을 사용하지 않습니다."
+        },
+        {
+            q: "테이블을 생성한 후 필드 수정을 위해 사용하는 SQL 명령어는?",
+            a: [
+                { text: "DROP", isCorrect: false },
+                { text: "CREATE", isCorrect: false },
+                { text: "ALTER", isCorrect: true },
+                { text: "UPDATE", isCorrect: false }
+            ],
+            desc: "테이블 구조(스키마) 변경은 ALTER 명령어를 사용합니다. (UPDATE는 데이터 값 변경)"
+        },
+        {
+            q: "판매 테이블에서 품명이 '카메라'인 항목을 삭제하는 SQL문은?",
+            a: [
+                { text: "DELETE FROM 판매 WHERE 품명 = '카메라';", isCorrect: true },
+                { text: "DELETE FROM 품명 = '카메라' ...", isCorrect: false },
+                { text: "DELETE SET 판매 ...", isCorrect: false },
+                { text: "DELETE SET 품명 ...", isCorrect: false }
+            ],
+            desc: "삭제 구문: DELETE FROM [테이블] WHERE [조건]"
+        },
+        {
+            q: "BETWEEN 90 AND 95 와 동일한 의미의 조건식은?",
+            a: [
+                { text: "점수 >= 90 AND 점수 <= 95", isCorrect: true },
+                { text: "점수 > 90 AND 점수 < 95", isCorrect: false },
+                { text: "점수 > 90 AND 점수 <= 95", isCorrect: false },
+                { text: "점수 >= 90 AND 점수 < 95", isCorrect: false }
+            ],
+            desc: "BETWEEN A AND B는 A 이상 B 이하(양쪽 끝값 포함)를 의미합니다."
+        },
+        {
+            q: "기본 테이블에 있는 튜플의 내용을 변경(수정)할 때 사용하는 명령어는?",
+            a: [
+                { text: "UPDATE", isCorrect: true },
+                { text: "DELETE", isCorrect: false },
+                { text: "INSERT", isCorrect: false },
+                { text: "SELECT", isCorrect: false }
+            ],
+            desc: "데이터 값의 수정은 UPDATE 명령어를 사용합니다."
+        },
+        {
+            q: "학생 테이블(독어과 50, 중어과 30, 영문과 50)에서 다음 SQL 실행 결과 튜플 수는?\n1. SELECT DEPT FROM STUDENT;\n2. SELECT DISTINCT DEPT FROM STUDENT;",
+            a: [
+                { text: "103, 3", isCorrect: false },
+                { text: "130, 3", isCorrect: true },
+                { text: "130, 130", isCorrect: false },
+                { text: "250, 3", isCorrect: false }
+            ],
+            desc: "1번은 전체 행 개수(50+30+50=130), 2번은 중복 제거한 학과 수(3개)입니다."
+        },
+        {
+            q: "SQL 명령의 성격이 나머지 셋과 다른 것은?",
+            a: [
+                { text: "CREATE", isCorrect: false },
+                { text: "ALTER", isCorrect: false },
+                { text: "DROP", isCorrect: false },
+                { text: "INSERT", isCorrect: true }
+            ],
+            desc: "CREATE, ALTER, DROP은 정의어(DDL)이고, INSERT는 조작어(DML)입니다."
+        },
+        {
+            q: "데이터 제어어(DCL)에 대한 설명으로 옳은 것은?",
+            a: [
+                { text: "ROLLBACK: 데이터 보안 정의", isCorrect: false },
+                { text: "COMMIT: 권한 취소", isCorrect: false },
+                { text: "GRANT: 사용 권한 부여", isCorrect: true },
+                { text: "REVOKE: 비정상 종료 시 복구", isCorrect: false }
+            ],
+            desc: "GRANT는 권한 부여, REVOKE는 권한 회수, COMMIT/ROLLBACK은 트랜잭션 제어입니다."
+        },
+        {
+            q: "CPU에 의해 처리되는 실행중인 프로그램을 의미하는 것은?",
+            a: [
+                { text: "인터럽트", isCorrect: false },
+                { text: "프로세스 (Process)", isCorrect: true },
+                { text: "버퍼", isCorrect: false },
+                { text: "커널", isCorrect: false }
+            ],
+            desc: "실행 중인 프로그램의 인스턴스를 프로세스라고 합니다."
+        },
+        {
+            q: "단위 테스트(Unit Test)에 대한 설명으로 옳은 것은?",
+            a: [
+                { text: "사용자 요구사항 충족 확인", isCorrect: false },
+                { text: "개별 모듈이 정확하게 구현되었는지 점검", isCorrect: true },
+                { text: "전체 시스템에서의 수행 점검", isCorrect: false },
+                { text: "모듈 간 결합 과정 테스트", isCorrect: false }
+            ],
+            desc: "단위 테스트는 소프트웨어의 최소 단위인 모듈(함수 등)을 개별적으로 검사하는 것입니다."
+        },
+        {
+            q: "프로세스 스케줄링에 대한 설명으로 옳은 것은?",
+            a: [
+                { text: "SRT는 가장 긴 실행 시간을 요구하는 프로세스 우선", isCorrect: false },
+                { text: "우선순위 기법은 가장 낮은 프로세스 우선", isCorrect: false },
+                { text: "FIFO는 가장 나중에 온 프로세스 우선", isCorrect: false },
+                { text: "다단계 피드백 큐는 큐 사이를 이동할 수 있다.", isCorrect: true }
+            ],
+            desc: "다단계 피드백 큐는 프로세스가 다른 큐로 이동할 수 있어 유연한 스케줄링이 가능합니다."
+        },
+        {
+            q: "복구 목표 시간(RTO)이 가장 짧은(즉시 복구) 방식은?",
+            a: [
+                { text: "콜드 사이트", isCorrect: false },
+                { text: "웜 사이트", isCorrect: false },
+                { text: "핫 사이트", isCorrect: false },
+                { text: "미러 사이트", isCorrect: true }
+            ],
+            desc: "미러 사이트는 실시간으로 데이터를 복제하므로 장애 발생 시 즉시(거의 0에 가까운 시간) 복구가 가능합니다."
+        },
+        {
+            q: "UNIX에서 앞의 명령 실행 결과를 뒤의 명령 입력으로 전달하는 기능(기호 |)은?",
+            a: [
+                { text: "pipe", isCorrect: true },
+                { text: "more", isCorrect: false },
+                { text: "filter", isCorrect: false },
+                { text: "link", isCorrect: false }
+            ],
+            desc: "파이프(|)는 프로세스 간 통신을 위해 출력과 입력을 연결해줍니다."
+        },
+        {
+            q: "도스(MS-DOS)에서 내부 명령어에 해당하지 않는 것은?",
+            a: [
+                { text: "DEL", isCorrect: false },
+                { text: "DIR", isCorrect: false },
+                { text: "XCOPY", isCorrect: true },
+                { text: "COPY", isCorrect: false }
+            ],
+            desc: "XCOPY는 외부 명령어(별도의 실행 파일 필요)입니다."
+        },
+        {
+            q: "소프트웨어 개발 영역 결정 요소 중 '하드웨어/소프트웨어 연결', '절차' 등과 관계있는 것은?",
+            a: [
+                { text: "기능", isCorrect: false },
+                { text: "성능", isCorrect: false },
+                { text: "제약조건", isCorrect: false },
+                { text: "인터페이스", isCorrect: true }
+            ],
+            desc: "시스템 간의 연결, 상호작용 방법 등을 정의하는 것은 인터페이스입니다."
+        },
+        {
+            q: "DOS에서 디렉터리 내의 파일 및 하위 디렉터리까지 모두 삭제하는 명령은?",
+            a: [
+                { text: "DEL", isCorrect: false },
+                { text: "RD", isCorrect: false },
+                { text: "MD", isCorrect: false },
+                { text: "DELTREE", isCorrect: true }
+            ],
+            desc: "DELTREE는 트리 구조(하위 폴더 포함)를 통째로 삭제하는 명령어입니다."
+        },
+        {
+            q: "프로그램 처리 과정: 컴파일러 -> ( A ) -> ( B ) -> 실행. A, B는?",
+            a: [
+                { text: "링킹(Linking) -> 로딩(Loading)", isCorrect: true },
+                { text: "로딩 -> 링킹", isCorrect: false },
+                { text: "링킹 -> 어셈블링", isCorrect: false },
+                { text: "어셈블링 -> 링킹", isCorrect: false }
+            ],
+            desc: "컴파일된 목적 코드를 링커가 연결(Linking)하고, 로더가 메모리에 적재(Loading)합니다."
+        },
+        {
+            q: "클라우드 백업의 특징으로 옳지 않은 것은?",
+            a: [
+                { text: "초기 투자 비용이 적다.", isCorrect: false },
+                { text: "인터넷을 통해 백업한다.", isCorrect: false },
+                { text: "모든 기업 환경에서 제약 없이 사용할 수 있다.", isCorrect: true },
+                { text: "데이터를 안정적으로 관리한다.", isCorrect: false }
+            ],
+            desc: "보안이 중요한 기업이나 인터넷 대역폭이 낮은 환경에서는 사용에 제약이 있을 수 있습니다."
+        },
+        {
+            q: "지속적인 통합(CI)의 주요 목적은?",
+            a: [
+                { text: "버그 리포트 자동 기록", isCorrect: false },
+                { text: "코드를 자주 통합하고 자동 빌드/테스트하여 오류 조기 발견", isCorrect: true },
+                { text: "운영 환경 즉시 배포", isCorrect: false },
+                { text: "서비스 분할 운영", isCorrect: false }
+            ],
+            desc: "CI는 개발자들의 코드를 빈번하게 통합하여 통합 시 발생하는 문제를 줄이는 데 목적이 있습니다."
+        },
+        {
+            q: "화이트박스 테스트의 유형이 아닌 것은?",
+            a: [
+                { text: "기초 경로 검사", isCorrect: false },
+                { text: "경계값 분석", isCorrect: true },
+                { text: "데이터 흐름 검사", isCorrect: false },
+                { text: "루프 검사", isCorrect: false }
+            ],
+            desc: "경계값 분석은 입력값의 경계를 테스트하는 블랙박스 테스트 기법입니다."
+        },
+        {
+            q: "사용자 입장의 확인 = ( A ), 개발자 입장의 검증 = ( B ).",
+            a: [
+                { text: "A: Validation, B: Verification", isCorrect: true },
+                { text: "A: Verification, B: Validation", isCorrect: false },
+                { text: "A: Alpha, B: Beta", isCorrect: false },
+                { text: "A: Beta, B: Alpha", isCorrect: false }
+            ],
+            desc: "Validation(확인)은 '올바른 제품을 만들고 있는가?(사용자 니즈)', Verification(검증)은 '제품을 올바르게 만들고 있는가?(명세 준수)'를 뜻합니다."
+        },
+        {
+            q: "UNIX 시스템의 쉘(Shell)의 종류로 옳지 않은 것은?",
+            a: [
+                { text: "System Shell", isCorrect: true },
+                { text: "Bourne Shell", isCorrect: false },
+                { text: "C Shell", isCorrect: false },
+                { text: "Korn Shell", isCorrect: false }
+            ],
+            desc: "System Shell이라는 고유 명칭의 쉘은 일반적인 분류에 포함되지 않습니다. (Bourne, C, Korn, Bash 등이 대표적)"
+        },
+        {
+            q: "운영체제(OS)에 대한 설명으로 틀린 것은?",
+            a: [
+                { text: "컴퓨터와 사용자 간 중재자 역할", isCorrect: false },
+                { text: "자원 관리 역할", isCorrect: false },
+                { text: "모든 소프트웨어는 각자 자신만의 OS를 따로 가져야 한다.", isCorrect: true },
+                { text: "인터페이스 제공", isCorrect: false }
+            ],
+            desc: "운영체제는 하나의 시스템 소프트웨어로서, 그 위에서 여러 응용 프로그램이 실행되는 구조입니다."
+        }
+    ];
+
+    let currentQuestions = [];
+    let currentIndex = 0;
+    let score = 0;
+
+    function shuffleArray(array) {
+        for (let i = array.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [array[i], array[j]] = [array[j], array[i]];
+        }
+    }
+
+    function initQuiz() {
+        currentQuestions = JSON.parse(JSON.stringify(rawData));
+        shuffleArray(currentQuestions);
+        currentIndex = 0;
+        score = 0;
+        document.getElementById('quiz-view').classList.remove('hidden');
+        document.getElementById('result-view').classList.add('hidden');
+        renderQuestion();
+        updateStatus();
+    }
+
+    function renderQuestion() {
+        const qData = currentQuestions[currentIndex];
+        let html = `<div class="question-text">Q${currentIndex + 1}. ${qData.q}</div>`;
+        if (qData.code) {
+            html += `<div class="code-box">${qData.code}</div>`;
+        }
+        document.getElementById('question-content').innerHTML = html;
+        
+        const optionsContainer = document.getElementById('options');
+        optionsContainer.innerHTML = '';
+        
+        let options = [...qData.a];
+        shuffleArray(options);
+
+        options.forEach(opt => {
+            const btn = document.createElement('button');
+            btn.className = 'option-btn';
+            btn.textContent = opt.text;
+            btn.onclick = () => checkAnswer(btn, opt.isCorrect, qData.a, qData.desc);
+            optionsContainer.appendChild(btn);
+        });
+
+        document.getElementById('feedback').style.display = 'none';
+        document.getElementById('next-btn').classList.add('hidden');
+    }
+
+    function checkAnswer(selectedBtn, isCorrect, allOptions, explanation) {
+        const btns = document.querySelectorAll('.option-btn');
+        btns.forEach(btn => btn.disabled = true);
+
+        if (isCorrect) {
+            selectedBtn.classList.add('correct');
+            score++;
+        } else {
+            selectedBtn.classList.add('wrong');
+            btns.forEach(btn => {
+                const correctOpt = allOptions.find(o => o.isCorrect);
+                if (btn.textContent === correctOpt.text) {
+                    btn.classList.add('correct');
+                }
+            });
+        }
+
+        document.getElementById('feedback').style.display = 'block';
+        document.getElementById('explanation').textContent = explanation;
+        document.getElementById('next-btn').classList.remove('hidden');
+        updateStatus();
+    }
+
+    function nextQuestion() {
+        currentIndex++;
+        if (currentIndex < currentQuestions.length) {
+            renderQuestion();
+            updateStatus();
+        } else {
+            showResult();
+        }
+    }
+
+    function updateStatus() {
+        document.getElementById('progress').textContent = `문제 ${currentIndex + 1} / ${currentQuestions.length}`;
+        document.getElementById('score').textContent = `현재 점수: ${score * 1.6 > 100 ? 100 : Math.round(score * (100/60))}`;
+    }
+
+    function showResult() {
+        document.getElementById('quiz-view').classList.add('hidden');
+        document.getElementById('result-view').classList.remove('hidden');
+        
+        const finalScore = Math.round((score / currentQuestions.length) * 100);
+        document.getElementById('final-score').textContent = finalScore + '점';
+        document.getElementById('correct-count').textContent = score;
+        
+        const msg = document.getElementById('pass-fail');
+        if (finalScore >= 60) {
+            msg.textContent = "🎉 합격입니다! (60점 이상)";
+            msg.style.color = "var(--correct)";
+        } else {
+            msg.textContent = "⚠️ 불합격입니다. (60점 미만)";
+            msg.style.color = "var(--wrong)";
+        }
+    }
+
+    initQuiz();
+</script>
+
+</body>
+</html>
