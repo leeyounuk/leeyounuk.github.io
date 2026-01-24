@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>2026년 1회 정보처리기능사 필기 복원 퀴즈</title>
+    <style>
+        body { font-family: 'Pretendard', 'Malgun Gothic', sans-serif; background-color: #f4f6f8; margin: 0; padding: 20px; line-height: 1.6; }
+        .container { max-width: 800px; margin: 0 auto; background: white; padding: 30px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        h1 { text-align: center; color: #333; margin-bottom: 30px; border-bottom: 2px solid #eee; padding-bottom: 20px; }
+        .quiz-item { margin-bottom: 40px; border-bottom: 1px dashed #ddd; padding-bottom: 30px; }
+        .question { font-size: 1.1em; font-weight: bold; margin-bottom: 15px; color: #2c3e50; }
+        .code-box { background-color: #282c34; color: #abb2bf; padding: 15px; border-radius: 5px; font-family: 'Courier New', monospace; font-size: 0.9em; margin-bottom: 15px; overflow-x: auto; white-space: pre-wrap; }
+        .options { display: flex; flex-direction: column; gap: 10px; }
+        .option-btn { padding: 12px; border: 2px solid #e0e0e0; background: white; border-radius: 8px; cursor: pointer; text-align: left; transition: all 0.2s; font-size: 1em; }
+        .option-btn:hover { background-color: #f9f9f9; border-color: #ccc; }
+        
+        /* 정답/오답 스타일 */
+        .option-btn.correct { background-color: #d4edda; border-color: #28a745; color: #155724; font-weight: bold; }
+        .option-btn.wrong { background-color: #f8d7da; border-color: #dc3545; color: #721c24; }
+        .option-btn.disabled { pointer-events: none; opacity: 0.8; }
+
+        .explanation { display: none; margin-top: 15px; padding: 15px; background-color: #e7f3ff; border-left: 5px solid #007bff; border-radius: 4px; color: #004085; }
+        .status-bar { text-align: right; margin-bottom: 20px; font-weight: bold; color: #666; }
+        .refresh-btn { display: block; width: 100%; padding: 15px; background-color: #007bff; color: white; border: none; border-radius: 8px; font-size: 1.1em; cursor: pointer; margin-top: 30px; font-weight: bold; }
+        .refresh-btn:hover { background-color: #0056b3; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>📝 2026년 1회 정보처리기능사 복원 퀴즈</h1>
+    <div class="status-bar" id="score-board">문제 로딩 중...</div>
+    <div id="quiz-container"></div>
+    <button class="refresh-btn" onclick="location.reload()">🔄 문제 다시 섞어서 풀기 (새로고침)</button>
+</div>
+
+<script>
+    // 복원된 문제 데이터 (이미지 기반 재구성)
+    const quizData = [
+        {
+            id: 1,
+            type: "code",
+            question: "[Python] 다음 코드의 실행 결과로 올바른 것은?",
+            code: `print("123", "456", sep="*", end="!")\nprint("789")`,
+            options: ["123*456!789", "123 456!789", "123*456\n!789", "123456!789"],
+            answer: "123*456!789",
+            explanation: "sep='*'은 값 사이에 *을 넣으라는 의미이고, end='!'는 출력 끝에 줄바꿈 대신 !를 넣으라는 의미입니다. 따라서 123*456이 출력된 후 !가 붙고, 바로 뒤에 789가 붙습니다."
+        },
+        {
+            id: 2,
+            type: "code",
+            question: "[Python] 다음 리스트 순회 및 match-case문의 실행 결과는?",
+            code: `my_list = ['1', 2, '3']\n\nfor i in my_list:\n  match i:\n    case '1':\n      print(1, end='')\n    case 2:\n      print(2, end='')\n    case '3':\n      print(3, end='')\n    case _:\n      print('E', end='')`,
+            options: ["123", "12E", "E23", "1E3"],
+            answer: "123",
+            explanation: "리스트 요소는 문자열 '1', 정수 2, 문자열 '3'입니다. \n- 첫 번째 '1'은 case '1'에 매칭 -> 1 출력\n- 두 번째 2는 case 2에 매칭 -> 2 출력\n- 세 번째 '3'은 case '3'에 매칭 -> 3 출력\n따라서 123이 출력됩니다."
+        },
+        {
+            id: 3,
+            type: "text",
+            question: "[SQL] 다음 중 데이터 제어어(DCL)에 해당하는 명령어는?",
+            options: ["GRANT", "SELECT", "DELETE", "DROP"],
+            answer: "GRANT",
+            explanation: "DCL(Data Control Language)은 데이터의 보안, 무결성, 회복, 병행 제어 등을 정의하는 언어로 GRANT(권한 부여)와 REVOKE(권한 회수)가 있습니다. SELECT, DELETE는 DML, DROP은 DDL입니다."
+        },
+        {
+            id: 4,
+            type: "text",
+            question: "[OS] 페이지 교체 알고리즘 중, 가장 오랫동안 사용되지 않은(Least Recently Used) 페이지를 교체하는 기법은?",
+            options: ["LRU", "FIFO", "LFU", "NUR"],
+            answer: "LRU",
+            explanation: "LRU(Least Recently Used)는 최근에 가장 오랫동안 사용하지 않은 페이지를 교체하는 기법입니다. FIFO는 가장 먼저 들어온 것, LFU는 사용 빈도가 가장 낮은 것을 교체합니다."
+        },
+        {
+            id: 5,
+            type: "text",
+            question: "[Linux] 리눅스에서 현재 작업 중인 디렉터리의 절대 경로를 출력하는 명령어는?",
+            options: ["pwd", "ls", "cd", "mkdir"],
+            answer: "pwd",
+            explanation: "pwd(print working directory)는 현재 디렉터리의 경로를 보여주는 명령어입니다."
+        },
+        {
+            id: 6,
+            type: "text",
+            question: "[Network] 다음 중 신뢰성 있는 연결형 서비스를 제공하며, 패킷의 순서 제어와 에러 제어 기능을 수행하는 전송 계층 프로토콜은?",
+            options: ["TCP", "UDP", "IP", "ICMP"],
+            answer: "TCP",
+            explanation: "TCP는 연결형 서비스로 신뢰성을 보장합니다. 반면 UDP는 비연결형으로 속도는 빠르지만 신뢰성은 낮습니다."
+        },
+        {
+            id: 7,
+            type: "text",
+            question: "[DB] 릴레이션에서 튜플(Tuple)의 유일성은 만족하지만, 최소성을 만족하지 못하는 키는?",
+            options: ["슈퍼키", "후보키", "기본키", "외래키"],
+            answer: "슈퍼키",
+            explanation: "슈퍼키(Super Key)는 유일성은 만족하지만, 속성 집합이 필요 이상으로 많아질 수 있어 최소성은 만족하지 못하는 키를 말합니다."
+        },
+        {
+            id: 8,
+            type: "code",
+            question: "[Java] 다음 Java 코드의 실행 결과로 올바른 것은?",
+            code: `class Parent { \n  void show() { System.out.print("P"); } \n}\nclass Child extends Parent {\n  @Override\n  void show() { System.out.print("C"); }\n}\npublic class Main {\n  public static void main(String[] args) {\n    Parent obj = new Child();\n    obj.show();\n  }\n}`,
+            options: ["C", "P", "PC", "CP"],
+            answer: "C",
+            explanation: "부모 타입(Parent)의 변수 obj에 자식 인스턴스(Child)를 생성하여 할당했습니다. 메서드가 오버라이딩된 경우, 실제 인스턴스인 자식 클래스의 메서드(C)가 실행됩니다(다형성)."
+        },
+        {
+            id: 9,
+            type: "text",
+            question: "[HTML] HTML에서 공백(Space)을 나타내는 특수 문자로 올바른 것은?",
+            options: ["&nbsp;", "&lt;", "&gt;", "&amp;"],
+            answer: "&nbsp;",
+            explanation: "&nbsp;는 Non-Breaking Space의 약자로 공백을 의미합니다. &lt;는 <, &gt;는 >입니다."
+        },
+        {
+            id: 10,
+            type: "text",
+            question: "[DB] SQL에서 DROP TABLE 명령 사용 시, 해당 테이블을 참조하는 다른 테이블의 제약조건까지 모두 삭제하는 옵션은?",
+            options: ["CASCADE", "RESTRICT", "DISTINCT", "UNIQUE"],
+            answer: "CASCADE",
+            explanation: "CASCADE 옵션을 사용하면 삭제할 요소를 참조하는 다른 모든 개체도 함께 삭제됩니다. RESTRICT는 참조 중이면 삭제를 거부합니다."
+        },
+        {
+            id: 11,
+            type: "code",
+            question: "[Python] 다음 예외 처리 코드의 실행 결과는?",
+            code: `try:\n  print("A", end="")\n  # 에러 발생 없음 가정\nexcept:\n  print("B", end="")\nfinally:\n  print("C", end="")`,
+            options: ["AC", "ABC", "A", "C"],
+            answer: "AC",
+            explanation: "에러가 발생하지 않으면 try 블록('A')이 실행되고 except는 건너뜁니다. finally 블록('C')은 예외 발생 여부와 상관없이 무조건 마지막에 실행되므로 'AC'가 출력됩니다."
+        },
+        {
+            id: 12,
+            type: "text",
+            question: "[Network] HTTP 프로토콜이 기본적으로 사용하는 포트 번호는?",
+            options: ["80", "21", "23", "443"],
+            answer: "80",
+            explanation: "HTTP는 80번, HTTPS는 443번, FTP는 21번, Telnet은 23번 포트를 사용합니다."
+        },
+        {
+            id: 13,
+            type: "text",
+            question: "[DB] 두 개의 SELECT 결과 집합을 합치되, 중복되는 행을 제거하는 집합 연산자는?",
+            options: ["UNION", "UNION ALL", "INTERSECT", "MINUS"],
+            answer: "UNION",
+            explanation: "UNION은 두 결과를 합치면서 중복을 제거합니다. UNION ALL은 중복을 포함하여 합칩니다."
+        },
+        {
+            id: 14,
+            type: "text",
+            question: "[OS] 리눅스에서 파일이나 디렉터리의 권한(Permission)을 변경하는 명령어는?",
+            options: ["chmod", "chown", "cat", "cp"],
+            answer: "chmod",
+            explanation: "chmod(change mode)는 파일의 권한을 변경합니다. chown은 소유자를 변경합니다."
+        },
+        {
+            id: 15,
+            type: "text",
+            question: "[Test] 애플리케이션 테스트 중, 사용자가 직접 제품의 통제된 환경이나 실제 환경에서 수행하는 테스트(베타 테스트 등)는?",
+            options: ["인수 테스트", "단위 테스트", "통합 테스트", "시스템 테스트"],
+            answer: "인수 테스트",
+            explanation: "인수 테스트(Acceptance Test)는 사용자의 요구사항을 충족하는지 확인하는 단계로, 알파 테스트와 베타 테스트가 여기에 포함됩니다."
+        }
+    ];
+
+    // 배열 섞기 함수 (Fisher-Yates Shuffle)
+    function shuffleArray(array) {
+        for (let i = array.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [array[i], array[j]] = [array[j], array[i]];
+        }
+        return array;
+    }
+
+    const quizContainer = document.getElementById('quiz-container');
+
+    // 퀴즈 초기화 및 렌더링
+    function initQuiz() {
+        // 1. 문제 순서 섞기
+        const shuffledQuestions = shuffleArray([...quizData]);
+        
+        // 2. HTML 생성
+        quizContainer.innerHTML = '';
+        shuffledQuestions.forEach((item, index) => {
+            // 선지 섞기
+            let shuffledOptions = [...item.options];
+            shuffleArray(shuffledOptions);
+
+            const quizItem = document.createElement('div');
+            quizItem.className = 'quiz-item';
+            
+            let codeBlock = '';
+            if(item.type === 'code') {
+                codeBlock = `<div class="code-box">${item.code}</div>`;
+            }
+
+            // 선지 버튼 생성
+            let optionsHtml = '';
+            shuffledOptions.forEach(opt => {
+                optionsHtml += `<button class="option-btn" onclick="checkAnswer(this, '${item.answer}', 'expl-${index}')">${opt}</button>`;
+            });
+
+            quizItem.innerHTML = `
+                <div class="question">Q${index + 1}. ${item.question}</div>
+                ${codeBlock}
+                <div class="options">
+                    ${optionsHtml}
+                </div>
+                <div id="expl-${index}" class="explanation">
+                    <strong>💡 정답: ${item.answer}</strong><br>
+                    ${item.explanation}
+                </div>
+            `;
+            quizContainer.appendChild(quizItem);
+        });
+        
+        document.getElementById('score-board').innerText = `총 ${quizData.length}문제`;
+    }
+
+    // 정답 체크 함수
+    function checkAnswer(btn, correctAnswer, explId) {
+        const parent = btn.parentElement;
+        const allBtns = parent.querySelectorAll('.option-btn');
+        const explBox = document.getElementById(explId);
+
+        // 이미 클릭한 경우 중단
+        if(parent.classList.contains('answered')) return;
+        parent.classList.add('answered');
+
+        // 모든 버튼 비활성화 및 정답 표시
+        allBtns.forEach(b => {
+            b.classList.add('disabled');
+            if(b.innerText === correctAnswer) {
+                b.classList.add('correct');
+            }
+        });
+
+        // 사용자가 클릭한 것이 정답인지 확인
+        if(btn.innerText === correctAnswer) {
+            // 정답 (이미 위에서 초록색 처리됨)
+        } else {
+            btn.classList.add('wrong'); // 오답 빨간색
+        }
+
+        // 해설 보이기
+        explBox.style.display = 'block';
+    }
+
+    // 실행
+    initQuiz();
+</script>
+
+</body>
+</html>
